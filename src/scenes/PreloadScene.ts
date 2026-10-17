@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import { ASSETS, animKey } from '../assets/manifest';
+import { ASSETS, LEVELS, animKey } from '../assets/manifest';
 
-/** Loads every asset in the manifest and registers each sheet's default animation. */
+/** Loads every asset and level map in the manifest and registers each sheet's default animation. */
 export class PreloadScene extends Phaser.Scene {
   constructor() {
     super('Preload');
@@ -18,6 +18,7 @@ export class PreloadScene extends Phaser.Scene {
         this.load.image(asset.key, asset.path);
       }
     }
+    for (const level of LEVELS) this.load.tilemapTiledJSON(level.key, level.path);
   }
 
   create(): void {

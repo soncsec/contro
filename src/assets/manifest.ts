@@ -89,3 +89,20 @@ export const ASSETS: readonly Asset[] = [
 
 /** Key of a sheet's default animation. */
 export const animKey = (sheetKey: string): string => `${sheetKey}:anim`;
+
+/** A Tiled level map and the image key of each tileset it embeds. */
+export interface LevelAsset {
+  key: string;
+  /** Path under public/, e.g. assets/levels/corridor-test.tmj */
+  path: string;
+  /** Tileset name inside the map → image key in ASSETS. */
+  tilesets: Readonly<Record<string, string>>;
+}
+
+export const LEVELS: readonly LevelAsset[] = [
+  {
+    key: 'corridor-test',
+    path: 'assets/levels/corridor-test.tmj',
+    tilesets: { corridor: 'corridor-tileset' },
+  },
+];
