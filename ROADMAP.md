@@ -8,8 +8,8 @@
 | Milestone | Status |
 |---|---|
 | M0 Setup | Done except M0.4 (Tiled install) |
-| M1 Walking skeleton (to production) | In progress |
-| M2 Core feel | Not started |
+| M1 Walking skeleton (to production) | Done: live at games.soncrant.com/contro/ |
+| M2 Core feel | In progress |
 | M3 Level 1 Industrial (vertical slice) | Not started |
 | M4 Level 2 Cyberpunk Corridor | Not started |
 | M5 Level 3 Alien Hive | Not started |
@@ -57,7 +57,7 @@
 - [x] M1.7 Exit trigger → portrait dialogue card (data file) → second room. Cards in `src/data/dialogue.ts` (placeholder lines for the owner to edit), room order in `src/data/campaign.ts`; room 2 leads back to room 1 for now
 - [x] M1.8 Playwright in Chromium and Firefox: boots with no console or CSP errors and no third-party requests; preview scene; run and jump with real keys; alien takes 3 hits; exit reaches room 2
 - [x] M1.9 Release scripts adapted for `contro`; release tests. Copied from Star Destroyer (with its one-slot identity check); `release.sh status` reached the server
-- [ ] M1.10 First production release; smoke test and ZAP against production — *owner gave standing approval 2026-10-17 to release each playable increment*
+- [x] M1.10 First production release; smoke test and ZAP against production — *owner gave standing approval 2026-10-17 to release each playable increment*. Released `20261017T220809Z-0dc57861` (commit 0dc5786) 2026-10-17: smoke test passed with all security headers; no console errors or third-party requests in Chromium and Firefox. Staging ZAP: 0 high. Production ZAP from outside runs with Contro's own `Production check` workflow (added here)
 
 **Acceptance criteria:** the owner plays it on production and staging; CI green; Playwright passes in both browsers; no high-severity ZAP findings; rollback rehearsed.
 
