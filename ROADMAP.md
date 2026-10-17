@@ -55,9 +55,9 @@
 - [x] M1.5 Forward shooting with pooled bullets, muzzle flash and wall impacts. Hold to fire every 160 ms, tap for up to every 90 ms, 8 bullets at most; bullets start at the barrel tip measured per animation frame; muzzle flash cut from the shoot frames (derived art)
 - [x] M1.6 Walking alien: patrol, takes 3 hits, death effect. Patrols 48 px either side of its spawn with 0.4 s turns, flashes white when hit, explodes on death. Stats in `src/data/enemies.ts`; touching the player does no damage yet (health comes in M2.1)
 - [x] M1.7 Exit trigger → portrait dialogue card (data file) → second room. Cards in `src/data/dialogue.ts` (placeholder lines for the owner to edit), room order in `src/data/campaign.ts`; room 2 leads back to room 1 for now
-- [ ] M1.8 Playwright in Chromium and Firefox: boots with no console or CSP errors and no third-party requests; preview scene; run and jump with real keys; alien takes 3 hits; exit reaches room 2
-- [ ] M1.9 Release scripts adapted for `contro`; release tests
-- [ ] M1.10 First production release; smoke test and ZAP against production — *needs approval*
+- [x] M1.8 Playwright in Chromium and Firefox: boots with no console or CSP errors and no third-party requests; preview scene; run and jump with real keys; alien takes 3 hits; exit reaches room 2
+- [x] M1.9 Release scripts adapted for `contro`; release tests. Copied from Star Destroyer (with its one-slot identity check); `release.sh status` reached the server
+- [ ] M1.10 First production release; smoke test and ZAP against production — *owner gave standing approval 2026-10-17 to release each playable increment*
 
 **Acceptance criteria:** the owner plays it on production and staging; CI green; Playwright passes in both browsers; no high-severity ZAP findings; rollback rehearsed.
 
