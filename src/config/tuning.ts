@@ -93,3 +93,8 @@ export const MUZZLE: Readonly<
 
 /** Where the barrel tip sits inside the 22×16 muzzle-flash frame. */
 export const MUZZLE_FLASH_ANCHOR = { x: 6, y: 7 } as const;
+
+/** Enemies flash white for this long when hit (M1.6). */
+export const HIT_FLASH_MS = 70;
+/** Damage of one default-rifle bullet. */
+export const RIFLE_DAMAGE = 1;
