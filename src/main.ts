@@ -5,6 +5,7 @@ import { integerZoom } from './logic/scaling';
 import { AssetPreviewScene } from './scenes/AssetPreviewScene';
 import { DialogueScene } from './scenes/DialogueScene';
 import { LevelScene } from './scenes/LevelScene';
+import { PauseScene } from './scenes/PauseScene';
 import { PreloadScene } from './scenes/PreloadScene';
 
 const zoomForWindow = (): number =>
@@ -23,11 +24,12 @@ export const game = new Phaser.Game({
     mode: Phaser.Scale.NONE,
     zoom: zoomForWindow(),
   },
+  input: { gamepad: true },
   physics: {
     default: 'arcade',
     arcade: { debug: false },
   },
-  scene: [PreloadScene, LevelScene, DialogueScene, AssetPreviewScene],
+  scene: [PreloadScene, LevelScene, PauseScene, DialogueScene, AssetPreviewScene],
 });
 
 window.addEventListener('resize', () => {
