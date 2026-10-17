@@ -66,7 +66,7 @@
 **Demonstrable result:** a 60-second test segment the owner judges fun to play with keyboard or gamepad.
 
 - [x] M2.1 Health bar, damage, invulnerability flashes, lives, checkpoints and respawn (logic unit tested). 4 hits per life, 3 lives, 1.5 s blinking invulnerability with knockback, checkpoint objects in the maps, game over restarts the level (proper screens in M3.4)
-- [ ] M2.2 Crouch and crouch-shoot; derived diagonal-up aim frame (`tools/art/`) and aiming
+- [x] M2.2 Crouch and crouch-shoot; derived diagonal-up aim frame (`tools/art/`) and aiming. Down crouches (stops, can turn, 10 px shorter, shoots 9 px lower); up aims 45° standing, running and jumping. Derived sheets by `tools/art/aim.py` (arms and rifle rotated about the chest), barrel tips generated alongside
 - [ ] M2.3 Gamepad support (standard mapping); pause menu
 - [ ] M2.4 One-way platforms, pits and falling death
 - [ ] M2.5 Flying alien with dive attack; enemy projectiles

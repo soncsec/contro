@@ -70,15 +70,25 @@ describe('stepWeapon', () => {
 });
 
 describe('bulletOutOfView', () => {
+  const view = { x: 0, y: 0, width: 320, height: 176 };
+
   it('keeps bullets inside the view plus margin', () => {
-    expect(bulletOutOfView(100, 0, 320, 16)).toBe(false);
-    expect(bulletOutOfView(336, 0, 320, 16)).toBe(false);
-    expect(bulletOutOfView(-16, 0, 320, 16)).toBe(false);
+    expect(bulletOutOfView(100, 100, view, 16)).toBe(false);
+    expect(bulletOutOfView(336, 100, view, 16)).toBe(false);
+    expect(bulletOutOfView(-16, -16, view, 16)).toBe(false);
+    expect(bulletOutOfView(100, 192, view, 16)).toBe(false);
   });
 
-  it('removes bullets past the margin on either side', () => {
-    expect(bulletOutOfView(337, 0, 320, 16)).toBe(true);
-    expect(bulletOutOfView(483, 480, 320, 16)).toBe(false);
-    expect(bulletOutOfView(463, 480, 320, 16)).toBe(true);
+  it('removes bullets past the margin on any side', () => {
+    expect(bulletOutOfView(337, 100, view, 16)).toBe(true);
+    expect(bulletOutOfView(-17, 100, view, 16)).toBe(true);
+    expect(bulletOutOfView(100, -17, view, 16)).toBe(true);
+    expect(bulletOutOfView(100, 193, view, 16)).toBe(true);
+  });
+
+  it('follows the camera', () => {
+    const scrolled = { ...view, x: 480 };
+    expect(bulletOutOfView(483, 100, scrolled, 16)).toBe(false);
+    expect(bulletOutOfView(463, 100, scrolled, 16)).toBe(true);
   });
 });

@@ -75,6 +75,7 @@ flowchart LR
 
 - **Decision:** each animation, including each aim pose, is one entry in `src/assets/manifest.ts` (key, file, frame size, frame count, frame rate, loop, muzzle offset), as in Star Destroyer. Sprite sheets stay as individual PNGs; no packed atlas.
 - **Derived art:** frames Claude creates (for example the diagonal-up marine) are produced by a script in `tools/art/` from the original legacy files, so they can be regenerated and reviewed. The output PNG is committed and credited as derived from the original.
+- **Diagonal aim (M2.2):** `tools/art/aim.py` cuts the arms and rifle out of each frame (in front of the torso, 5 rows above to 4 below the barrel), rotates them 45° up about a point in front of the chest using a RotSprite-style method, and pastes them back. The new barrel tips are written to `src/assets/aimMuzzles.generated.ts`, so bullets always leave the drawn barrel. Better art can replace the sheets later without code changes.
 - **Tradeoffs:** a few more HTTP requests than an atlas; acceptable for about 100 small files. Swapping in better aim art is a manifest change.
 
 ### ADR-C05: Screen size and scaling — *Accepted; 320×176 confirmed in M1.2*

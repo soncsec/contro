@@ -16,7 +16,8 @@ Read `PROJECT.md` (scope), `ARCHITECTURE.md` (decisions), and `ROADMAP.md` (curr
 - `legacy/` (the art pack) is read-only. It links to the shared `~/dev/games/_assets/legacy/`. Copy what you need into `public/assets/`.
 - Changes another repo needs (for example, Contro's portal card) go through a PR or issue on that repo, worked in a separate clone, never in that repo's local folder.
 - On the production server, this game may only write to `/var/www/html/soncrant.com/pub/games/contro` and `/srv/games-releases/contro/`.
-- Local ports: dev **5174**, preview **4175**, Playwright **4176**.
+- Local ports: dev **5174**, preview **4175**, Playwright **4176**. Ad-hoc servers (e.g. for screenshots) use **4177**, never Playwright's port.
+- Stop only processes you started, by PID or port, never by name (no `pkill -f "vite preview"` or similar): other game sessions share this machine.
 
 ## Always ask the owner before
 

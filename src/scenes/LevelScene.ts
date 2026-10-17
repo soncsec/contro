@@ -37,7 +37,13 @@ export interface LevelSnapshot {
   widthPx: number;
   player: PlayerSnapshot;
   cameraX: number;
-  bullets: { active: number; fired: number; impacts: number };
+  bullets: {
+    active: number;
+    fired: number;
+    firedDiagonal: number;
+    impacts: number;
+    lastShot: { x: number; y: number; aim: string } | null;
+  };
   enemies: EnemySnapshot[];
   /** True once the player has reached the exit and the room is fading out. */
   exiting: boolean;
@@ -255,7 +261,13 @@ export class LevelScene extends Phaser.Scene {
       bullets: {
         active: this.bullets.active,
         fired: this.bullets.fired,
+        firedDiagonal: this.bullets.firedDiagonal,
         impacts: this.bullets.impacts,
+        lastShot: this.bullets.lastShot && {
+          x: Math.round(this.bullets.lastShot.x),
+          y: Math.round(this.bullets.lastShot.y),
+          aim: this.bullets.lastShot.aim,
+        },
       },
       enemies: this.enemies.snapshot(),
       exiting: this.exiting,

@@ -32,12 +32,17 @@ export function stepWeapon(
   return { state: { sinceShotMs: fired ? 0 : since }, fired };
 }
 
-/** True once a bullet at x is more than `margin` outside the camera view. */
+/** True once a bullet at (x, y) is more than `margin` outside the camera view. */
 export function bulletOutOfView(
   x: number,
-  viewLeft: number,
-  viewWidth: number,
+  y: number,
+  view: { x: number; y: number; width: number; height: number },
   margin: number,
 ): boolean {
-  return x < viewLeft - margin || x > viewLeft + viewWidth + margin;
+  return (
+    x < view.x - margin ||
+    x > view.x + view.width + margin ||
+    y < view.y - margin ||
+    y > view.y + view.height + margin
+  );
 }
