@@ -7,7 +7,7 @@
 
 | Milestone | Status |
 |---|---|
-| M0 Setup | In progress |
+| M0 Setup | Done except M0.4 (Tiled install) |
 | M1 Walking skeleton (to production) | Not started |
 | M2 Core feel | Not started |
 | M3 Level 1 Industrial (vertical slice) | Not started |
@@ -36,11 +36,11 @@
 
 - [x] M0.1 Discovery and plan; owner approved 2026-10-17
 - [x] M0.2 `git init` with `.gitignore` excluding `legacy/`; approved docs as the first commit; create `soncsec/contro` (public)
-- [ ] M0.3 Branch protection on `main` matching Star Destroyer (PR required, admins included, no force pushes or deletions, conversation resolution, strict required checks once they have run); secret scanning with push protection and Dependabot alerts on. Direct push to `main` verified rejected 2026-10-17; required checks are added after M0.6's first run
+- [x] M0.3 Branch protection on `main` matching Star Destroyer (PR required, admins included, no force pushes or deletions, conversation resolution, strict required checks once they have run); secret scanning with push protection and Dependabot alerts on. Direct push to `main` verified rejected 2026-10-17; required checks (Repo checks, Build and test, CodeQL analysis, CodeQL; strict) added after M0.6's first run
 - [ ] M0.4 Owner installs Tiled (`sudo apt install tiled`)
 - [x] M0.5 Scaffold copied from Star Destroyer: Vite + TypeScript + Phaser 4.2.1 on port 5174, Prettier, ESLint, Vitest, seeded RNG with tests, a boot scene; `TEMPLATE-NOTES.md`
-- [ ] M0.6 CI: repo checks and gitleaks, build and test (format, lint, typecheck, coverage, build, `npm audit`), CodeQL, Dependabot; staging deploy to GitHub Pages plus ZAP on `main`
-- [ ] M0.7 PR to `soncsec/games-portal` adding the Contro card (`coming-soon`) with a card image — *owner merges*
+- [x] M0.6 CI: repo checks and gitleaks, build and test (format, lint, typecheck, coverage, build, `npm audit`), CodeQL, Dependabot; staging deploy to GitHub Pages plus ZAP on `main`. Staging live at https://soncsec.github.io/contro/; first ZAP run 2026-10-17: 0 high, 5 medium, 5 low, all response headers GitHub Pages can't set (Apache sets them in production)
+- [x] M0.7 PR to `soncsec/games-portal` adding the Contro card (`coming-soon`) with a card image — games-portal PR #10, merged 2026-10-17
 
 **Acceptance criteria:** a direct push to `main` is rejected; a PR shows green CI; staging shows the boot screen; `legacy/` is not in the repo; the portal PR is open.
 
