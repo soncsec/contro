@@ -65,13 +65,13 @@
 
 **Demonstrable result:** a 60-second test segment the owner judges fun to play with keyboard or gamepad.
 
-- [ ] M2.1 Health bar, damage, invulnerability flashes, lives, checkpoints and respawn (logic unit tested)
+- [x] M2.1 Health bar, damage, invulnerability flashes, lives, checkpoints and respawn (logic unit tested). 4 hits per life, 3 lives, 1.5 s blinking invulnerability with knockback, checkpoint objects in the maps, game over restarts the level (proper screens in M3.4)
 - [ ] M2.2 Crouch and crouch-shoot; derived diagonal-up aim frame (`tools/art/`) and aiming
 - [ ] M2.3 Gamepad support (standard mapping); pause menu
 - [ ] M2.4 One-way platforms, pits and falling death
 - [ ] M2.5 Flying alien with dive attack; enemy projectiles
 - [ ] M2.6 Movement tuning pass with the owner (jump arc, speed, fire rate)
-- [ ] M2.7 Playwright: take damage, die, respawn at checkpoint
+- [x] M2.7 Playwright: take damage, die, respawn at checkpoint (done with M2.1: `tests/e2e/health.spec.ts`)
 
 **Acceptance criteria:** the owner signs off on feel; logic coverage at least 80%; works with keyboard and a gamepad in both browsers.
 

@@ -50,6 +50,7 @@ function sampleMap(): Record<string, unknown> {
             y: 160,
             properties: [{ name: 'enemy', value: 'alien-walker' }],
           },
+          { type: 'checkpoint', point: true, x: 32, y: 160 },
           { type: 'exit', x: 48, y: 96, width: 16, height: 64 },
         ],
       },
@@ -183,6 +184,7 @@ describe('validateLevelMap', () => {
       },
       { type: 'exit', point: true, x: 48, y: 96 },
       { type: 'coin', point: true, x: 1, y: 1 },
+      { type: 'checkpoint', x: 20, y: 100, width: 8, height: 8 },
     ];
     expect(validateLevelMap(bad, ENEMY_TYPES)).toEqual([
       'spawns need exactly one "player-start"',
@@ -193,6 +195,7 @@ describe('validateLevelMap', () => {
       'spawn 4: unknown enemy type "dragon"',
       'spawn 5: exit must be a rectangle',
       'spawn 6: unknown spawn type "coin"',
+      'spawn 7: checkpoint must be a point',
     ]);
 
     const noExit = sampleMap();
@@ -209,6 +212,7 @@ describe('readLevelLayout', () => {
       background: 'corridor-back',
       colliders: [{ type: 'solid', x: 0, y: 160, width: 64, height: 16 }],
       playerStart: { x: 8, y: 160 },
+      checkpoints: [{ x: 32, y: 160 }],
       enemies: [{ x: 40, y: 160, enemy: 'alien-walker' }],
       exit: { x: 48, y: 96, width: 16, height: 64 },
     });

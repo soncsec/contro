@@ -109,3 +109,27 @@ export const DIALOGUE_CARD = {
   maxLineChars: 34,
   maxLines: 2,
 } as const;
+
+/**
+ * Player health, lives and respawning (M2.1; PROJECT.md: health bar + checkpoints).
+ * Tuned with the owner in M2.6.
+ */
+export const HEALTH = {
+  /** Hits per life (the health bar's pips). */
+  maxHp: 4,
+  /** Lives at the start of a level, including the current one. */
+  lives: 3,
+  /** After a hit the marine can't be hurt for this long, and blinks. */
+  invulnerableMs: 1500,
+  /** Blink rate while invulnerable. */
+  blinkMs: 80,
+  /** A hit knocks the marine back and up a little. */
+  knockbackX: 120,
+  knockbackY: -160,
+  /** Controls are ignored for this long after a hit, so the knockback reads. */
+  hitStunMs: 250,
+  /** Time between dying and respawning (the die animation plays first). */
+  respawnDelayMs: 1200,
+  /** "GAME OVER" shows this long before the level restarts. */
+  gameOverMs: 2500,
+} as const;

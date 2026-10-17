@@ -4,7 +4,8 @@
 Usage: python3 tools/levels/render_map.py <map.tmj> <out.png> [--scale N]
 
 Draws: the map's background image (repeated), the tile layers, collision rectangles
-(solid = red outline, platform = yellow), and spawns (player = green, enemy = orange, exit = cyan).
+(solid = red outline, platform = yellow), and spawns (player = green, enemy = orange,
+exit = cyan, checkpoint = white).
 """
 import argparse
 import json
@@ -15,7 +16,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "art"))
 import png  # noqa: E402
 
 COLORS = {"solid": (255, 60, 60, 255), "platform": (255, 220, 0, 255), "player-start": (60, 255, 90, 255),
-          "enemy": (255, 150, 0, 255), "exit": (0, 230, 255, 255)}
+          "enemy": (255, 150, 0, 255), "exit": (0, 230, 255, 255),
+          "checkpoint": (255, 255, 255, 255)}
 BACKGROUNDS = {"corridor-back": "corridor/back.png"}
 
 

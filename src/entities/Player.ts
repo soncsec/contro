@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { animKey } from '../assets/manifest';
 import {
+  HEALTH,
   MOVEMENT,
   MUZZLE,
   MUZZLE_FLASH_ANCHOR,
@@ -17,6 +18,15 @@ import {
   type MovementState,
   type PlayerAnim,
 } from '../logic/movement';
+import {
+  initialHealth,
+  stepHealth,
+  takeHit,
+  visibleWhileInvulnerable,
+  type HealthState,
+  type HitResult,
+  type StepEvent,
+} from '../logic/health';
 import { initialWeapon, stepWeapon, type WeaponState } from '../logic/weapon';
 
 const ANIM_SHEETS: Readonly<Record<PlayerAnim, string>> = {
@@ -33,7 +43,18 @@ export interface PlayerSnapshot {
   vy: number;
   onFloor: boolean;
   facing: 'left' | 'right';
-  anim: PlayerAnim;
+  anim: PlayerAnim | 'die';
+  hp: number;
+  lives: number;
+  invulnerable: boolean;
+  dead: boolean;
+}
+
+/** What happened to the player this frame. */
+export interface PlayerUpdate {
+  shot: Shot | null;
+  /** 'respawn' or 'game-over' once the respawn delay after a death has passed. */
+  event: StepEvent;
 }
 
 /** Where a shot starts and which way it goes. */
@@ -52,7 +73,8 @@ export class Player {
   private readonly flash: Phaser.GameObjects.Sprite;
   private movement: MovementState = initialMovement();
   private weapon: WeaponState = initialWeapon();
-  private anim: PlayerAnim = 'idle';
+  private anim: PlayerAnim | 'die' = 'idle';
+  private health: HealthState = initialHealth(HEALTH);
 
   constructor(scene: Phaser.Scene, x: number, feetY: number) {
     this.sprite = scene.physics.add.sprite(
@@ -69,8 +91,53 @@ export class Player {
     this.flash.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => this.flash.setVisible(false));
   }
 
-  /** Moves the marine for this frame. Returns the shot fired this frame, if any. */
-  update(dtMs: number, input: ActionFrame): Shot | null {
+  /** Moves the marine for this frame: health timers, movement, shooting, animation. */
+  update(dtMs: number, input: ActionFrame): PlayerUpdate {
+    const step = stepHealth(this.health, dtMs, HEALTH);
+    this.health = step.state;
+    this.sprite.setVisible(visibleWhileInvulnerable(this.health.invulnerableMs, HEALTH.blinkMs));
+    if (this.health.deadMs !== null) {
+      this.sprite.body.setVelocityX(0);
+      return { shot: null, event: step.event };
+    }
+    // Right after a hit the knockback plays out and controls are ignored.
+    if (this.health.stunMs > 0) return { shot: null, event: step.event };
+    return { shot: this.control(dtMs, input), event: step.event };
+  }
+
+  /** Takes a hit from something at sourceX: loses health, is knocked away, or dies. */
+  hurt(damage: number, sourceX: number): HitResult {
+    const r = takeHit(this.health, damage, HEALTH);
+    this.health = r.state;
+    if (r.result === 'ignored') return r.result;
+    this.flash.setVisible(false);
+    if (r.result === 'died') {
+      this.sprite.body.setVelocity(0, Math.min(this.sprite.body.velocity.y, 0));
+      this.anim = 'die';
+      this.sprite.play(animKey('marine-die'));
+      return r.result;
+    }
+    const away = this.sprite.body.center.x < sourceX ? -1 : 1;
+    this.sprite.body.setVelocity(away * HEALTH.knockbackX, HEALTH.knockbackY);
+    return r.result;
+  }
+
+  /** Puts the marine back at a respawn point (feet at y), standing and facing right. */
+  respawn(x: number, feetY: number): void {
+    this.movement = initialMovement();
+    this.weapon = initialWeapon();
+    this.face('right');
+    this.sprite.body.reset(x, spriteYForFeet(feetY, PLAYER_FRAME.height, PLAYER_BODY));
+    this.anim = 'idle';
+    this.sprite.play(animKey(ANIM_SHEETS.idle));
+  }
+
+  get dead(): boolean {
+    return this.health.deadMs !== null;
+  }
+
+  /** Movement and shooting from the player's input. Returns the shot fired, if any. */
+  private control(dtMs: number, input: ActionFrame): Shot | null {
     const { held, pressed } = input;
     const body = this.sprite.body;
     const result = stepMovement(
@@ -96,7 +163,7 @@ export class Player {
       this.sprite.play(animKey(ANIM_SHEETS[anim]));
     }
 
-    const muzzle = this.muzzle();
+    const muzzle = this.muzzle(anim);
     if (this.flash.visible) this.placeFlash(muzzle);
     if (!weapon.fired) return null;
     // The shoot pose has its flash drawn in; on the move, show the separate flash.
@@ -122,12 +189,16 @@ export class Player {
       onFloor: body.blocked.down,
       facing: this.movement.facing,
       anim: this.anim,
+      hp: this.health.hp,
+      lives: this.health.lives,
+      invulnerable: this.health.invulnerableMs > 0,
+      dead: this.dead,
     };
   }
 
   /** Barrel tip of the current animation frame, in world pixels. */
-  private muzzle(): { x: number; y: number } {
-    const frames = MUZZLE[this.anim];
+  private muzzle(anim: PlayerAnim): { x: number; y: number } {
+    const frames = MUZZLE[anim];
     const index = Math.max(0, (this.sprite.anims.currentFrame?.index ?? 1) - 1);
     const point = frames[Math.min(index, frames.length - 1)] ?? frames[0] ?? [0, 0];
     return framePointToWorld(this.sprite.x, this.sprite.y, PLAYER_FRAME, point, this.flipped());
