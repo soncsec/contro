@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
 import { LEVELS } from '../assets/manifest';
-import { GAME_WIDTH, GRAVITY_Y, PARALLAX_BACK_FACTOR } from '../config/tuning';
-import { ENEMY_TYPES } from '../data/enemies';
+import { GAME_WIDTH, GRAVITY_Y, PARALLAX_BACK_FACTOR, RIFLE_DAMAGE } from '../config/tuning';
+import { ENEMIES, ENEMY_TYPES } from '../data/enemies';
 import { Bullets } from '../entities/Bullets';
 import { Effects } from '../entities/Effects';
+import { Enemies, type EnemySnapshot } from '../entities/Enemies';
 import { Player, type PlayerSnapshot } from '../entities/Player';
 import { DEFAULT_KEY_BINDINGS } from '../logic/input';
 import { readLevelLayout, type LevelLayout } from '../logic/levelMap';
@@ -25,6 +26,7 @@ export interface LevelSnapshot {
   player: PlayerSnapshot;
   cameraX: number;
   bullets: { active: number; fired: number; impacts: number };
+  enemies: EnemySnapshot[];
 }
 
 const DEFAULT_LEVEL = 'corridor-test';
@@ -40,6 +42,7 @@ export class LevelScene extends Phaser.Scene {
   private keyboard!: KeyboardInput;
   private bullets!: Bullets;
   private effects!: Effects;
+  private enemies!: Enemies;
   private elapsedMs = 0;
   private back: Phaser.GameObjects.TileSprite | null = null;
 
@@ -105,6 +108,17 @@ export class LevelScene extends Phaser.Scene {
       this.bullets.hit(bullet as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody);
     });
 
+    this.enemies = new Enemies(this, this.layout.enemies, (type, x, y) => {
+      this.effects.play(ENEMIES[type].deathEffect, x, y);
+    });
+    this.physics.add.collider(this.enemies.group, solids);
+    this.physics.add.overlap(this.bullets.group, this.enemies.group, (bullet, enemy) => {
+      const tip = this.bullets.absorb(bullet as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody);
+      if (!tip) return;
+      this.enemies.damage(enemy as Phaser.GameObjects.GameObject, RIFLE_DAMAGE);
+      this.effects.play('hit', tip.x, tip.y, tip.direction < 0);
+    });
+
     this.cameras.main.setBounds(0, 0, widthPx, heightPx);
     this.cameras.main.startFollow(this.player.sprite, true);
   }
@@ -114,6 +128,7 @@ export class LevelScene extends Phaser.Scene {
     const shot = this.player.update(deltaMs, this.keyboard.frame());
     if (shot) this.bullets.fire(shot);
     this.bullets.update();
+    this.enemies.update(deltaMs);
     if (this.back) this.back.tilePositionX = this.cameras.main.scrollX * PARALLAX_BACK_FACTOR;
   }
 
@@ -134,6 +149,7 @@ export class LevelScene extends Phaser.Scene {
         fired: this.bullets.fired,
         impacts: this.bullets.impacts,
       },
+      enemies: this.enemies.snapshot(),
     };
   }
 }

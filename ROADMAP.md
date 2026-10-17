@@ -53,7 +53,7 @@
 - [x] M1.3 Level scene: tile map, collisions, parallax background, camera follow, whole-number scaling. The marine's physics box (16×34) is measured from the art and mirrored when facing left (`src/logic/body.ts`); the placeholder Boot scene is gone
 - [x] M1.4 Input layer (keyboard) and player movement: run, jump, gravity, coyote time (logic unit tested). Also jump buffering and short hops. Default keys: arrows or WASD to move, Space/Z/K jump, X/J fire, Esc/P pause (owner to review in play-tests)
 - [x] M1.5 Forward shooting with pooled bullets, muzzle flash and wall impacts. Hold to fire every 160 ms, tap for up to every 90 ms, 8 bullets at most; bullets start at the barrel tip measured per animation frame; muzzle flash cut from the shoot frames (derived art)
-- [ ] M1.6 Walking alien: patrol, takes 3 hits, death effect
+- [x] M1.6 Walking alien: patrol, takes 3 hits, death effect. Patrols 48 px either side of its spawn with 0.4 s turns, flashes white when hit, explodes on death. Stats in `src/data/enemies.ts`; touching the player does no damage yet (health comes in M2.1)
 - [ ] M1.7 Exit trigger → portrait dialogue card (data file) → second room
 - [ ] M1.8 Playwright in Chromium and Firefox: boots with no console or CSP errors and no third-party requests; preview scene; run and jump with real keys; alien takes 3 hits; exit reaches room 2
 - [ ] M1.9 Release scripts adapted for `contro`; release tests

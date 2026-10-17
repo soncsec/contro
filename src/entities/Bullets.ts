@@ -65,6 +65,18 @@ export class Bullets {
     this.release(bullet);
   }
 
+  /**
+   * Bullet hit an enemy: recycle it with no wall impact.
+   * Returns the bullet's leading edge (where the hit effect goes), or null if it was spent.
+   */
+  absorb(bullet: Bullet): { x: number; y: number; direction: -1 | 1 } | null {
+    if (!bullet.active) return null;
+    const direction = bullet.getData('direction') as -1 | 1;
+    const tip = { x: bullet.x + (direction * bullet.width) / 2, y: bullet.y, direction };
+    this.release(bullet);
+    return tip;
+  }
+
   /** Removes bullets that have left the camera view. */
   update(): void {
     const view = this.scene.cameras.main.worldView;
