@@ -10,3 +10,21 @@ Part of the Soncrant Arcade at `games.soncrant.com/contro/`.
 - Development rules: [CLAUDE.md](CLAUDE.md)
 
 Art: Ansimuz Legacy Collection (CC0). See CREDITS.md once assets are added.
+
+## Play
+
+- Production: http://games.soncrant.com/contro/
+- Staging (every merge to `main`): https://soncsec.github.io/contro/
+
+Keys: arrows or WASD to move, Space/Z/K to jump, X/J to fire.
+
+## Release
+
+```
+scripts/release.sh deploy [--dry-run]   # needs main checked out and every CI check (incl. ZAP) passed
+scripts/release.sh rollback             # back to the previous release
+scripts/release.sh status               # list releases on the server
+gh workflow run "Production check" -R soncsec/contro   # smoke test + ZAP from outside the network
+```
+
+Server settings live in the git-ignored `deploy/server.env` (see `deploy/server.env.example`).
