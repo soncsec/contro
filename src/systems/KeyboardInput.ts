@@ -32,6 +32,11 @@ export class KeyboardInput {
     });
   }
 
+  /** Forget held keys (they may have been released while this scene was paused). */
+  clear(): void {
+    this.latch.clear();
+  }
+
   /** The actions for this frame. Call once per frame. */
   frame(): ActionFrame {
     return this.latch.frame(this.bindings);

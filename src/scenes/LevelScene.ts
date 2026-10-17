@@ -18,9 +18,9 @@ import { Hud } from '../entities/Hud';
 import { Player, type PlayerSnapshot } from '../entities/Player';
 import { afterExit } from '../logic/campaign';
 import { respawnPoint } from '../logic/health';
-import { DEFAULT_KEY_BINDINGS, type ActionFrame } from '../logic/input';
+import { NO_ACTIONS, type ActionFrame } from '../logic/input';
 import { readLevelLayout, type LevelLayout } from '../logic/levelMap';
-import { KeyboardInput } from '../systems/KeyboardInput';
+import { PlayerInput } from '../systems/PlayerInput';
 
 export interface LevelSceneData {
   level?: string;
@@ -55,17 +55,8 @@ export interface LevelSnapshot {
 
 const DEFAULT_LEVEL = 'corridor-test';
 
-const NOTHING = {
-  left: false,
-  right: false,
-  up: false,
-  down: false,
-  jump: false,
-  fire: false,
-  pause: false,
-};
 /** Input used while the level fades out after the exit: the marine stops. */
-const NO_INPUT: ActionFrame = { held: NOTHING, pressed: NOTHING };
+const NO_INPUT: ActionFrame = { held: NO_ACTIONS, pressed: NO_ACTIONS };
 
 /**
  * Plays one level: the Tiled map, its collision rectangles, a parallax background,
@@ -75,7 +66,7 @@ export class LevelScene extends Phaser.Scene {
   private levelKey = DEFAULT_LEVEL;
   private layout!: LevelLayout;
   private player!: Player;
-  private keyboard!: KeyboardInput;
+  private controls!: PlayerInput;
   private bullets!: Bullets;
   private effects!: Effects;
   private enemies!: Enemies;
@@ -141,7 +132,9 @@ export class LevelScene extends Phaser.Scene {
     const start = this.layout.playerStart;
     this.player = new Player(this, start.x, start.y);
     this.physics.add.collider(this.player.sprite, solids);
-    this.keyboard = new KeyboardInput(this, DEFAULT_KEY_BINDINGS);
+    this.controls = new PlayerInput(this);
+    // Keys released while paused would otherwise look held (or freshly pressed) on resume.
+    this.events.on(Phaser.Scenes.Events.RESUME, () => this.controls.clear());
 
     this.effects = new Effects(this);
     this.bullets = new Bullets(this, (x, y, direction) => {
@@ -188,7 +181,12 @@ export class LevelScene extends Phaser.Scene {
 
   override update(_time: number, deltaMs: number): void {
     this.elapsedMs += deltaMs;
-    const input = this.keyboard.frame();
+    const input = this.controls.frame();
+    if (input.pressed.pause && !this.exiting && !this.gameOver && !this.player.dead) {
+      this.scene.launch('Pause', { level: this.levelKey });
+      this.scene.pause();
+      return;
+    }
     const { shot, event } = this.player.update(deltaMs, this.exiting ? NO_INPUT : input);
     if (shot) this.bullets.fire(shot);
     if (!this.player.dead) this.reachedX = Math.max(this.reachedX, this.player.snapshot().x);

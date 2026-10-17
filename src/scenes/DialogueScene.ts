@@ -1,8 +1,7 @@
 import Phaser from 'phaser';
 import { BACKGROUND_COLOR, DIALOGUE_CARD, GAME_WIDTH } from '../config/tuning';
 import { DIALOGUE, SPEAKERS, type DialogueId } from '../data/dialogue';
-import { DEFAULT_KEY_BINDINGS } from '../logic/input';
-import { KeyboardInput } from '../systems/KeyboardInput';
+import { PlayerInput } from '../systems/PlayerInput';
 
 export interface DialogueSceneData {
   card: DialogueId;
@@ -29,7 +28,7 @@ const HINT_BLINK_MS = 500;
 export class DialogueScene extends Phaser.Scene {
   private card!: DialogueId;
   private nextLevel!: string;
-  private keyboard!: KeyboardInput;
+  private controls!: PlayerInput;
   private shownMs = 0;
   private leaving = false;
 
@@ -78,13 +77,13 @@ export class DialogueScene extends Phaser.Scene {
       callback: () => hint.setVisible(!hint.visible),
     });
 
-    this.keyboard = new KeyboardInput(this, DEFAULT_KEY_BINDINGS);
+    this.controls = new PlayerInput(this);
     this.cameras.main.fadeIn(DIALOGUE_CARD.fadeMs);
   }
 
   override update(_time: number, deltaMs: number): void {
     this.shownMs += deltaMs;
-    const { pressed } = this.keyboard.frame();
+    const { pressed } = this.controls.frame();
     if (this.leaving || this.shownMs < DIALOGUE_CARD.inputDelayMs) return;
     if (pressed.fire || pressed.jump) this.continue();
   }

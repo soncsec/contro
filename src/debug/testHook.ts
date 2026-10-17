@@ -2,6 +2,7 @@ import type Phaser from 'phaser';
 import type { AssetGroup } from '../assets/manifest';
 import type { AssetPreviewScene } from '../scenes/AssetPreviewScene';
 import type { DialogueScene } from '../scenes/DialogueScene';
+import type { PauseScene } from '../scenes/PauseScene';
 import type { LevelScene, LevelSnapshot } from '../scenes/LevelScene';
 
 /**
@@ -17,6 +18,8 @@ export interface TestHook {
   previewPageCount(): number | null;
   /** Level state, or null if no level is running. */
   level(): LevelSnapshot | null;
+  /** The highlighted pause-menu option, or null if the game isn't paused. */
+  pauseMenu(): string | null;
   /** The dialogue card on screen, or null if none is showing. */
   dialogue(): ReturnType<DialogueScene['snapshot']> | null;
   /** Hurts the player as if touched from the front. Throws if no level is running. */
@@ -32,8 +35,11 @@ declare global {
 }
 
 export function installTestHook(game: Phaser.Game): void {
+  // A paused level still reports its state.
   const level = (): LevelScene | null =>
-    game.scene.isActive('Level') ? (game.scene.getScene('Level') as LevelScene) : null;
+    game.scene.isActive('Level') || game.scene.isPaused('Level')
+      ? (game.scene.getScene('Level') as LevelScene)
+      : null;
 
   window.__contro = {
     scene: () => game.scene.getScenes(true)[0]?.scene.key ?? null,
@@ -46,6 +52,8 @@ export function installTestHook(game: Phaser.Game): void {
         ? (game.scene.getScene('AssetPreview') as AssetPreviewScene).pageCount
         : null,
     level: () => level()?.snapshot() ?? null,
+    pauseMenu: () =>
+      game.scene.isActive('Pause') ? (game.scene.getScene('Pause') as PauseScene).selected : null,
     dialogue: () =>
       game.scene.isActive('Dialogue')
         ? (game.scene.getScene('Dialogue') as DialogueScene).snapshot()

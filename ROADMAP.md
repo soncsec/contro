@@ -67,7 +67,7 @@
 
 - [x] M2.1 Health bar, damage, invulnerability flashes, lives, checkpoints and respawn (logic unit tested). 4 hits per life, 3 lives, 1.5 s blinking invulnerability with knockback, checkpoint objects in the maps, game over restarts the level (proper screens in M3.4)
 - [x] M2.2 Crouch and crouch-shoot; derived diagonal-up aim frame (`tools/art/`) and aiming. Down crouches (stops, can turn, 10 px shorter, shoots 9 px lower); up aims 45° standing, running and jumping. Derived sheets by `tools/art/aim.py` (arms and rifle rotated about the chest), barrel tips generated alongside
-- [ ] M2.3 Gamepad support (standard mapping); pause menu
+- [x] M2.3 Gamepad support (standard mapping); pause menu. A jumps, X/B fire, Start pauses, d-pad or left stick move/aim/crouch; keyboard and pad merged. Esc/P/Start open a pause menu (Resume, Restart room). Tested in browsers with a fake standard gamepad
 - [ ] M2.4 One-way platforms, pits and falling death
 - [ ] M2.5 Flying alien with dive attack; enemy projectiles
 - [ ] M2.6 Movement tuning pass with the owner (jump arc, speed, fire rate)
