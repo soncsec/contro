@@ -1,15 +1,11 @@
 import Phaser from 'phaser';
-import { LEVELS, animKey } from '../assets/manifest';
-import {
-  GAME_WIDTH,
-  GRAVITY_Y,
-  PARALLAX_BACK_FACTOR,
-  PLAYER_BODY,
-  PLAYER_FRAME,
-} from '../config/tuning';
+import { LEVELS } from '../assets/manifest';
+import { GAME_WIDTH, GRAVITY_Y, PARALLAX_BACK_FACTOR } from '../config/tuning';
 import { ENEMY_TYPES } from '../data/enemies';
-import { bodyOffsetX, spriteYForFeet } from '../logic/body';
+import { Player, type PlayerSnapshot } from '../entities/Player';
+import { DEFAULT_KEY_BINDINGS } from '../logic/input';
 import { readLevelLayout, type LevelLayout } from '../logic/levelMap';
+import { KeyboardInput } from '../systems/KeyboardInput';
 
 export interface LevelSceneData {
   level?: string;
@@ -19,7 +15,7 @@ export interface LevelSceneData {
 export interface LevelSnapshot {
   level: string;
   widthPx: number;
-  player: { x: number; feetY: number; onFloor: boolean };
+  player: PlayerSnapshot;
   cameraX: number;
 }
 
@@ -28,12 +24,12 @@ const DEFAULT_LEVEL = 'corridor-test';
 /**
  * Plays one level: the Tiled map, its collision rectangles, a parallax background,
  * the player, and a camera that follows the player within the level's edges.
- * Player controls arrive in M1.4; for now the marine stands at the start.
  */
 export class LevelScene extends Phaser.Scene {
   private levelKey = DEFAULT_LEVEL;
   private layout!: LevelLayout;
-  private player!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+  private player!: Player;
+  private keyboard!: KeyboardInput;
   private back: Phaser.GameObjects.TileSprite | null = null;
 
   constructor() {
@@ -84,41 +80,29 @@ export class LevelScene extends Phaser.Scene {
     this.physics.world.setBoundsCollision(true, true, false, false);
 
     const start = this.layout.playerStart;
-    this.player = this.physics.add.sprite(
-      start.x,
-      spriteYForFeet(start.y, PLAYER_FRAME.height, PLAYER_BODY),
-      'marine-idle',
-    );
-    this.player.body
-      .setSize(PLAYER_BODY.width, PLAYER_BODY.height)
-      .setOffset(bodyOffsetX(PLAYER_FRAME.width, PLAYER_BODY, false), PLAYER_BODY.offsetY);
-    this.player.setCollideWorldBounds(true);
-    this.player.play(animKey('marine-idle'));
-    this.physics.add.collider(this.player, solids);
+    this.player = new Player(this, start.x, start.y);
+    this.physics.add.collider(this.player.sprite, solids);
+    this.keyboard = new KeyboardInput(this, DEFAULT_KEY_BINDINGS);
 
     this.cameras.main.setBounds(0, 0, widthPx, heightPx);
-    this.cameras.main.startFollow(this.player, true);
+    this.cameras.main.startFollow(this.player.sprite, true);
   }
 
-  override update(): void {
+  override update(_time: number, deltaMs: number): void {
+    this.player.update(deltaMs, this.keyboard.actions());
     if (this.back) this.back.tilePositionX = this.cameras.main.scrollX * PARALLAX_BACK_FACTOR;
   }
 
   /** Test hook: move the player (feet stay on the same line). */
   teleportPlayer(x: number): void {
-    this.player.body.reset(x, this.player.y);
+    this.player.teleport(x);
   }
 
   snapshot(): LevelSnapshot {
-    const body = this.player.body;
     return {
       level: this.levelKey,
       widthPx: this.layout.widthPx,
-      player: {
-        x: Math.round(body.center.x),
-        feetY: Math.round(body.bottom),
-        onFloor: body.blocked.down,
-      },
+      player: this.player.snapshot(),
       cameraX: Math.round(this.cameras.main.scrollX),
     };
   }
