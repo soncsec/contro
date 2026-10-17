@@ -1,0 +1,9 @@
+legacy/
+dist/
+dist-e2e/
+coverage/
+public/assets/
+package-lock.json
+playwright-report/
+test-results/
+*.md
