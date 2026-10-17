@@ -3,11 +3,13 @@
 
 - The source art pack (legacy/) and OS junk files are never committed.
 - Every image in public/assets/ is a real PNG and is listed in CREDITS.md.
+- Level maps (.tmj, our own work) in public/assets/levels/ are valid JSON.
 - Every asset listed in CREDITS.md exists.
 - No committed file is larger than 5 MB.
 - No private network addresses (server or dev machine) in tracked text files;
   they belong in the git-ignored deploy/server.env.
 """
+import json
 import pathlib
 import re
 import subprocess
@@ -52,9 +54,16 @@ def main() -> int:
         if not png.is_file():
             continue
         rel = str(png.relative_to(ROOT / "public"))
-        on_disk.add(rel)
+        if png.suffix != ".tmj":
+            on_disk.add(rel)
+        if png.suffix == ".tmj" and rel.startswith("assets/levels/"):
+            try:
+                json.loads(png.read_text())
+            except ValueError as e:
+                errors.append(f"level map is not valid JSON: {rel} ({e})")
+            continue
         if png.suffix != ".png":
-            errors.append(f"unexpected non-PNG asset: {rel}")
+            errors.append(f"unexpected asset type: {rel}")
         elif png.read_bytes()[:8] != PNG_SIGNATURE:
             errors.append(f"not a valid PNG: {rel}")
         if rel not in credited:

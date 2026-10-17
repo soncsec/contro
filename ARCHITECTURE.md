@@ -53,7 +53,9 @@ flowchart LR
 | New runtime dependency | None | None | Likely one |
 | Tooling cost | Free desktop app on the dev machine (Debian package) | None | Desktop app |
 
-- **Decision:** levels are made in **Tiled** and saved as `.tmj` (JSON) in `public/assets/levels/`. Each map has tile layers (background, ground), a collision property on tiles, and an object layer for spawns, checkpoints, triggers, the boss arena and the exit.
+- **Decision:** levels are made in **Tiled** and saved as `.tmj` (JSON) in `public/assets/levels/`, with the tileset embedded (Phaser cannot load external tilesets). Each map has a `background` tile layer, a `collision` object layer of `solid` and `platform` rectangles, and a `spawns` object layer (player start, enemies, exit; later checkpoints, triggers and the boss arena). The full contract is in `src/logic/levelMap.ts`.
+- **Collision as rectangles (M1.2, 2026-10-17):** collision is drawn as rectangles rather than marked on tiles, because the Warped room sections reuse the same tiles for walls and floor and draw the floor in perspective. Rectangles keep collision independent of the art.
+- **Tools:** `tools/levels/new_corridor_room.py` makes a first version of a map from corridor room sections; after that the `.tmj` is the source of truth. `tools/levels/render_map.py` renders a map with its collision and spawns marked, for PR screenshots.
 - **Guard rail:** a unit test loads every map and checks it: required layers exist, every object type is known, every enemy type exists in the data files, there is exactly one player start and one exit, and tilesets point to files that exist in `public/assets/`.
 - **Tradeoffs:** Tiled map files are large, so diffs are hard to review by eye. PRs that change a map include a screenshot.
 
@@ -75,9 +77,9 @@ flowchart LR
 - **Derived art:** frames Claude creates (for example the diagonal-up marine) are produced by a script in `tools/art/` from the original legacy files, so they can be regenerated and reviewed. The output PNG is committed and credited as derived from the original.
 - **Tradeoffs:** a few more HTTP requests than an atlas; acceptable for about 100 small files. Swapping in better aim art is a manifest change.
 
-### ADR-C05: Screen size and scaling — *Accepted (size confirmed in M1)*
+### ADR-C05: Screen size and scaling — *Accepted; 320×176 confirmed in M1.2*
 
-- **Decision:** an internal resolution of about **320×176**, scaled by whole numbers, with `pixelArt: true` and `roundPixels: true`. 176 px is the native height of most Warped backgrounds.
+- **Decision:** an internal resolution of **320×176** (the corridor tileset's room sections are exactly 176 px tall), scaled by whole numbers, with `pixelArt: true` and `roundPixels: true`. 176 px is the native height of most Warped backgrounds.
 - **Alternatives:** 256×240 (NES-like, but the backgrounds would need stretching or filler), 384×216 (more view, more empty space).
 
 ### ADR-C06: Audio — *Accepted*

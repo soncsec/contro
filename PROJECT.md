@@ -40,7 +40,7 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 | Audio | **CC0 sound effects plus one music loop per level** (owner decision 2026-10-17). Each source needs owner approval and is listed in `CREDITS.md` |
 | Saving | Furthest level reached, best score, and volume settings in localStorage, safe if storage is unavailable |
 | Screens | Title (with a link back to the portal), level intro card, game, pause, game over, continue, ending, credits |
-| Display | About 320×176 game area at native pixel size, scaled by whole numbers with sharp pixels (confirmed in M1) |
+| Display | 320×176 game area at native pixel size, scaled by whole numbers with sharp pixels (confirmed in M1.2) |
 
 ### Out of scope (v1)
 
@@ -83,6 +83,7 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 
 - Default key layout (M1/M2 play-test).
 - Level 1 tileset choice (M3).
+- Platform art for the corridor, which has only a flat floor (M2.4).
 - Weapon pickup set and rules (M4).
 - Level 3 boss art: dragon or demon (M5).
 - Specific CC0 audio sources (M3; each needs approval).
