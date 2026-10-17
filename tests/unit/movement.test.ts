@@ -137,10 +137,12 @@ describe('jumping', () => {
 });
 
 describe('playerAnim', () => {
-  it('picks jump in the air, run when moving, idle otherwise', () => {
-    expect(playerAnim(false, 0)).toBe('jump');
-    expect(playerAnim(true, 90)).toBe('run');
-    expect(playerAnim(true, -90)).toBe('run');
-    expect(playerAnim(true, 0)).toBe('idle');
+  it('picks jump in the air, run when moving, shoot when firing still, idle otherwise', () => {
+    expect(playerAnim(false, 0, false)).toBe('jump');
+    expect(playerAnim(false, 0, true)).toBe('jump');
+    expect(playerAnim(true, 90, false)).toBe('run');
+    expect(playerAnim(true, -90, true)).toBe('run');
+    expect(playerAnim(true, 0, true)).toBe('shoot');
+    expect(playerAnim(true, 0, false)).toBe('idle');
   });
 });

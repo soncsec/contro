@@ -43,7 +43,7 @@ export interface MovementResult {
   jumped: boolean;
 }
 
-export type PlayerAnim = 'idle' | 'run' | 'jump';
+export type PlayerAnim = 'idle' | 'run' | 'jump' | 'shoot';
 
 export const initialMovement = (): MovementState => ({
   facing: 'right',
@@ -97,7 +97,9 @@ export function stepMovement(
   };
 }
 
-export function playerAnim(onFloor: boolean, vx: number): PlayerAnim {
+/** Jump in the air, run when moving, the braced shoot pose when firing while standing. */
+export function playerAnim(onFloor: boolean, vx: number, firing: boolean): PlayerAnim {
   if (!onFloor) return 'jump';
-  return vx === 0 ? 'idle' : 'run';
+  if (vx !== 0) return 'run';
+  return firing ? 'shoot' : 'idle';
 }

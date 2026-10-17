@@ -9,10 +9,14 @@ import {
 
 /**
  * Tracks which keys are held (by KeyboardEvent.code) and turns them into actions.
- * Held keys are forgotten when the window loses focus, so nothing stays stuck down.
+ * A key pressed and released between two frames still counts for the next frame,
+ * so very quick taps are never lost. Held keys are forgotten when the window loses
+ * focus, so nothing stays stuck down.
  */
 export class KeyboardInput {
-  private readonly pressed = new Set<string>();
+  private readonly held = new Set<string>();
+  /** Keys pressed since the last actions() call, even if already released. */
+  private readonly tapped = new Set<string>();
 
   constructor(
     scene: Phaser.Scene,
@@ -22,9 +26,15 @@ export class KeyboardInput {
     if (!keyboard) throw new Error('keyboard input is not available');
     // Stop arrows and Space from also scrolling the page.
     keyboard.addCapture(boundKeys(bindings).map(phaserKeyName).join(','));
-    const down = (e: KeyboardEvent): void => void this.pressed.add(e.code);
-    const up = (e: KeyboardEvent): void => void this.pressed.delete(e.code);
-    const clear = (): void => this.pressed.clear();
+    const down = (e: KeyboardEvent): void => {
+      this.held.add(e.code);
+      this.tapped.add(e.code);
+    };
+    const up = (e: KeyboardEvent): void => void this.held.delete(e.code);
+    const clear = (): void => {
+      this.held.clear();
+      this.tapped.clear();
+    };
     keyboard.on('keydown', down);
     keyboard.on('keyup', up);
     scene.game.events.on(Phaser.Core.Events.BLUR, clear);
@@ -35,7 +45,10 @@ export class KeyboardInput {
     });
   }
 
+  /** Actions for this frame. Call once per frame. */
   actions(): ActionState {
-    return actionsFromKeys(this.pressed, this.bindings);
+    const keys = new Set([...this.held, ...this.tapped]);
+    this.tapped.clear();
+    return actionsFromKeys(keys, this.bindings);
   }
 }

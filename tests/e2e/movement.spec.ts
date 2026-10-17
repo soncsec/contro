@@ -78,16 +78,25 @@ test('holding jump gives a full jump about one marine tall, then he lands', asyn
   expect(await player(page)).toMatchObject({ feetY: 160, anim: 'idle' });
 });
 
-test('tapping jump gives a short hop', async ({ page }) => {
+test('tapping jump gives a clearly lower hop than holding it', async ({ page }) => {
   await openLevel(page);
-  const sampling = highestFeetY(page, 1000);
+  // The exact hop height depends on how long the key is really held, which varies with
+  // machine load, so compare a tap with a full jump measured the same way.
+  const fullSampling = highestFeetY(page, 1000);
+  await page.keyboard.down('Space');
+  const full = 160 - (await fullSampling);
+  await page.keyboard.up('Space');
+  await expect.poll(async () => (await player(page)).onFloor).toBe(true);
+
+  const hopSampling = highestFeetY(page, 1000);
   await page.keyboard.down('Space');
   await page.waitForTimeout(60);
   await page.keyboard.up('Space');
-  const top = await sampling;
-  expect(160 - top).toBeGreaterThan(5);
-  expect(160 - top).toBeLessThan(35);
+  const hop = 160 - (await hopSampling);
   await expect.poll(async () => (await player(page)).onFloor).toBe(true);
+
+  expect(hop).toBeGreaterThan(5);
+  expect(hop).toBeLessThan(full - 10);
 });
 
 test('the marine cannot run off the left edge of the level', async ({ page }) => {

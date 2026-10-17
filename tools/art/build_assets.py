@@ -26,6 +26,8 @@ MARINE = "Warped/Characters/space-marine-lite/Sprites"
 # (output under public/, source under legacy/, how)
 #   how = "copy"           copy the file unchanged
 #   how = "pack:<glob>"    pack the numbered frames matching <glob> inside the source folder
+#   how = "flash:<glob>"   cut the muzzle flash (flash colours inside FLASH_BOX) out of each
+#                          numbered frame and pack them; derived art (ADR-C04)
 ASSETS = [
     ("assets/player/marine-idle.png", f"{MARINE}/Idle Gun/sprites", "pack:idle-gun*.png"),
     ("assets/player/marine-run.png", f"{MARINE}/Run with Gun/sprites", "pack:run-with-gun*.png"),
@@ -35,6 +37,7 @@ ASSETS = [
     ("assets/player/marine-crouch-shoot.png", f"{MARINE}/Crouch Shoot/sprites", "pack:crouch-shoot*.png"),
     ("assets/player/marine-die.png", f"{MARINE}/Die/sprites", "pack:die*.png"),
     ("assets/effects/bullet.png", f"{MARINE}/Misc", "pack:bullet*.png"),
+    ("assets/effects/muzzle-flash.png", f"{MARINE}/Shoot/sprites", "flash:shoot*.png"),
     ("assets/effects/wall-impact.png", f"{MARINE}/Misc", "pack:wall-impact-blast*.png"),
     ("assets/effects/enemy-death.png", "Explosions and Magic/EnemyDeath/spritesheet.png", "copy"),
     ("assets/effects/hit.png", "Explosions and Magic/Hit/hit.png", "copy"),
@@ -44,6 +47,20 @@ ASSETS = [
     ("assets/levels/corridor/foreground.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor-foreground.png", "copy"),
     ("assets/levels/corridor/tileset.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "copy"),
 ]
+
+
+# The flash in the marine's shoot frames: these colours, inside this box (x0, y0, x1, y1).
+FLASH_COLOURS = {(255, 156, 42), (255, 235, 162), (255, 85, 0)}
+FLASH_BOX = (50, 16, 71, 31)
+
+
+def cut_flash(img: png.Image) -> png.Image:
+    x0, y0, x1, y1 = FLASH_BOX
+    clear = (0, 0, 0, 0)
+    return [
+        [img[y][x] if img[y][x][3] and img[y][x][:3] in FLASH_COLOURS else clear for x in range(x0, x1 + 1)]
+        for y in range(y0, y1 + 1)
+    ]
 
 
 def frame_number(path: pathlib.Path) -> int:
@@ -63,13 +80,19 @@ def build() -> list[tuple[str, str, str]]:
             dest.write_bytes(source.read_bytes())
             rows.append((out, src, "unchanged"))
         else:
-            pattern = how.removeprefix("pack:")
+            kind, pattern = how.split(":", 1)
             frames = sorted(source.glob(pattern), key=frame_number)
             if not frames:
                 raise FileNotFoundError(f"no frames match {pattern} in {source}")
-            png.write(str(dest), png.strip([png.read(str(f)) for f in frames]))
+            images = [png.read(str(f)) for f in frames]
+            if kind == "flash":
+                images = [cut_flash(i) for i in images]
+                note = f"*derived*: muzzle flash cut out of {len(frames)} frames, packed into a strip"
+            else:
+                note = f"{len(frames)} frames packed into a strip"
+            png.write(str(dest), png.strip(images))
             first, last = frames[0].name, frames[-1].name
-            rows.append((out, f"{src}/{first} … {last}", f"{len(frames)} frames packed into a strip"))
+            rows.append((out, f"{src}/{first} … {last}", note))
         print(f"wrote public/{out}")
     return rows
 

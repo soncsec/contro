@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { LEVELS } from '../assets/manifest';
 import { GAME_WIDTH, GRAVITY_Y, PARALLAX_BACK_FACTOR } from '../config/tuning';
 import { ENEMY_TYPES } from '../data/enemies';
+import { Bullets } from '../entities/Bullets';
+import { Effects } from '../entities/Effects';
 import { Player, type PlayerSnapshot } from '../entities/Player';
 import { DEFAULT_KEY_BINDINGS } from '../logic/input';
 import { readLevelLayout, type LevelLayout } from '../logic/levelMap';
@@ -14,9 +16,15 @@ export interface LevelSceneData {
 /** State the e2e test hook reads. */
 export interface LevelSnapshot {
   level: string;
+  /**
+   * Gameplay clock in ms: the sum of the frame steps the movement and weapon rules
+   * received. After a stall Phaser caps the step, so this can run behind wall-clock time.
+   */
+  timeMs: number;
   widthPx: number;
   player: PlayerSnapshot;
   cameraX: number;
+  bullets: { active: number; fired: number; impacts: number };
 }
 
 const DEFAULT_LEVEL = 'corridor-test';
@@ -30,6 +38,9 @@ export class LevelScene extends Phaser.Scene {
   private layout!: LevelLayout;
   private player!: Player;
   private keyboard!: KeyboardInput;
+  private bullets!: Bullets;
+  private effects!: Effects;
+  private elapsedMs = 0;
   private back: Phaser.GameObjects.TileSprite | null = null;
 
   constructor() {
@@ -38,6 +49,7 @@ export class LevelScene extends Phaser.Scene {
 
   init(data: LevelSceneData): void {
     this.levelKey = data.level ?? DEFAULT_LEVEL;
+    this.elapsedMs = 0;
   }
 
   create(): void {
@@ -84,12 +96,24 @@ export class LevelScene extends Phaser.Scene {
     this.physics.add.collider(this.player.sprite, solids);
     this.keyboard = new KeyboardInput(this, DEFAULT_KEY_BINDINGS);
 
+    this.effects = new Effects(this);
+    this.bullets = new Bullets(this, (x, y, direction) => {
+      // The impact art is drawn for a wall on the right; its right edge goes on the hit point.
+      this.effects.play('wall-impact', x - direction * 8, y, direction < 0);
+    });
+    this.physics.add.overlap(this.bullets.group, solids, (bullet) => {
+      this.bullets.hit(bullet as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody);
+    });
+
     this.cameras.main.setBounds(0, 0, widthPx, heightPx);
     this.cameras.main.startFollow(this.player.sprite, true);
   }
 
   override update(_time: number, deltaMs: number): void {
-    this.player.update(deltaMs, this.keyboard.actions());
+    this.elapsedMs += deltaMs;
+    const shot = this.player.update(deltaMs, this.keyboard.actions());
+    if (shot) this.bullets.fire(shot);
+    this.bullets.update();
     if (this.back) this.back.tilePositionX = this.cameras.main.scrollX * PARALLAX_BACK_FACTOR;
   }
 
@@ -101,9 +125,15 @@ export class LevelScene extends Phaser.Scene {
   snapshot(): LevelSnapshot {
     return {
       level: this.levelKey,
+      timeMs: Math.round(this.elapsedMs),
       widthPx: this.layout.widthPx,
       player: this.player.snapshot(),
       cameraX: Math.round(this.cameras.main.scrollX),
+      bullets: {
+        active: this.bullets.active,
+        fired: this.bullets.fired,
+        impacts: this.bullets.impacts,
+      },
     };
   }
 }
