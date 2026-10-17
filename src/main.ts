@@ -3,7 +3,7 @@ import './style.css';
 import { BACKGROUND_COLOR, GAME_HEIGHT, GAME_WIDTH } from './config/tuning';
 import { integerZoom } from './logic/scaling';
 import { AssetPreviewScene } from './scenes/AssetPreviewScene';
-import { BootScene } from './scenes/BootScene';
+import { LevelScene } from './scenes/LevelScene';
 import { PreloadScene } from './scenes/PreloadScene';
 
 const zoomForWindow = (): number =>
@@ -26,7 +26,7 @@ export const game = new Phaser.Game({
     default: 'arcade',
     arcade: { debug: false },
   },
-  scene: [PreloadScene, BootScene, AssetPreviewScene],
+  scene: [PreloadScene, LevelScene, AssetPreviewScene],
 });
 
 window.addEventListener('resize', () => {
