@@ -9,7 +9,7 @@ import {
   WEAPON,
 } from '../config/tuning';
 import { bodyOffsetX, framePointToWorld, spriteYForFeet } from '../logic/body';
-import { horizontalDirection, type ActionState } from '../logic/input';
+import { horizontalDirection, type ActionFrame } from '../logic/input';
 import {
   initialMovement,
   playerAnim,
@@ -70,11 +70,12 @@ export class Player {
   }
 
   /** Moves the marine for this frame. Returns the shot fired this frame, if any. */
-  update(dtMs: number, actions: ActionState): Shot | null {
+  update(dtMs: number, input: ActionFrame): Shot | null {
+    const { held, pressed } = input;
     const body = this.sprite.body;
     const result = stepMovement(
       this.movement,
-      { direction: horizontalDirection(actions), jump: actions.jump },
+      { direction: horizontalDirection(held), jump: held.jump, jumpPressed: pressed.jump },
       { onFloor: body.blocked.down, vy: body.velocity.y },
       dtMs,
       MOVEMENT,
@@ -84,12 +85,12 @@ export class Player {
     body.setVelocityX(result.vx);
     if (result.vy !== null) body.setVelocityY(result.vy);
 
-    const weapon = stepWeapon(this.weapon, actions.fire, dtMs, WEAPON);
+    const weapon = stepWeapon(this.weapon, held.fire, pressed.fire, dtMs, WEAPON);
     this.weapon = weapon.state;
 
     // On the take-off frame the body still reports the floor, so use jumped too.
     const onFloor = body.blocked.down && !result.jumped;
-    const anim = playerAnim(onFloor, result.vx, actions.fire);
+    const anim = playerAnim(onFloor, result.vx, held.fire);
     if (anim !== this.anim) {
       this.anim = anim;
       this.sprite.play(animKey(ANIM_SHEETS[anim]));

@@ -1,12 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import type { LevelSnapshot } from '../../src/scenes/LevelScene';
-import { sceneKey, watchPage } from './watch';
-
-async function level(page: Page): Promise<LevelSnapshot> {
-  const snap = await page.evaluate(() => window.__contro?.level() ?? null);
-  if (!snap) throw new Error('no level is running');
-  return snap;
-}
+import { level, sceneKey, waitGameTime, watchPage } from './watch';
 
 async function openLevel(page: Page): Promise<void> {
   await page.goto('./');
@@ -19,17 +12,13 @@ test('a tap fires one bullet that flies off screen without an impact', async ({ 
   await openLevel(page);
   await page.keyboard.press('KeyX');
   await expect.poll(async () => (await level(page)).bullets.fired).toBe(1);
-  // 300 px/s from x≈66 leaves the 320 px view in about a second.
-  await expect.poll(async () => (await level(page)).bullets.active, { timeout: 3000 }).toBe(0);
-  expect((await level(page)).bullets.impacts).toBe(0);
+  // At 300 px/s a bullet from x≈66 passes the view's edge plus margin (336 px) in about
+  // 0.95 s of game time; allow 1.5 s.
+  const fired = await level(page);
+  const later = await waitGameTime(page, fired.timeMs, 1500);
+  expect(later.bullets).toMatchObject({ fired: 1, active: 0, impacts: 0 });
   expect(watched.errors).toEqual([]);
 });
-
-/** Waits until the game clock has advanced `ms` past `fromMs`. */
-async function waitGameTime(page: Page, fromMs: number, ms: number): Promise<LevelSnapshot> {
-  await expect.poll(async () => (await level(page)).timeMs - fromMs).toBeGreaterThanOrEqual(ms);
-  return level(page);
-}
 
 test('holding fire shoots every 160 ms of game time in the braced shoot pose', async ({ page }) => {
   await openLevel(page);

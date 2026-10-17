@@ -11,8 +11,12 @@ import {
 const FRAME = 16;
 const ground = { onFloor: true, vy: 0 };
 const air = (vy = 0) => ({ onFloor: false, vy });
-const none: MovementInput = { direction: 0, jump: false };
-const jump: MovementInput = { direction: 0, jump: true };
+const none: MovementInput = { direction: 0, jump: false, jumpPressed: false };
+/** Jump newly pressed this frame. */
+const jump: MovementInput = { direction: 0, jump: true, jumpPressed: true };
+/** Jump still held from an earlier frame. */
+const held: MovementInput = { direction: 0, jump: true, jumpPressed: false };
+const move = (direction: -1 | 1): MovementInput => ({ direction, jump: false, jumpPressed: false });
 
 /** Runs several frames with the same input and body, returning the last result. */
 function run(state: MovementState, input: MovementInput, body: typeof ground, frames: number) {
@@ -24,28 +28,20 @@ function run(state: MovementState, input: MovementInput, body: typeof ground, fr
 describe('running', () => {
   it('goes full speed at once and stops at once', () => {
     const s = initialMovement();
-    expect(stepMovement(s, { direction: 1, jump: false }, ground, FRAME, MOVEMENT).vx).toBe(90);
-    expect(stepMovement(s, { direction: -1, jump: false }, ground, FRAME, MOVEMENT).vx).toBe(-90);
+    expect(stepMovement(s, move(1), ground, FRAME, MOVEMENT).vx).toBe(90);
+    expect(stepMovement(s, move(-1), ground, FRAME, MOVEMENT).vx).toBe(-90);
     expect(stepMovement(s, none, ground, FRAME, MOVEMENT).vx).toBe(0);
   });
 
   it('faces the last direction moved', () => {
-    const left = stepMovement(
-      initialMovement(),
-      { direction: -1, jump: false },
-      ground,
-      FRAME,
-      MOVEMENT,
-    );
+    const left = stepMovement(initialMovement(), move(-1), ground, FRAME, MOVEMENT);
     expect(left.state.facing).toBe('left');
     expect(stepMovement(left.state, none, ground, FRAME, MOVEMENT).state.facing).toBe('left');
     expect(initialMovement().facing).toBe('right');
   });
 
   it('steers in the air the same as on the ground', () => {
-    expect(
-      stepMovement(initialMovement(), { direction: 1, jump: false }, air(), FRAME, MOVEMENT).vx,
-    ).toBe(90);
+    expect(stepMovement(initialMovement(), move(1), air(), FRAME, MOVEMENT).vx).toBe(90);
   });
 });
 
@@ -60,7 +56,14 @@ describe('jumping', () => {
   it('needs a new press: holding jump does not bounce', () => {
     const first = stepMovement(initialMovement(), jump, ground, FRAME, MOVEMENT);
     const landed = { ...first.state, jumping: false };
-    expect(stepMovement(landed, jump, ground, FRAME, MOVEMENT).jumped).toBe(false);
+    expect(stepMovement(landed, held, ground, FRAME, MOVEMENT).jumped).toBe(false);
+  });
+
+  it('jumps again on a new press even if jump never looked released between frames', () => {
+    // The input layer reports a release and re-press within one frame as a new press.
+    const first = stepMovement(initialMovement(), jump, ground, FRAME, MOVEMENT);
+    const landed = { ...first.state, jumping: false };
+    expect(stepMovement(landed, jump, ground, FRAME, MOVEMENT).jumped).toBe(true);
   });
 
   it('allows a jump shortly after running off a ledge (coyote time)', () => {
@@ -80,6 +83,8 @@ describe('jumping', () => {
     const up = stepMovement(initialMovement(), jump, ground, FRAME, MOVEMENT);
     const rising = stepMovement(up.state, none, air(-250), FRAME, MOVEMENT);
     expect(stepMovement(rising.state, jump, air(-230), FRAME, MOVEMENT).jumped).toBe(false);
+    // ...and holding jump through the take-off gives no second jump either.
+    expect(stepMovement(up.state, held, air(-280), FRAME, MOVEMENT).jumped).toBe(false);
   });
 
   it('remembers a press just before landing (jump buffer)', () => {
@@ -91,9 +96,9 @@ describe('jumping', () => {
       MOVEMENT,
     );
     expect(pressed.jumped).toBe(false);
-    const stillFalling = run(pressed.state, jump, air(200), 5); // 96 ms after the press
+    const stillFalling = run(pressed.state, held, air(200), 5); // 96 ms after the press
     expect(stillFalling.jumped).toBe(false);
-    expect(stepMovement(stillFalling.state, jump, ground, FRAME, MOVEMENT).jumped).toBe(true);
+    expect(stepMovement(stillFalling.state, held, ground, FRAME, MOVEMENT).jumped).toBe(true);
   });
 
   it('forgets a press made too long before landing', () => {
@@ -124,9 +129,9 @@ describe('jumping', () => {
     const up = stepMovement(initialMovement(), jump, ground, FRAME, MOVEMENT);
     // The take-off frame can still report the floor while moving up: still jumping.
     expect(
-      stepMovement(up.state, jump, { onFloor: true, vy: -300 }, FRAME, MOVEMENT).state.jumping,
+      stepMovement(up.state, held, { onFloor: true, vy: -300 }, FRAME, MOVEMENT).state.jumping,
     ).toBe(true);
-    expect(stepMovement(up.state, jump, ground, FRAME, MOVEMENT).state.jumping).toBe(false);
+    expect(stepMovement(up.state, held, ground, FRAME, MOVEMENT).state.jumping).toBe(false);
   });
 
   it('caps long frame steps so a stall cannot skip coyote time checks', () => {

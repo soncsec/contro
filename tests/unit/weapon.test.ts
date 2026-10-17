@@ -9,12 +9,16 @@ import {
 
 const FRAME = 16;
 
-/** Holds or releases fire for `frames` frames and counts the shots. */
+/**
+ * Plays a pattern of fire held (true) or not (false), one entry per frame, with
+ * presses derived the way the input layer reports them (down this frame, up last frame).
+ */
 function play(state: WeaponState, pattern: boolean[]): { state: WeaponState; shots: number[] } {
   const shots: number[] = [];
   let s = state;
   pattern.forEach((fire, i) => {
-    const r = stepWeapon(s, fire, FRAME, WEAPON);
+    const pressed = fire && !(pattern[i - 1] ?? false);
+    const r = stepWeapon(s, fire, pressed, FRAME, WEAPON);
     if (r.fired) shots.push(i);
     s = r.state;
   });
@@ -23,7 +27,7 @@ function play(state: WeaponState, pattern: boolean[]): { state: WeaponState; sho
 
 describe('stepWeapon', () => {
   it('fires at once on the first press', () => {
-    expect(stepWeapon(initialWeapon(), true, FRAME, WEAPON).fired).toBe(true);
+    expect(stepWeapon(initialWeapon(), true, true, FRAME, WEAPON).fired).toBe(true);
   });
 
   it('does not fire when fire is not pressed', () => {
@@ -47,9 +51,21 @@ describe('stepWeapon', () => {
     expect(play(initialWeapon(), pattern).shots).toEqual([0, 8, 16]);
   });
 
+  it('counts a tap that was released before the frame ran', () => {
+    // Pressed and released between frames: not held now, but still a press.
+    expect(stepWeapon(initialWeapon(), false, true, FRAME, WEAPON).fired).toBe(true);
+  });
+
+  it('counts a quick release and re-press as a tap, not as holding', () => {
+    // 6 frames held (96 ms since the shot), then a re-press within one frame.
+    const held = play(initialWeapon(), Array(6).fill(true));
+    expect(stepWeapon(held.state, true, false, FRAME, WEAPON).fired).toBe(false); // holding: needs 160 ms
+    expect(stepWeapon(held.state, true, true, FRAME, WEAPON).fired).toBe(true); // tap: 90 ms is enough
+  });
+
   it('treats a negative step as no time passing', () => {
-    const first = stepWeapon(initialWeapon(), true, FRAME, WEAPON);
-    expect(stepWeapon(first.state, true, -100, WEAPON).state.sinceShotMs).toBe(0);
+    const first = stepWeapon(initialWeapon(), true, true, FRAME, WEAPON);
+    expect(stepWeapon(first.state, true, false, -100, WEAPON).state.sinceShotMs).toBe(0);
   });
 });
 

@@ -111,7 +111,7 @@ export class LevelScene extends Phaser.Scene {
 
   override update(_time: number, deltaMs: number): void {
     this.elapsedMs += deltaMs;
-    const shot = this.player.update(deltaMs, this.keyboard.actions());
+    const shot = this.player.update(deltaMs, this.keyboard.frame());
     if (shot) this.bullets.fire(shot);
     this.bullets.update();
     if (this.back) this.back.tilePositionX = this.cameras.main.scrollX * PARALLAX_BACK_FACTOR;

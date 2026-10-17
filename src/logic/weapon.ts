@@ -10,25 +10,26 @@ export interface WeaponTuning {
 export interface WeaponState {
   /** Time since the last shot. */
   sinceShotMs: number;
-  /** Fire was held last frame. */
-  held: boolean;
 }
 
 export const initialWeapon = (): WeaponState => ({
   sinceShotMs: Number.POSITIVE_INFINITY,
-  held: false,
 });
 
+/**
+ * @param fire fire is held this frame
+ * @param firePressed fire was newly pressed since the last frame (from the input layer)
+ */
 export function stepWeapon(
   prev: WeaponState,
   fire: boolean,
+  firePressed: boolean,
   dtMs: number,
   t: WeaponTuning,
 ): { state: WeaponState; fired: boolean } {
   const since = prev.sinceShotMs + Math.max(dtMs, 0);
-  const freshPress = fire && !prev.held;
-  const fired = fire && since >= (freshPress ? t.tapMinMs : t.autoIntervalMs);
-  return { state: { sinceShotMs: fired ? 0 : since, held: fire }, fired };
+  const fired = (fire || firePressed) && since >= (firePressed ? t.tapMinMs : t.autoIntervalMs);
+  return { state: { sinceShotMs: fired ? 0 : since }, fired };
 }
 
 /** True once a bullet at x is more than `margin` outside the camera view. */

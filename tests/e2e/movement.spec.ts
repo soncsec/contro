@@ -1,11 +1,30 @@
 import { expect, test, type Page } from '@playwright/test';
-import type { LevelSnapshot } from '../../src/scenes/LevelScene';
-import { sceneKey, watchPage } from './watch';
+import { level, sceneKey, waitGameTime, watchPage } from './watch';
 
-async function player(page: Page): Promise<LevelSnapshot['player']> {
-  const snap = await page.evaluate(() => window.__contro?.level() ?? null);
-  if (!snap) throw new Error('no level is running');
-  return snap.player;
+const RUN_SPEED = 90; // px/s, MOVEMENT.runSpeed in src/config/tuning.ts
+
+/**
+ * Allowed gap between distance moved and RUN_SPEED × game time. Physics steps on its own
+ * fixed 1/60 s clock, so each of the two snapshots can be a step or two (1.5 px each) out.
+ */
+const tolerance = (expected: number): number => Math.max(6, expected * 0.1);
+
+async function player(page: Page) {
+  return (await level(page)).player;
+}
+
+/** Holds `key` for `ms` of game time; returns how far the player moved and the state at the end. */
+async function runFor(page: Page, key: string, ms: number) {
+  await page.keyboard.down(key);
+  await expect.poll(async () => (await player(page)).anim).toBe('run');
+  const from = await level(page);
+  const to = await waitGameTime(page, from.timeMs, ms);
+  await page.keyboard.up(key);
+  return {
+    moved: to.player.x - from.player.x,
+    expected: (RUN_SPEED * (to.timeMs - from.timeMs)) / 1000,
+    player: to.player,
+  };
 }
 
 async function openLevel(page: Page): Promise<void> {
@@ -33,35 +52,29 @@ test('arrow keys run right and left, and the marine turns to face the way he run
 }) => {
   const watched = watchPage(page);
   await openLevel(page);
-  const start = await player(page);
-  expect(start).toMatchObject({ facing: 'right', anim: 'idle', vx: 0 });
+  expect(await player(page)).toMatchObject({ facing: 'right', anim: 'idle', vx: 0 });
 
-  await page.keyboard.down('ArrowRight');
-  await expect.poll(async () => (await player(page)).anim).toBe('run');
-  await page.waitForTimeout(500);
-  const running = await player(page);
-  expect(running).toMatchObject({ facing: 'right', vx: 90, onFloor: true, feetY: 160 });
-  expect(running.x).toBeGreaterThan(start.x + 30);
-  await page.keyboard.up('ArrowRight');
+  const right = await runFor(page, 'ArrowRight', 500);
+  expect(right.player).toMatchObject({ facing: 'right', vx: 90, onFloor: true, feetY: 160 });
+  // 90 px per second of game time, within a couple of physics steps.
+  expect(Math.abs(right.moved - right.expected)).toBeLessThanOrEqual(tolerance(right.expected));
   await expect.poll(async () => (await player(page)).anim).toBe('idle');
   expect((await player(page)).vx).toBe(0);
 
-  await page.keyboard.down('ArrowLeft');
-  await page.waitForTimeout(300);
-  const back = await player(page);
-  await page.keyboard.up('ArrowLeft');
-  expect(back).toMatchObject({ facing: 'left', vx: -90 });
-  expect(back.x).toBeLessThan(running.x);
+  const left = await runFor(page, 'ArrowLeft', 300);
+  expect(left.player).toMatchObject({ facing: 'left', vx: -90 });
+  expect(Math.abs(-left.moved - left.expected)).toBeLessThanOrEqual(tolerance(left.expected));
   expect(watched.errors).toEqual([]);
 });
 
 test('WASD moves the marine too', async ({ page }) => {
   await openLevel(page);
-  const start = await player(page);
-  await page.keyboard.down('KeyD');
-  await page.waitForTimeout(400);
-  await page.keyboard.up('KeyD');
-  expect((await player(page)).x).toBeGreaterThan(start.x + 20);
+  const right = await runFor(page, 'KeyD', 400);
+  expect(right.player.facing).toBe('right');
+  expect(Math.abs(right.moved - right.expected)).toBeLessThanOrEqual(tolerance(right.expected));
+  const left = await runFor(page, 'KeyA', 200);
+  expect(left.player.facing).toBe('left');
+  expect(left.moved).toBeLessThan(0);
 });
 
 test('holding jump gives a full jump about one marine tall, then he lands', async ({ page }) => {
@@ -101,9 +114,10 @@ test('tapping jump gives a clearly lower hop than holding it', async ({ page }) 
 
 test('the marine cannot run off the left edge of the level', async ({ page }) => {
   await openLevel(page);
+  const from = await level(page);
   await page.keyboard.down('ArrowLeft');
-  await page.waitForTimeout(1200);
-  const p = await player(page);
+  // The start is 38 px from the wall: 0.42 s at 90 px/s. Hold for twice that in game time.
+  const p = (await waitGameTime(page, from.timeMs, 850)).player;
   await page.keyboard.up('ArrowLeft');
   expect(p.x).toBe(8); // half the 16 px body: pressed against the wall
   expect(p.feetY).toBe(160);
