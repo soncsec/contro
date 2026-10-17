@@ -18,6 +18,8 @@ export interface MovementInput {
   jump: boolean;
   /** Jump key newly pressed since the last frame (from the input layer). */
   jumpPressed: boolean;
+  /** Crouching: the marine stays put but can still turn (default false). */
+  crouch?: boolean;
 }
 
 export interface BodyState {
@@ -45,8 +47,6 @@ export interface MovementResult {
   jumped: boolean;
 }
 
-export type PlayerAnim = 'idle' | 'run' | 'jump' | 'shoot';
-
 export const initialMovement = (): MovementState => ({
   facing: 'right',
   airMs: 0,
@@ -64,7 +64,7 @@ export function stepMovement(
 ): MovementResult {
   const dt = Math.min(Math.max(dtMs, 0), t.maxStepMs);
   const facing = input.direction === 0 ? prev.facing : input.direction < 0 ? 'left' : 'right';
-  const vx = input.direction * t.runSpeed;
+  const vx = input.crouch ? 0 : input.direction * t.runSpeed;
 
   const airMs = body.onFloor ? 0 : prev.airMs + dt;
   const jumping = prev.jumping && !(body.onFloor && body.vy >= 0);
@@ -96,11 +96,4 @@ export function stepMovement(
     vy,
     jumped: false,
   };
-}
-
-/** Jump in the air, run when moving, the braced shoot pose when firing while standing. */
-export function playerAnim(onFloor: boolean, vx: number, firing: boolean): PlayerAnim {
-  if (!onFloor) return 'jump';
-  if (vx !== 0) return 'run';
-  return firing ? 'shoot' : 'idle';
 }

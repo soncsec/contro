@@ -67,9 +67,13 @@ export const ASSETS: readonly Asset[] = [
   sheet('player', 'marine-run', 'marine-run.png', 75, 48, 10, 14, true),
   sheet('player', 'marine-jump', 'marine-jump.png', 75, 48, 5, 10, false),
   sheet('player', 'marine-shoot', 'marine-shoot.png', 75, 48, 2, 12, true),
-  sheet('player', 'marine-crouch', 'marine-crouch.png', 75, 48, 3, 6, true),
+  sheet('player', 'marine-crouch', 'marine-crouch.png', 75, 48, 3, 20, false),
   sheet('player', 'marine-crouch-shoot', 'marine-crouch-shoot.png', 75, 48, 2, 12, true),
   sheet('player', 'marine-die', 'marine-die.png', 75, 48, 3, 8, false),
+  // Derived: arms and rifle raised 45° (tools/art/aim.py)
+  sheet('player', 'marine-aim-diag', 'marine-aim-diag.png', 75, 48, 4, 6, true),
+  sheet('player', 'marine-shoot-diag', 'marine-shoot-diag.png', 75, 48, 2, 12, true),
+  sheet('player', 'marine-run-diag', 'marine-run-diag.png', 75, 48, 10, 14, true),
 
   // Enemies (the walker faces left in the art)
   sheet('enemies', 'alien-walker-idle', 'alien-walker-idle.png', 48, 48, 4, 6, true),
@@ -78,6 +82,8 @@ export const ASSETS: readonly Asset[] = [
   // Effects
   sheet('effects', 'bullet', 'bullet.png', 10, 4, 2, 12, true),
   sheet('effects', 'muzzle-flash', 'muzzle-flash.png', 22, 16, 2, 20, false),
+  sheet('effects', 'muzzle-flash-diag', 'muzzle-flash-diag.png', 24, 24, 2, 20, false),
+  sheet('effects', 'bullet-diag', 'bullet-diag.png', 10, 10, 2, 12, true),
   sheet('effects', 'wall-impact', 'wall-impact.png', 16, 23, 2, 14, false),
   sheet('effects', 'enemy-death', 'enemy-death.png', 48, 48, 8, 14, false),
   sheet('effects', 'hit', 'hit.png', 31, 32, 3, 14, false),

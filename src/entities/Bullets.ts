@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { animKey } from '../assets/manifest';
 import { WEAPON } from '../config/tuning';
+import { shotVelocity } from '../logic/aim';
 import { bulletOutOfView } from '../logic/weapon';
 import type { Shot } from './Player';
 
@@ -15,6 +16,9 @@ export class Bullets {
   readonly group: Phaser.Physics.Arcade.Group;
   /** Shots fired and impacts made since the level started (for tests). */
   fired = 0;
+  firedDiagonal = 0;
+  /** Where the most recent shot started (for tests). */
+  lastShot: Shot | null = null;
   impacts = 0;
 
   constructor(
@@ -39,20 +43,32 @@ export class Bullets {
   fire(shot: Shot): boolean {
     const bullet = this.group.get(shot.x, shot.y) as Bullet | null;
     if (!bullet) return false;
+    const diagonal = shot.aim === 'diagonal';
+    const key = diagonal ? 'bullet-diag' : 'bullet';
     bullet
+      .setTexture(key)
       .setActive(true)
       .setVisible(true)
       .setFlipX(shot.direction < 0);
-    // The sprite's leading edge starts at the barrel tip.
-    bullet.setX(shot.x + (shot.direction * bullet.width) / 2);
+    // The sprite's leading edge (or corner, when diagonal) starts at the barrel tip.
+    bullet.setPosition(
+      shot.x + (shot.direction * bullet.width) / 2,
+      diagonal ? shot.y - bullet.height / 2 : shot.y,
+    );
     bullet.body.enable = true;
     bullet.body.reset(bullet.x, bullet.y);
-    bullet.body.setSize(bullet.width, bullet.height);
+    // Diagonal bullets get a small square box around the round in the middle of the sprite.
+    if (diagonal) bullet.body.setSize(6, 6, true);
+    else bullet.body.setSize(bullet.width, bullet.height, true);
     bullet.body.setCollideWorldBounds(true, 0, 0, true);
-    bullet.body.setVelocity(shot.direction * WEAPON.bulletSpeed, 0);
+    const v = shotVelocity(shot.direction, shot.aim, WEAPON.bulletSpeed);
+    bullet.body.setVelocity(v.vx, v.vy);
     bullet.setData('direction', shot.direction);
-    bullet.play(animKey('bullet'));
+    bullet.setData('aim', shot.aim);
+    bullet.play(animKey(key));
     this.fired++;
+    if (diagonal) this.firedDiagonal++;
+    this.lastShot = shot;
     return true;
   }
 
@@ -82,7 +98,7 @@ export class Bullets {
     const view = this.scene.cameras.main.worldView;
     for (const child of this.group.getChildren()) {
       const bullet = child as Bullet;
-      if (bullet.active && bulletOutOfView(bullet.x, view.x, view.width, WEAPON.offscreenMargin)) {
+      if (bullet.active && bulletOutOfView(bullet.x, bullet.y, view, WEAPON.offscreenMargin)) {
         this.release(bullet);
       }
     }

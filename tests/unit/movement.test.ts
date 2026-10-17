@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { MOVEMENT } from '../../src/config/tuning';
 import {
   initialMovement,
-  playerAnim,
   stepMovement,
   type MovementInput,
   type MovementState,
@@ -141,13 +140,21 @@ describe('jumping', () => {
   });
 });
 
-describe('playerAnim', () => {
-  it('picks jump in the air, run when moving, shoot when firing still, idle otherwise', () => {
-    expect(playerAnim(false, 0, false)).toBe('jump');
-    expect(playerAnim(false, 0, true)).toBe('jump');
-    expect(playerAnim(true, 90, false)).toBe('run');
-    expect(playerAnim(true, -90, true)).toBe('run');
-    expect(playerAnim(true, 0, true)).toBe('shoot');
-    expect(playerAnim(true, 0, false)).toBe('idle');
+describe('crouching', () => {
+  it('stops the marine but lets him turn', () => {
+    const r = stepMovement(
+      initialMovement(),
+      { direction: -1, jump: false, jumpPressed: false, crouch: true },
+      ground,
+      FRAME,
+      MOVEMENT,
+    );
+    expect(r.vx).toBe(0);
+    expect(r.state.facing).toBe('left');
+  });
+
+  it('can still jump out of a crouch', () => {
+    const r = stepMovement(initialMovement(), { ...jump, crouch: true }, ground, FRAME, MOVEMENT);
+    expect(r.jumped).toBe(true);
   });
 });
