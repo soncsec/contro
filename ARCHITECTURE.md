@@ -38,7 +38,7 @@ flowchart LR
 | ADR-005 Pages staging, Apache production | Same |
 | ADR-006 Logic separate from Phaser, Vitest, Playwright, seeded RNG | Same |
 | ADR-007 Security tooling | Same: CodeQL, ESLint, `npm audit`, Dependabot, Gitleaks, ZAP |
-| ADR-009 Release script over SSH | Same script, with the slug locked to `contro` |
+| ADR-009 Release script over SSH | Same script, with the slug locked to `contro`. The owner gave standing approval (2026-10-17) for Claude to release each playable increment; the CI and ZAP gates are unchanged |
 | ADR-010 HTTP on port 80 | Same (owner decision) |
 | ADR-011 Parallel instances | Contro is the first game built alongside Star Destroyer. It copies Star Destroyer's setup by hand because the template (T1) doesn't exist yet (ADR-C09) |
 

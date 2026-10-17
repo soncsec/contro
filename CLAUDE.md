@@ -23,7 +23,8 @@ Read `PROJECT.md` (scope), `ARCHITECTURE.md` (decisions), and `ROADMAP.md` (curr
 - Changing the architecture or any ADR, or adding a dependency not listed in ARCHITECTURE.md
 - Changing scope (adding or dropping features)
 - Destructive operations: deleting files or branches, force-pushing, rewriting history, deleting repos
-- Any production deployment, or any change on the production server or its Apache configuration
+- Any change on the production server other than releasing this game, or any change to its Apache configuration
+  - **Standing approval (owner, 2026-10-17):** Claude may release each playable increment of Contro with `scripts/release.sh deploy`, without asking each time. The script still requires every CI check (including CodeQL and the ZAP staging scan) to have passed on `main`, and rolls back automatically if the smoke test fails. Report every release (id, what changed, smoke test and scan results).
 - Security decisions: CSP and header policy, SSH keys, secrets handling, permissions, CI tokens
 - Adding new third-party assets (art, audio, fonts), including anything outside `legacy/`
 
