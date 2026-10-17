@@ -3,7 +3,7 @@
  * Files are built from legacy/ by tools/art/build_assets.py and credited in CREDITS.md.
  * tests/unit/manifest.test.ts checks these numbers against the real PNG files.
  */
-export const ASSET_GROUPS = ['player', 'enemies', 'effects', 'levels'] as const;
+export const ASSET_GROUPS = ['player', 'enemies', 'effects', 'portraits', 'levels'] as const;
 export type AssetGroup = (typeof ASSET_GROUPS)[number];
 
 export interface SheetAsset {
@@ -82,6 +82,12 @@ export const ASSETS: readonly Asset[] = [
   sheet('effects', 'enemy-death', 'enemy-death.png', 48, 48, 8, 14, false),
   sheet('effects', 'hit', 'hit.png', 31, 32, 3, 14, false),
 
+  // Speaker portraits for dialogue cards (48×48, with background)
+  image('portraits', 'portrait-commander', 'commander.png', 48, 48),
+  image('portraits', 'portrait-ops', 'ops.png', 48, 48),
+  image('portraits', 'portrait-marine', 'marine.png', 48, 48),
+  image('portraits', 'portrait-hive', 'hive.png', 48, 48),
+
   // Level art: cyberpunk corridor
   image('levels', 'corridor-back', 'corridor/back.png', 192, 176),
   image('levels', 'corridor-foreground', 'corridor/foreground.png', 272, 176),
@@ -104,6 +110,11 @@ export const LEVELS: readonly LevelAsset[] = [
   {
     key: 'corridor-test',
     path: 'assets/levels/corridor-test.tmj',
+    tilesets: { corridor: 'corridor-tileset' },
+  },
+  {
+    key: 'corridor-test-2',
+    path: 'assets/levels/corridor-test-2.tmj',
     tilesets: { corridor: 'corridor-tileset' },
   },
 ];

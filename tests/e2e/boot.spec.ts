@@ -34,7 +34,7 @@ test('asset preview pages through every group with no console errors', async ({ 
     await page.waitForTimeout(300);
   }
   // Every group appears, in manifest order (large groups may span several pages).
-  expect([...new Set(groups)]).toEqual(['player', 'enemies', 'effects', 'levels']);
+  expect([...new Set(groups)]).toEqual(['player', 'enemies', 'effects', 'portraits', 'levels']);
   // After the last page it wraps around to the first.
   expect(await page.evaluate(() => window.__contro?.previewGroup() ?? null)).toBe('player');
   expect(watched.errors).toEqual([]);

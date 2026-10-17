@@ -98,3 +98,14 @@ export const MUZZLE_FLASH_ANCHOR = { x: 6, y: 7 } as const;
 export const HIT_FLASH_MS = 70;
 /** Damage of one default-rifle bullet. */
 export const RIFLE_DAMAGE = 1;
+
+/** Dialogue cards and room transitions (M1.7). */
+export const DIALOGUE_CARD = {
+  /** Ignore continue presses for this long, so a held key doesn't skip the card. */
+  inputDelayMs: 400,
+  /** Camera fade between the level and the card. */
+  fadeMs: 250,
+  /** Longest line (characters) and most lines a card may have, so text fits the box. */
+  maxLineChars: 34,
+  maxLines: 2,
+} as const;

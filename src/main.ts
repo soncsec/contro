@@ -3,6 +3,7 @@ import './style.css';
 import { BACKGROUND_COLOR, GAME_HEIGHT, GAME_WIDTH } from './config/tuning';
 import { integerZoom } from './logic/scaling';
 import { AssetPreviewScene } from './scenes/AssetPreviewScene';
+import { DialogueScene } from './scenes/DialogueScene';
 import { LevelScene } from './scenes/LevelScene';
 import { PreloadScene } from './scenes/PreloadScene';
 
@@ -26,7 +27,7 @@ export const game = new Phaser.Game({
     default: 'arcade',
     arcade: { debug: false },
   },
-  scene: [PreloadScene, LevelScene, AssetPreviewScene],
+  scene: [PreloadScene, LevelScene, DialogueScene, AssetPreviewScene],
 });
 
 window.addEventListener('resize', () => {
