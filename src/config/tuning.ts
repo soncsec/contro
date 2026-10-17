@@ -39,3 +39,57 @@ export const MOVEMENT = {
   /** Longest frame step used by the movement rules, so a stall can't cause a huge jump. */
   maxStepMs: 50,
 } as const;
+
+/** The default rifle (M1.5). Tap to fire faster than holding, like Contra. */
+export const WEAPON = {
+  /** Time between shots while fire is held. */
+  autoIntervalMs: 160,
+  /** Shortest time between shots when fire is tapped. */
+  tapMinMs: 90,
+  bulletSpeed: 300,
+  /** Most bullets on screen at once (the pool size). */
+  maxBullets: 8,
+  /** Bullets are removed once this far outside the camera view. */
+  offscreenMargin: 16,
+} as const;
+
+/**
+ * Barrel tip in each frame of each marine animation, as [x, y] inside the 75×48 frame
+ * (facing right), measured from the art. Bullets and the muzzle flash start here.
+ */
+export const MUZZLE: Readonly<
+  Record<'idle' | 'run' | 'jump' | 'shoot', readonly (readonly [number, number])[]>
+> = {
+  idle: [
+    [56, 23],
+    [55, 24],
+    [54, 25],
+    [55, 24],
+  ],
+  run: [
+    [58, 29],
+    [57, 30],
+    [56, 28],
+    [55, 28],
+    [55, 27],
+    [54, 28],
+    [56, 31],
+    [57, 30],
+    [57, 30],
+    [58, 29],
+  ],
+  jump: [
+    [56, 23],
+    [55, 21],
+    [55, 25],
+    [54, 31],
+    [56, 36],
+  ],
+  shoot: [
+    [54, 23],
+    [55, 23],
+  ],
+};
+
+/** Where the barrel tip sits inside the 22×16 muzzle-flash frame. */
+export const MUZZLE_FLASH_ANCHOR = { x: 6, y: 7 } as const;

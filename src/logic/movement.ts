@@ -16,6 +16,8 @@ export interface MovementInput {
   direction: -1 | 0 | 1;
   /** Jump key held this frame. */
   jump: boolean;
+  /** Jump key newly pressed since the last frame (from the input layer). */
+  jumpPressed: boolean;
 }
 
 export interface BodyState {
@@ -43,7 +45,7 @@ export interface MovementResult {
   jumped: boolean;
 }
 
-export type PlayerAnim = 'idle' | 'run' | 'jump';
+export type PlayerAnim = 'idle' | 'run' | 'jump' | 'shoot';
 
 export const initialMovement = (): MovementState => ({
   facing: 'right',
@@ -67,8 +69,7 @@ export function stepMovement(
   const airMs = body.onFloor ? 0 : prev.airMs + dt;
   const jumping = prev.jumping && !(body.onFloor && body.vy >= 0);
 
-  const pressedNow = input.jump && !prev.jumpHeld;
-  let bufferedJumpMs: number | null = pressedNow
+  let bufferedJumpMs: number | null = input.jumpPressed
     ? 0
     : prev.bufferedJumpMs === null
       ? null
@@ -97,7 +98,9 @@ export function stepMovement(
   };
 }
 
-export function playerAnim(onFloor: boolean, vx: number): PlayerAnim {
+/** Jump in the air, run when moving, the braced shoot pose when firing while standing. */
+export function playerAnim(onFloor: boolean, vx: number, firing: boolean): PlayerAnim {
   if (!onFloor) return 'jump';
-  return vx === 0 ? 'idle' : 'run';
+  if (vx !== 0) return 'run';
+  return firing ? 'shoot' : 'idle';
 }

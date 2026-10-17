@@ -43,3 +43,43 @@ export function phaserKeyName(code: string): string {
   if (code === 'Escape') return 'ESC';
   return code.toUpperCase();
 }
+
+/** Held actions plus actions newly pressed since the previous frame. */
+export interface ActionFrame {
+  held: ActionState;
+  pressed: ActionState;
+}
+
+/**
+ * Tracks key events between frames (by KeyboardEvent.code) and turns them into an ActionFrame.
+ * - A key pressed and released between two frames still counts as held for the next frame.
+ * - A key released and pressed again between two frames still counts as a new press.
+ * - Auto-repeat key events don't count as new presses.
+ */
+export class KeyLatch {
+  private readonly held = new Set<string>();
+  private readonly pressedSinceFrame = new Set<string>();
+
+  keyDown(code: string, repeat = false): void {
+    this.held.add(code);
+    if (!repeat) this.pressedSinceFrame.add(code);
+  }
+
+  keyUp(code: string): void {
+    this.held.delete(code);
+  }
+
+  /** Forget everything (e.g. the window lost focus), so no key stays stuck down. */
+  clear(): void {
+    this.held.clear();
+    this.pressedSinceFrame.clear();
+  }
+
+  /** The actions for this frame. Call once per frame. */
+  frame(bindings: Bindings): ActionFrame {
+    const pressed = actionsFromKeys(this.pressedSinceFrame, bindings);
+    const held = actionsFromKeys(new Set([...this.held, ...this.pressedSinceFrame]), bindings);
+    this.pressedSinceFrame.clear();
+    return { held, pressed };
+  }
+}

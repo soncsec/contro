@@ -77,6 +77,7 @@ export const ASSETS: readonly Asset[] = [
 
   // Effects
   sheet('effects', 'bullet', 'bullet.png', 10, 4, 2, 12, true),
+  sheet('effects', 'muzzle-flash', 'muzzle-flash.png', 22, 16, 2, 20, false),
   sheet('effects', 'wall-impact', 'wall-impact.png', 16, 23, 2, 14, false),
   sheet('effects', 'enemy-death', 'enemy-death.png', 48, 48, 8, 14, false),
   sheet('effects', 'hit', 'hit.png', 31, 32, 3, 14, false),

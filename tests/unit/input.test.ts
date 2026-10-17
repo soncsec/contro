@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   ACTIONS,
+  KeyLatch,
   DEFAULT_KEY_BINDINGS,
   actionsFromKeys,
   boundKeys,
@@ -57,5 +58,50 @@ describe('phaserKeyName', () => {
     expect(phaserKeyName('KeyA')).toBe('A');
     expect(phaserKeyName('Space')).toBe('SPACE');
     expect(phaserKeyName('Escape')).toBe('ESC');
+  });
+});
+
+describe('KeyLatch', () => {
+  const frame = (latch: KeyLatch) => latch.frame(DEFAULT_KEY_BINDINGS);
+
+  it('reports a key as held and newly pressed on its first frame, then just held', () => {
+    const latch = new KeyLatch();
+    latch.keyDown('Space');
+    expect(frame(latch)).toMatchObject({ held: { jump: true }, pressed: { jump: true } });
+    expect(frame(latch)).toMatchObject({ held: { jump: true }, pressed: { jump: false } });
+    latch.keyUp('Space');
+    expect(frame(latch)).toMatchObject({ held: { jump: false }, pressed: { jump: false } });
+  });
+
+  it('keeps a tap that was released before the frame ran', () => {
+    const latch = new KeyLatch();
+    latch.keyDown('KeyX');
+    latch.keyUp('KeyX');
+    expect(frame(latch)).toMatchObject({ held: { fire: true }, pressed: { fire: true } });
+    expect(frame(latch)).toMatchObject({ held: { fire: false }, pressed: { fire: false } });
+  });
+
+  it('reports a release and re-press between frames as a new press', () => {
+    const latch = new KeyLatch();
+    latch.keyDown('Space');
+    frame(latch);
+    latch.keyUp('Space');
+    latch.keyDown('Space');
+    expect(frame(latch)).toMatchObject({ held: { jump: true }, pressed: { jump: true } });
+  });
+
+  it('does not count auto-repeat as a new press', () => {
+    const latch = new KeyLatch();
+    latch.keyDown('KeyX');
+    frame(latch);
+    latch.keyDown('KeyX', true);
+    expect(frame(latch)).toMatchObject({ held: { fire: true }, pressed: { fire: false } });
+  });
+
+  it('forgets everything when cleared', () => {
+    const latch = new KeyLatch();
+    latch.keyDown('ArrowLeft');
+    latch.clear();
+    expect(frame(latch)).toMatchObject({ held: { left: false }, pressed: { left: false } });
   });
 });
