@@ -111,6 +111,12 @@ export class Enemies {
     return true;
   }
 
+  /** Damage this enemy sprite does on touch, or 0 if it is dead or not an enemy. */
+  contactDamage(sprite: Phaser.GameObjects.GameObject): number {
+    const r = sprite.getData('record') as EnemyRecord | undefined;
+    return r && r.sprite.active ? ENEMIES[r.type].contactDamage : 0;
+  }
+
   snapshot(): EnemySnapshot[] {
     return this.records.map((r) => ({
       type: r.type,

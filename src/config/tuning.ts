@@ -18,6 +18,8 @@ export const GRAVITY_Y = 900;
  */
 export const PLAYER_FRAME = { width: 75, height: 48 } as const;
 export const PLAYER_BODY = { width: 16, height: 34, offsetX: 27, offsetY: 14 } as const;
+/** Crouched, the marine's top drops to row 23, so his box is 10 px shorter (M2.2). */
+export const PLAYER_CROUCH_BODY = { width: 16, height: 25, offsetX: 27, offsetY: 23 } as const;
 
 /** How fast the far background scrolls compared with the level (0 = fixed, 1 = with the level). */
 export const PARALLAX_BACK_FACTOR = 0.25;
@@ -56,10 +58,9 @@ export const WEAPON = {
 /**
  * Barrel tip in each frame of each marine animation, as [x, y] inside the 75×48 frame
  * (facing right), measured from the art. Bullets and the muzzle flash start here.
+ * The diagonal-aim sheets' tips are generated with the art (src/assets/aimMuzzles.generated.ts).
  */
-export const MUZZLE: Readonly<
-  Record<'idle' | 'run' | 'jump' | 'shoot', readonly (readonly [number, number])[]>
-> = {
+export const MUZZLE = {
   idle: [
     [56, 23],
     [55, 24],
@@ -89,10 +90,24 @@ export const MUZZLE: Readonly<
     [54, 23],
     [55, 23],
   ],
-};
+  crouch: [
+    [56, 23],
+    [57, 29],
+    [58, 32],
+  ],
+  'crouch-shoot': [
+    [57, 32],
+    [58, 32],
+  ],
+} as const satisfies Record<string, readonly (readonly [number, number])[]>;
 
 /** Where the barrel tip sits inside the 22×16 muzzle-flash frame. */
 export const MUZZLE_FLASH_ANCHOR = { x: 6, y: 7 } as const;
+/**
+ * The same point in the 24×24 diagonal flash: the 22×16 frame is centred at (1, 4) and turned
+ * 45° up about (12, 12), which moves (7, 11) to about (8, 15).
+ */
+export const MUZZLE_FLASH_DIAG_ANCHOR = { x: 8, y: 15 } as const;
 
 /** Enemies flash white for this long when hit (M1.6). */
 export const HIT_FLASH_MS = 70;
@@ -108,4 +123,28 @@ export const DIALOGUE_CARD = {
   /** Longest line (characters) and most lines a card may have, so text fits the box. */
   maxLineChars: 34,
   maxLines: 2,
+} as const;
+
+/**
+ * Player health, lives and respawning (M2.1; PROJECT.md: health bar + checkpoints).
+ * Tuned with the owner in M2.6.
+ */
+export const HEALTH = {
+  /** Hits per life (the health bar's pips). */
+  maxHp: 4,
+  /** Lives at the start of a level, including the current one. */
+  lives: 3,
+  /** After a hit the marine can't be hurt for this long, and blinks. */
+  invulnerableMs: 1500,
+  /** Blink rate while invulnerable. */
+  blinkMs: 80,
+  /** A hit knocks the marine back and up a little. */
+  knockbackX: 120,
+  knockbackY: -160,
+  /** Controls are ignored for this long after a hit, so the knockback reads. */
+  hitStunMs: 250,
+  /** Time between dying and respawning (the die animation plays first). */
+  respawnDelayMs: 1200,
+  /** "GAME OVER" shows this long before the level restarts. */
+  gameOverMs: 2500,
 } as const;

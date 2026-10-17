@@ -7,7 +7,8 @@
  * - tile layer "background"
  * - object layer "collision": rectangles of type "solid" or "platform"
  * - object layer "spawns": one "player-start" point, one "exit" rectangle,
- *   and "enemy" points with an `enemy` string property naming a known enemy type
+ *   "enemy" points with an `enemy` string property naming a known enemy type,
+ *   and any number of "checkpoint" points (respawn places)
  */
 export const TILE_SIZE = 16;
 export const REQUIRED_TILE_LAYERS = ['background'] as const;
@@ -27,6 +28,8 @@ export interface LevelLayout {
   background: string | null;
   colliders: (Rect & { type: CollisionType })[];
   playerStart: { x: number; y: number };
+  /** Respawn points, in map order. */
+  checkpoints: { x: number; y: number }[];
   enemies: { x: number; y: number; enemy: string }[];
   exit: Rect;
 }
@@ -187,6 +190,8 @@ export function validateLevelMap(raw: unknown, knownEnemies: readonly string[]):
         if (typeof enemy !== 'string' || !knownEnemies.includes(enemy)) {
           problems.push(`${where}: unknown enemy type ${JSON.stringify(enemy)}`);
         }
+      } else if (o.type === 'checkpoint') {
+        if (o.point !== true) problems.push(`${where}: checkpoint must be a point`);
       } else if (o.type !== 'player-start' && o.type !== 'exit') {
         problems.push(`${where}: unknown spawn type ${JSON.stringify(o.type)}`);
       }
@@ -221,6 +226,9 @@ export function readLevelLayout(raw: unknown, knownEnemies: readonly string[]): 
     background: typeof background === 'string' ? background : null,
     colliders: collision.map((o) => ({ ...rect(o), type: o.type as CollisionType })),
     playerStart: { x: start.x as number, y: start.y as number },
+    checkpoints: spawns
+      .filter((o) => o.type === 'checkpoint')
+      .map((o) => ({ x: o.x as number, y: o.y as number })),
     enemies: spawns
       .filter((o) => o.type === 'enemy')
       .map((o) => ({ x: o.x as number, y: o.y as number, enemy: property(o, 'enemy') as string })),

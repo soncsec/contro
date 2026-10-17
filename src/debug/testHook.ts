@@ -19,6 +19,8 @@ export interface TestHook {
   level(): LevelSnapshot | null;
   /** The dialogue card on screen, or null if none is showing. */
   dialogue(): ReturnType<DialogueScene['snapshot']> | null;
+  /** Hurts the player as if touched from the front. Throws if no level is running. */
+  hurtPlayer(damage: number): void;
   /** Moves the player to x (level pixels). Throws if no level is running. */
   teleportPlayer(x: number): void;
 }
@@ -48,6 +50,13 @@ export function installTestHook(game: Phaser.Game): void {
       game.scene.isActive('Dialogue')
         ? (game.scene.getScene('Dialogue') as DialogueScene).snapshot()
         : null,
+    hurtPlayer: (damage) => {
+      const scene = level();
+      if (!scene) throw new Error('no level is running');
+      if (!Number.isFinite(damage))
+        throw new Error(`hurtPlayer needs a number, got ${String(damage)}`);
+      scene.hurtPlayer(damage);
+    },
     teleportPlayer: (x) => {
       const scene = level();
       if (!scene) throw new Error('no level is running');

@@ -2,7 +2,9 @@ import Phaser from 'phaser';
 import { LEVELS } from '../assets/manifest';
 import {
   DIALOGUE_CARD,
+  GAME_HEIGHT,
   GAME_WIDTH,
+  HEALTH,
   GRAVITY_Y,
   PARALLAX_BACK_FACTOR,
   RIFLE_DAMAGE,
@@ -12,8 +14,10 @@ import { ENEMIES, ENEMY_TYPES } from '../data/enemies';
 import { Bullets } from '../entities/Bullets';
 import { Effects } from '../entities/Effects';
 import { Enemies, type EnemySnapshot } from '../entities/Enemies';
+import { Hud } from '../entities/Hud';
 import { Player, type PlayerSnapshot } from '../entities/Player';
 import { afterExit } from '../logic/campaign';
+import { respawnPoint } from '../logic/health';
 import { DEFAULT_KEY_BINDINGS, type ActionFrame } from '../logic/input';
 import { readLevelLayout, type LevelLayout } from '../logic/levelMap';
 import { KeyboardInput } from '../systems/KeyboardInput';
@@ -33,10 +37,20 @@ export interface LevelSnapshot {
   widthPx: number;
   player: PlayerSnapshot;
   cameraX: number;
-  bullets: { active: number; fired: number; impacts: number };
+  bullets: {
+    active: number;
+    fired: number;
+    firedDiagonal: number;
+    impacts: number;
+    lastShot: { x: number; y: number; aim: string } | null;
+  };
   enemies: EnemySnapshot[];
   /** True once the player has reached the exit and the room is fading out. */
   exiting: boolean;
+  /** Furthest x the player has reached, and where they would respawn now. */
+  reachedX: number;
+  respawnAt: { x: number; y: number };
+  gameOver: boolean;
 }
 
 const DEFAULT_LEVEL = 'corridor-test';
@@ -68,6 +82,9 @@ export class LevelScene extends Phaser.Scene {
   private elapsedMs = 0;
   /** Set once the player reaches the exit; input is ignored while the scene fades out. */
   private exiting = false;
+  private gameOver = false;
+  private reachedX = 0;
+  private hud!: Hud;
   private back: Phaser.GameObjects.TileSprite | null = null;
 
   constructor() {
@@ -78,6 +95,8 @@ export class LevelScene extends Phaser.Scene {
     this.levelKey = data.level ?? DEFAULT_LEVEL;
     this.elapsedMs = 0;
     this.exiting = false;
+    this.gameOver = false;
+    this.reachedX = 0;
   }
 
   create(): void {
@@ -144,6 +163,13 @@ export class LevelScene extends Phaser.Scene {
       this.effects.play('hit', tip.x, tip.y, tip.direction < 0);
     });
 
+    // Touching a live enemy hurts the marine.
+    this.physics.add.overlap(this.player.sprite, this.enemies.group, (_player, enemy) => {
+      const damage = this.enemies.contactDamage(enemy as Phaser.GameObjects.GameObject);
+      if (damage > 0) this.player.hurt(damage, (enemy as Phaser.GameObjects.Sprite).x);
+    });
+    this.hud = new Hud(this);
+
     // Reaching the exit shows this room's card, then the next room.
     const { exit } = this.layout;
     const exitZone = this.add.zone(
@@ -163,21 +189,61 @@ export class LevelScene extends Phaser.Scene {
   override update(_time: number, deltaMs: number): void {
     this.elapsedMs += deltaMs;
     const input = this.keyboard.frame();
-    const shot = this.player.update(deltaMs, this.exiting ? NO_INPUT : input);
+    const { shot, event } = this.player.update(deltaMs, this.exiting ? NO_INPUT : input);
     if (shot) this.bullets.fire(shot);
+    if (!this.player.dead) this.reachedX = Math.max(this.reachedX, this.player.snapshot().x);
+    if (event === 'respawn') {
+      const at = this.respawnAt();
+      this.player.respawn(at.x, at.y);
+    } else if (event === 'game-over') {
+      this.showGameOver();
+    }
+    const p = this.player.snapshot();
+    this.hud.update(p.hp, p.lives);
     this.bullets.update();
     this.enemies.update(deltaMs);
     if (this.back) this.back.tilePositionX = this.cameras.main.scrollX * PARALLAX_BACK_FACTOR;
   }
 
+  private respawnAt(): { x: number; y: number } {
+    return respawnPoint(this.layout.playerStart, this.layout.checkpoints, this.reachedX);
+  }
+
+  /** Out of lives: show GAME OVER, then restart this level with full lives. */
+  private showGameOver(): void {
+    if (this.gameOver) return;
+    this.gameOver = true;
+    this.add
+      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'GAME OVER', {
+        fontFamily: 'monospace',
+        fontSize: '16px',
+        color: '#ff4fd8',
+      })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(100);
+    this.time.delayedCall(HEALTH.gameOverMs, () => {
+      this.cameras.main.fadeOut(DIALOGUE_CARD.fadeMs);
+      this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+        this.scene.restart({ level: this.levelKey });
+      });
+    });
+  }
+
   private reachExit(): void {
-    if (this.exiting) return;
+    if (this.exiting || this.player.dead) return;
     this.exiting = true;
     const { card, nextLevel } = afterExit(CAMPAIGN, this.levelKey);
     this.cameras.main.fadeOut(DIALOGUE_CARD.fadeMs);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Dialogue', { card, nextLevel });
     });
+  }
+
+  /** Test hook: hurt the player as if touched by something just in front of them. */
+  hurtPlayer(damage: number): void {
+    const p = this.player.snapshot();
+    this.player.hurt(damage, p.x + (p.facing === 'left' ? -1 : 1));
   }
 
   /** Test hook: move the player (feet stay on the same line). */
@@ -195,10 +261,19 @@ export class LevelScene extends Phaser.Scene {
       bullets: {
         active: this.bullets.active,
         fired: this.bullets.fired,
+        firedDiagonal: this.bullets.firedDiagonal,
         impacts: this.bullets.impacts,
+        lastShot: this.bullets.lastShot && {
+          x: Math.round(this.bullets.lastShot.x),
+          y: Math.round(this.bullets.lastShot.y),
+          aim: this.bullets.lastShot.aim,
+        },
       },
       enemies: this.enemies.snapshot(),
       exiting: this.exiting,
+      reachedX: this.reachedX,
+      respawnAt: this.respawnAt(),
+      gameOver: this.gameOver,
     };
   }
 }

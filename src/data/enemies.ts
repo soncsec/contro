@@ -25,6 +25,8 @@ export interface EnemyStats {
   turnPauseMs: number;
   /** One-shot effect played when it dies. */
   deathEffect: string;
+  /** Damage to the marine on touch. */
+  contactDamage: number;
 }
 
 export const ENEMIES: Readonly<Record<EnemyType, EnemyStats>> = {
@@ -39,5 +41,6 @@ export const ENEMIES: Readonly<Record<EnemyType, EnemyStats>> = {
     patrolRange: 48,
     turnPauseMs: 400,
     deathEffect: 'enemy-death',
+    contactDamage: 1,
   },
 };
