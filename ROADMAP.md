@@ -8,7 +8,7 @@
 | Milestone | Status |
 |---|---|
 | M0 Setup | Done except M0.4 (Tiled install) |
-| M1 Walking skeleton (to production) | Not started |
+| M1 Walking skeleton (to production) | In progress |
 | M2 Core feel | Not started |
 | M3 Level 1 Industrial (vertical slice) | Not started |
 | M4 Level 2 Cyberpunk Corridor | Not started |
@@ -48,7 +48,7 @@
 
 **Demonstrable result:** at `games.soncrant.com/contro/` the marine runs, jumps and shoots through a cyberpunk-corridor room, kills an alien, and walks through the exit to a portrait card and a second room.
 
-- [ ] M1.1 Asset manifest, preload scene and asset preview scene (`?scene=preview`) for marine, walking alien, bullets, impacts and corridor art; manifest test against the real PNGs; CREDITS.md
+- [x] M1.1 Asset manifest, preload scene and asset preview scene (`?scene=preview`) for marine, walking alien, bullets, impacts and corridor art; manifest test against the real PNGs; CREDITS.md. Assets built from `legacy/` by `tools/art/build_assets.py` (16 files, frames packed into strips). Finding: the corridor tileset is pre-built room modules, not small tiles; checked for grid alignment in M1.2
 - [ ] M1.2 Slice the corridor tileset; confirm grid and resolution (ADR-C05); a test room in Tiled; map validation test
 - [ ] M1.3 Level scene: tile map, collisions, parallax background, camera follow, whole-number scaling
 - [ ] M1.4 Input layer (keyboard) and player movement: run, jump, gravity, coyote time (logic unit tested)
