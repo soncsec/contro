@@ -1,6 +1,7 @@
 import type Phaser from 'phaser';
 import type { AssetGroup } from '../assets/manifest';
 import type { AssetPreviewScene } from '../scenes/AssetPreviewScene';
+import type { DialogueScene } from '../scenes/DialogueScene';
 import type { LevelScene, LevelSnapshot } from '../scenes/LevelScene';
 
 /**
@@ -16,6 +17,8 @@ export interface TestHook {
   previewPageCount(): number | null;
   /** Level state, or null if no level is running. */
   level(): LevelSnapshot | null;
+  /** The dialogue card on screen, or null if none is showing. */
+  dialogue(): ReturnType<DialogueScene['snapshot']> | null;
   /** Moves the player to x (level pixels). Throws if no level is running. */
   teleportPlayer(x: number): void;
 }
@@ -41,6 +44,10 @@ export function installTestHook(game: Phaser.Game): void {
         ? (game.scene.getScene('AssetPreview') as AssetPreviewScene).pageCount
         : null,
     level: () => level()?.snapshot() ?? null,
+    dialogue: () =>
+      game.scene.isActive('Dialogue')
+        ? (game.scene.getScene('Dialogue') as DialogueScene).snapshot()
+        : null,
     teleportPlayer: (x) => {
       const scene = level();
       if (!scene) throw new Error('no level is running');

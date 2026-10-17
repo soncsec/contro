@@ -22,6 +22,7 @@ CREDITS = ROOT / "CREDITS.md"
 START, END = "<!-- assets:start -->", "<!-- assets:end -->"
 
 MARINE = "Warped/Characters/space-marine-lite/Sprites"
+PORTRAITS = "Warped/Misc/Warped Portraits Files/portraits with bg"
 
 # (output under public/, source under legacy/, how)
 #   how = "copy"           copy the file unchanged
@@ -43,6 +44,10 @@ ASSETS = [
     ("assets/effects/hit.png", "Explosions and Magic/Hit/hit.png", "copy"),
     ("assets/enemies/alien-walker-idle.png", "Warped/Characters/alien-walking-enemy/Spritesheets/alien-enemy-idle.png", "copy"),
     ("assets/enemies/alien-walker-walk.png", "Warped/Characters/alien-walking-enemy/Spritesheets/alien-enemy-walk.png", "copy"),
+    ("assets/portraits/commander.png", f"{PORTRAITS}/base1.png", "copy"),
+    ("assets/portraits/ops.png", f"{PORTRAITS}/base2.png", "copy"),
+    ("assets/portraits/marine.png", f"{PORTRAITS}/base3.png", "copy"),
+    ("assets/portraits/hive.png", f"{PORTRAITS}/base4.png", "copy"),
     ("assets/levels/corridor/back.png", "Warped/Environments/cyberpunk-corridor-files/PNG/back.png", "copy"),
     ("assets/levels/corridor/foreground.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor-foreground.png", "copy"),
     ("assets/levels/corridor/tileset.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "copy"),

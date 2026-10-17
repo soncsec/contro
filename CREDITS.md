@@ -23,6 +23,10 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/effects/hit.png` | `Explosions and Magic/Hit/hit.png` | unchanged |
 | `assets/enemies/alien-walker-idle.png` | `Warped/Characters/alien-walking-enemy/Spritesheets/alien-enemy-idle.png` | unchanged |
 | `assets/enemies/alien-walker-walk.png` | `Warped/Characters/alien-walking-enemy/Spritesheets/alien-enemy-walk.png` | unchanged |
+| `assets/portraits/commander.png` | `Warped/Misc/Warped Portraits Files/portraits with bg/base1.png` | unchanged |
+| `assets/portraits/ops.png` | `Warped/Misc/Warped Portraits Files/portraits with bg/base2.png` | unchanged |
+| `assets/portraits/marine.png` | `Warped/Misc/Warped Portraits Files/portraits with bg/base3.png` | unchanged |
+| `assets/portraits/hive.png` | `Warped/Misc/Warped Portraits Files/portraits with bg/base4.png` | unchanged |
 | `assets/levels/corridor/back.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/back.png` | unchanged |
 | `assets/levels/corridor/foreground.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor-foreground.png` | unchanged |
 | `assets/levels/corridor/tileset.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png` | unchanged |

@@ -1,12 +1,20 @@
 import Phaser from 'phaser';
 import { LEVELS } from '../assets/manifest';
-import { GAME_WIDTH, GRAVITY_Y, PARALLAX_BACK_FACTOR, RIFLE_DAMAGE } from '../config/tuning';
+import {
+  DIALOGUE_CARD,
+  GAME_WIDTH,
+  GRAVITY_Y,
+  PARALLAX_BACK_FACTOR,
+  RIFLE_DAMAGE,
+} from '../config/tuning';
+import { CAMPAIGN } from '../data/campaign';
 import { ENEMIES, ENEMY_TYPES } from '../data/enemies';
 import { Bullets } from '../entities/Bullets';
 import { Effects } from '../entities/Effects';
 import { Enemies, type EnemySnapshot } from '../entities/Enemies';
 import { Player, type PlayerSnapshot } from '../entities/Player';
-import { DEFAULT_KEY_BINDINGS } from '../logic/input';
+import { afterExit } from '../logic/campaign';
+import { DEFAULT_KEY_BINDINGS, type ActionFrame } from '../logic/input';
 import { readLevelLayout, type LevelLayout } from '../logic/levelMap';
 import { KeyboardInput } from '../systems/KeyboardInput';
 
@@ -27,9 +35,23 @@ export interface LevelSnapshot {
   cameraX: number;
   bullets: { active: number; fired: number; impacts: number };
   enemies: EnemySnapshot[];
+  /** True once the player has reached the exit and the room is fading out. */
+  exiting: boolean;
 }
 
 const DEFAULT_LEVEL = 'corridor-test';
+
+const NOTHING = {
+  left: false,
+  right: false,
+  up: false,
+  down: false,
+  jump: false,
+  fire: false,
+  pause: false,
+};
+/** Input used while the level fades out after the exit: the marine stops. */
+const NO_INPUT: ActionFrame = { held: NOTHING, pressed: NOTHING };
 
 /**
  * Plays one level: the Tiled map, its collision rectangles, a parallax background,
@@ -44,6 +66,8 @@ export class LevelScene extends Phaser.Scene {
   private effects!: Effects;
   private enemies!: Enemies;
   private elapsedMs = 0;
+  /** Set once the player reaches the exit; input is ignored while the scene fades out. */
+  private exiting = false;
   private back: Phaser.GameObjects.TileSprite | null = null;
 
   constructor() {
@@ -53,6 +77,7 @@ export class LevelScene extends Phaser.Scene {
   init(data: LevelSceneData): void {
     this.levelKey = data.level ?? DEFAULT_LEVEL;
     this.elapsedMs = 0;
+    this.exiting = false;
   }
 
   create(): void {
@@ -119,17 +144,40 @@ export class LevelScene extends Phaser.Scene {
       this.effects.play('hit', tip.x, tip.y, tip.direction < 0);
     });
 
+    // Reaching the exit shows this room's card, then the next room.
+    const { exit } = this.layout;
+    const exitZone = this.add.zone(
+      exit.x + exit.width / 2,
+      exit.y + exit.height / 2,
+      exit.width,
+      exit.height,
+    );
+    this.physics.add.existing(exitZone, true);
+    this.physics.add.overlap(this.player.sprite, exitZone, () => this.reachExit());
+
     this.cameras.main.setBounds(0, 0, widthPx, heightPx);
     this.cameras.main.startFollow(this.player.sprite, true);
+    this.cameras.main.fadeIn(DIALOGUE_CARD.fadeMs);
   }
 
   override update(_time: number, deltaMs: number): void {
     this.elapsedMs += deltaMs;
-    const shot = this.player.update(deltaMs, this.keyboard.frame());
+    const input = this.keyboard.frame();
+    const shot = this.player.update(deltaMs, this.exiting ? NO_INPUT : input);
     if (shot) this.bullets.fire(shot);
     this.bullets.update();
     this.enemies.update(deltaMs);
     if (this.back) this.back.tilePositionX = this.cameras.main.scrollX * PARALLAX_BACK_FACTOR;
+  }
+
+  private reachExit(): void {
+    if (this.exiting) return;
+    this.exiting = true;
+    const { card, nextLevel } = afterExit(CAMPAIGN, this.levelKey);
+    this.cameras.main.fadeOut(DIALOGUE_CARD.fadeMs);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start('Dialogue', { card, nextLevel });
+    });
   }
 
   /** Test hook: move the player (feet stay on the same line). */
@@ -150,6 +198,7 @@ export class LevelScene extends Phaser.Scene {
         impacts: this.bullets.impacts,
       },
       enemies: this.enemies.snapshot(),
+      exiting: this.exiting,
     };
   }
 }
