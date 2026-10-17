@@ -34,7 +34,7 @@ export class PreloadScene extends Phaser.Scene {
     const next =
       new URLSearchParams(window.location.search).get('scene') === 'preview'
         ? 'AssetPreview'
-        : 'Boot';
+        : 'Level';
     this.scene.start(next);
   }
 }
