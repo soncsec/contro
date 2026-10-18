@@ -89,6 +89,8 @@ export const ASSETS: readonly Asset[] = [
   sheet('effects', 'wall-impact', 'wall-impact.png', 16, 23, 2, 14, false),
   sheet('effects', 'enemy-death', 'enemy-death.png', 48, 48, 8, 14, false),
   sheet('effects', 'hit', 'hit.png', 31, 32, 3, 14, false),
+  // Double jump: an expanding ring, squashed flat under the marine's feet
+  sheet('effects', 'air-jump-ring', 'air-jump-ring.png', 52, 48, 6, 24, false),
 
   // Speaker portraits for dialogue cards (48×48, with background)
   image('portraits', 'portrait-commander', 'commander.png', 48, 48),

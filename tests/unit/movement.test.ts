@@ -72,23 +72,34 @@ describe('jumping', () => {
     expect(stepMovement(falling.state, jump, air(20), FRAME, MOVEMENT).jumped).toBe(true);
   });
 
-  it('refuses a jump after coyote time runs out', () => {
+  it('refuses a ground jump after coyote time runs out', () => {
     // 5 frames in the air, then jump on the 6th: 96 ms, just past the window.
-    const falling = run(initialMovement(), none, air(), 5);
+    const falling = run({ ...initialMovement(), airJumpsLeft: 0 }, none, air(), 5);
     expect(stepMovement(falling.state, jump, air(20), FRAME, MOVEMENT).jumped).toBe(false);
+    // With the double jump still available, the press uses it instead (at the lower speed).
+    const fresh = run(initialMovement(), none, air(), 5);
+    const r = stepMovement(fresh.state, jump, air(20), FRAME, MOVEMENT);
+    expect(r).toMatchObject({ airJumped: true, vy: -MOVEMENT.airJumpSpeed });
   });
 
-  it('gives no second jump in the air during coyote time', () => {
+  it('gives no second ground jump in the air during coyote time', () => {
     const up = stepMovement(initialMovement(), jump, ground, FRAME, MOVEMENT);
     const rising = stepMovement(up.state, none, air(-250), FRAME, MOVEMENT);
-    expect(stepMovement(rising.state, jump, air(-230), FRAME, MOVEMENT).jumped).toBe(false);
-    // ...and holding jump through the take-off gives no second jump either.
+    // Air jump used up: a press while rising does nothing.
+    const used = { ...rising.state, airJumpsLeft: 0 };
+    expect(stepMovement(used, jump, air(-230), FRAME, MOVEMENT).jumped).toBe(false);
+    // Air jump available: the press is the double jump, not a second full-height ground jump.
+    expect(stepMovement(rising.state, jump, air(-230), FRAME, MOVEMENT)).toMatchObject({
+      airJumped: true,
+      vy: -MOVEMENT.airJumpSpeed,
+    });
+    // Holding jump through the take-off gives no second jump of either kind.
     expect(stepMovement(up.state, held, air(-280), FRAME, MOVEMENT).jumped).toBe(false);
   });
 
-  it('remembers a press just before landing (jump buffer)', () => {
+  it('remembers a press just before landing (jump buffer), once the air jump is used', () => {
     const pressed = stepMovement(
-      { ...initialMovement(), airMs: 500 },
+      { ...initialMovement(), airMs: 500, airJumpsLeft: 0 },
       jump,
       air(200),
       FRAME,
@@ -102,7 +113,7 @@ describe('jumping', () => {
 
   it('forgets a press made too long before landing', () => {
     const pressed = stepMovement(
-      { ...initialMovement(), airMs: 500 },
+      { ...initialMovement(), airMs: 500, airJumpsLeft: 0 },
       jump,
       air(200),
       FRAME,
@@ -137,6 +148,54 @@ describe('jumping', () => {
     const r = stepMovement(initialMovement(), none, air(), 1000, MOVEMENT);
     expect(r.state.airMs).toBe(50);
     expect(stepMovement(initialMovement(), none, air(), -5, MOVEMENT).state.airMs).toBe(0);
+  });
+});
+
+describe('double jump', () => {
+  it('a press in mid-air jumps again, lower than a ground jump', () => {
+    const up = stepMovement(initialMovement(), jump, ground, FRAME, MOVEMENT);
+    expect(up.airJumped).toBe(false);
+    const rising = stepMovement(up.state, none, air(-200), FRAME, MOVEMENT);
+    const again = stepMovement(rising.state, jump, air(-150), FRAME, MOVEMENT);
+    expect(again).toMatchObject({ jumped: true, airJumped: true, vy: -251 });
+    expect(again.state).toMatchObject({ airJumpsLeft: 0, jumping: true });
+    // 251² / (2 × 900) = 35 px: about 70% of the 50 px ground jump.
+    expect(MOVEMENT.airJumpSpeed ** 2 / 1800).toBeCloseTo(35, 0);
+  });
+
+  it('only once before landing', () => {
+    const used = { ...initialMovement(), airMs: 300, jumping: true, airJumpsLeft: 0 };
+    expect(stepMovement(used, jump, air(50), FRAME, MOVEMENT).jumped).toBe(false);
+  });
+
+  it('is restored on landing', () => {
+    const used = { ...initialMovement(), airMs: 300, jumping: true, airJumpsLeft: 0 };
+    const landed = stepMovement(used, none, ground, FRAME, MOVEMENT);
+    expect(landed.state.airJumpsLeft).toBe(1);
+  });
+
+  it('is not restored while still rising off the floor (take-off frame)', () => {
+    const used = { ...initialMovement(), jumping: true, airJumpsLeft: 0 };
+    const r = stepMovement(used, none, { onFloor: true, vy: -251 }, FRAME, MOVEMENT);
+    expect(r.state.airJumpsLeft).toBe(0);
+  });
+
+  it('works after walking off a ledge, once coyote time has passed', () => {
+    const falling = run(initialMovement(), none, air(), 10); // 160 ms off the ledge
+    expect(stepMovement(falling.state, jump, air(60), FRAME, MOVEMENT).airJumped).toBe(true);
+  });
+
+  it('letting go early cuts the double jump short too', () => {
+    const up = stepMovement(initialMovement(), jump, ground, FRAME, MOVEMENT);
+    const again = stepMovement(up.state, jump, air(-100), FRAME, MOVEMENT);
+    const released = stepMovement(again.state, none, air(-240), FRAME, MOVEMENT);
+    expect(released.vy).toBe(-120);
+  });
+
+  it('can be switched off with airJumps: 0', () => {
+    const noDouble = { ...MOVEMENT, airJumps: 0 };
+    const up = stepMovement(initialMovement(0), jump, ground, FRAME, noDouble);
+    expect(stepMovement(up.state, jump, air(-100), FRAME, noDouble).jumped).toBe(false);
   });
 });
 

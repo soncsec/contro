@@ -25,6 +25,7 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/effects/bullet-diag.png` | `Warped/Characters/space-marine-lite/Sprites/Misc/bullet1.png … bullet2.png` | *derived*: 2 frames rotated 45° up (`tools/art/aim.py`) |
 | `assets/effects/wall-impact.png` | `Warped/Characters/space-marine-lite/Sprites/Misc/wall-impact-blast1.png … wall-impact-blast2.png` | 2 frames packed into a strip |
 | `assets/effects/enemy-death.png` | `Explosions and Magic/EnemyDeath/spritesheet.png` | unchanged |
+| `assets/effects/air-jump-ring.png` | `Explosions and Magic/Grotto-escape-2-FX/spritesheets/slash-circular.png` | unchanged |
 | `assets/effects/hit.png` | `Explosions and Magic/Hit/hit.png` | unchanged |
 | `assets/enemies/alien-flyer.png` | `Warped/Characters/alien-flying-enemy/spritesheet.png` | unchanged |
 | `assets/effects/enemy-shot.png` | `Gothicvania/Misc/EnemyProjectile/spritesheet.png` | unchanged |
