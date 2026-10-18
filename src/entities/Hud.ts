@@ -10,6 +10,7 @@ const COLORS = {
   border: 0x07060d,
   text: '#e6eef7',
   best: '#ffd166',
+  cheat: '#ff4fd8',
 } as const;
 const LINE = 9;
 const DEPTH = 100;
@@ -20,6 +21,7 @@ export class Hud {
   private readonly lives: Phaser.GameObjects.Text;
   private readonly score: Phaser.GameObjects.Text;
   private readonly best: Phaser.GameObjects.Text;
+  private readonly cheat: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
     for (let i = 0; i < HEALTH.maxHp; i++) {
@@ -57,9 +59,16 @@ export class Hud {
       .setOrigin(1, 0)
       .setScrollFactor(0)
       .setDepth(DEPTH);
+    // Shown for the rest of a run once any cheat is used (the best score isn't saved then).
+    this.cheat = scene.add
+      .text(ORIGIN.x, ORIGIN.y - 3 + LINE, 'CHEAT', { ...style, color: COLORS.cheat })
+      .setScrollFactor(0)
+      .setDepth(DEPTH)
+      .setVisible(false);
   }
 
-  update(hp: number, lives: number, score: number, best: number): void {
+  update(hp: number, lives: number, score: number, best: number, cheated: boolean): void {
+    this.cheat.setVisible(cheated);
     this.pips.forEach((pip, i) => pip.setFillStyle(i < hp ? COLORS.full : COLORS.empty));
     this.lives.setText(`x${lives}`);
     this.score.setText(formatScore(score));

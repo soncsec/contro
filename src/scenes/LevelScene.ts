@@ -7,6 +7,7 @@ import {
   HEALTH,
   PLATFORMS,
   PLAYER_BODY,
+  CHEAT_EXTRA_LIVES,
   SCORING,
   GRAVITY_Y,
   PARALLAX_BACK_FACTOR,
@@ -24,6 +25,7 @@ import { afterExit } from '../logic/campaign';
 import { standingOn } from '../logic/ground';
 import { respawnPoint } from '../logic/health';
 import { addPoints, newRun, type ScoreState } from '../logic/score';
+import { NO_CHEATS, applyCheat, type CheatId, type CheatState } from '../logic/cheats';
 import { NO_ACTIONS, type ActionFrame } from '../logic/input';
 import { readLevelLayout, type LevelLayout } from '../logic/levelMap';
 import { PlayerInput } from '../systems/PlayerInput';
@@ -33,6 +35,8 @@ import { SaveStore } from '../systems/SaveStore';
 export interface RunState {
   score: number;
   lives: number;
+  /** Cheats switched on in this run (they carry from room to room). */
+  cheats?: CheatState;
 }
 
 export interface LevelSceneData {
@@ -68,6 +72,7 @@ export interface LevelSnapshot {
   respawnAt: { x: number; y: number };
   gameOver: boolean;
   score: { score: number; best: number };
+  cheats: CheatState;
 }
 
 const DEFAULT_LEVEL = 'corridor-test';
@@ -95,6 +100,7 @@ export class LevelScene extends Phaser.Scene {
   private reachedX = 0;
   private hud!: Hud;
   private score: ScoreState = newRun(0);
+  private cheats: CheatState = NO_CHEATS;
   /** The run as it was when this room started (for Restart room). */
   private runAtStart: RunState | null = null;
   private back: Phaser.GameObjects.TileSprite | null = null;
@@ -106,6 +112,8 @@ export class LevelScene extends Phaser.Scene {
   init(data: LevelSceneData): void {
     this.levelKey = data.level ?? DEFAULT_LEVEL;
     this.runAtStart = data.run ?? null;
+    this.cheats = data.run?.cheats ?? NO_CHEATS;
+    this.skipRoomOnResume = false;
     this.score = { ...newRun(SaveStore.load().bestScore), score: data.run?.score ?? 0 };
     // Thresholds already passed before this room don't award again.
     this.score.livesAwarded = SCORING.extraLifeAt.filter((t) => this.score.score >= t).length;
@@ -161,6 +169,7 @@ export class LevelScene extends Phaser.Scene {
 
     const start = this.layout.playerStart;
     this.player = new Player(this, start.x, start.y, this.runAtStart?.lives ?? HEALTH.lives);
+    this.player.invincible = this.cheats.invincible;
     this.physics.add.collider(this.player.sprite, solids);
     // Down + jump drops through a catwalk for a moment.
     this.physics.add.collider(
@@ -171,7 +180,13 @@ export class LevelScene extends Phaser.Scene {
     );
     this.controls = new PlayerInput(this);
     // Keys released while paused would otherwise look held (or freshly pressed) on resume.
-    this.events.on(Phaser.Scenes.Events.RESUME, () => this.controls.clear());
+    this.events.on(Phaser.Scenes.Events.RESUME, () => {
+      this.controls.clear();
+      if (this.skipRoomOnResume) {
+        this.skipRoomOnResume = false;
+        this.reachExit();
+      }
+    });
 
     this.effects = new Effects(this);
     this.bullets = new Bullets(this, (x, y, direction) => {
@@ -261,11 +276,13 @@ export class LevelScene extends Phaser.Scene {
       this.player.fall();
     }
     const p = this.player.snapshot();
-    this.hud.update(p.hp, p.lives, this.score.score, this.score.best);
+    this.hud.update(p.hp, p.lives, this.score.score, this.score.best, this.cheats.used);
     this.bullets.update();
     const p0 = this.player.snapshot();
     // Enemies aim at the middle of the marine's body.
-    const target = p0.dead ? null : { x: p0.x, y: p0.feetY - PLAYER_BODY.height / 2 };
+    // Invisible (cheat): enemies can't see him to aim or dive.
+    const target =
+      p0.dead || this.cheats.invisible ? null : { x: p0.x, y: p0.feetY - PLAYER_BODY.height / 2 };
     for (const shot of this.enemies.update(deltaMs, target)) this.enemyShots.fire(shot);
     this.enemyShots.update();
     if (this.back) this.back.tilePositionX = this.cameras.main.scrollX * PARALLAX_BACK_FACTOR;
@@ -310,16 +327,39 @@ export class LevelScene extends Phaser.Scene {
   /** Adds points, awards any extra lives, and saves a new best score. */
   addScore(points: number): void {
     const r = addPoints(this.score, points, SCORING.extraLifeAt);
-    const newBest = r.state.best > this.score.best;
-    this.score = r.state;
+    // A cheated run never sets a best score.
+    const best = this.cheats.used ? this.score.best : r.state.best;
+    const newBest = best > this.score.best;
+    this.score = { ...r.state, best };
     if (r.extraLives > 0) this.player.addLives(r.extraLives);
     if (newBest) SaveStore.save({ version: 1, bestScore: this.score.best });
   }
 
+  /** A cheat was entered on the pause screen. Returns a short line confirming it. */
+  applyCheat(id: CheatId): string {
+    this.cheats = applyCheat(this.cheats, id);
+    this.player.invincible = this.cheats.invincible;
+    switch (id) {
+      case 'extra-lives':
+        this.player.addLives(CHEAT_EXTRA_LIVES);
+        return `+${CHEAT_EXTRA_LIVES} LIVES`;
+      case 'invincible':
+        return this.cheats.invincible ? 'INVINCIBLE ON' : 'INVINCIBLE OFF';
+      case 'invisible':
+        return this.cheats.invisible ? 'INVISIBLE ON' : 'INVISIBLE OFF';
+      case 'skip-room':
+        this.skipRoomOnResume = true;
+        return 'SKIPPING ROOM';
+    }
+  }
+
   /** The score and lives to carry into the next room. */
   run(): RunState {
-    return { score: this.score.score, lives: this.player.snapshot().lives };
+    return { score: this.score.score, lives: this.player.snapshot().lives, cheats: this.cheats };
   }
+
+  /** Room skip (cheat): leave through the exit as soon as the game resumes. */
+  private skipRoomOnResume = false;
 
   /** The run this room started with (null on a fresh run), for Restart room. */
   get startingRun(): RunState | null {
@@ -362,6 +402,7 @@ export class LevelScene extends Phaser.Scene {
       respawnAt: this.respawnAt(),
       gameOver: this.gameOver,
       score: { score: this.score.score, best: this.score.best },
+      cheats: this.cheats,
     };
   }
 }

@@ -98,6 +98,8 @@ export class Player {
   private crouching = false;
   private aim: Aim = 'forward';
   private box: BodyBox = PLAYER_BODY;
+  /** Invincibility cheat: hits from enemies and shots do nothing. */
+  invincible = false;
   /** Time left during which catwalks don't hold him (after down + jump). */
   private dropMs = 0;
   private onPlatform = false;
@@ -137,6 +139,8 @@ export class Player {
 
   /** Takes a hit from something at sourceX: loses health, is knocked away, or dies. */
   hurt(damage: number, sourceX: number): HitResult {
+    // Invincible (cheat): hits do nothing. Pits still kill (see fall()).
+    if (this.invincible) return 'ignored';
     const r = takeHit(this.health, damage, HEALTH);
     this.health = r.state;
     if (r.result === 'ignored') return r.result;

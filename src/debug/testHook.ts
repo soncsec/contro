@@ -20,6 +20,8 @@ export interface TestHook {
   level(): LevelSnapshot | null;
   /** The highlighted pause-menu option, or null if the game isn't paused. */
   pauseMenu(): string | null;
+  /** The last cheat confirmation on the pause screen, or null. */
+  cheatMessage(): string | null;
   /** The dialogue card on screen, or null if none is showing. */
   dialogue(): ReturnType<DialogueScene['snapshot']> | null;
   /** Adds points as if enemies were destroyed. Throws if no level is running. */
@@ -54,6 +56,10 @@ export function installTestHook(game: Phaser.Game): void {
         ? (game.scene.getScene('AssetPreview') as AssetPreviewScene).pageCount
         : null,
     level: () => level()?.snapshot() ?? null,
+    cheatMessage: () =>
+      game.scene.isActive('Pause')
+        ? (game.scene.getScene('Pause') as PauseScene).cheatMessage
+        : null,
     pauseMenu: () =>
       game.scene.isActive('Pause') ? (game.scene.getScene('Pause') as PauseScene).selected : null,
     dialogue: () =>
