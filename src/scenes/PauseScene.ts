@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config/tuning';
 import { stepMenu } from '../logic/menu';
 import { PlayerInput } from '../systems/PlayerInput';
+import type { LevelScene } from './LevelScene';
 
 export interface PauseSceneData {
   level: string;
@@ -79,7 +80,10 @@ export class PauseScene extends Phaser.Scene {
   private choose(option: PauseOption): void {
     if (option === 'RESUME') return this.resume();
     this.scene.stop();
-    this.scene.get('Level').scene.restart({ level: this.level });
+    // Restart with the score and lives this room was entered with.
+    const level = this.scene.get('Level') as LevelScene;
+    const run = level.startingRun;
+    level.scene.restart({ level: this.level, ...(run ? { run } : {}) });
   }
 
   private resume(): void {

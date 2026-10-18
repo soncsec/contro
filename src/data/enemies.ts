@@ -30,6 +30,8 @@ export interface EnemyStats {
   deathEffect: string;
   /** Damage to the marine on touch. */
   contactDamage: number;
+  /** Score for destroying it. */
+  points: number;
   /** Flyers only: hover, dive and shooting numbers. */
   flyer?: FlyerTuning;
 }
@@ -48,6 +50,7 @@ export const ENEMIES: Readonly<Record<EnemyType, EnemyStats>> = {
     turnPauseMs: 400,
     deathEffect: 'enemy-death',
     contactDamage: 1,
+    points: 100,
   },
   'alien-flyer': {
     movement: 'flyer',
@@ -62,6 +65,7 @@ export const ENEMIES: Readonly<Record<EnemyType, EnemyStats>> = {
     turnPauseMs: 0,
     deathEffect: 'enemy-death',
     contactDamage: 1,
+    points: 200,
     flyer: {
       driftSpeed: 25,
       patrolRange: 64,

@@ -103,7 +103,8 @@ export class Player {
   private onPlatform = false;
   private health: HealthState = initialHealth(HEALTH);
 
-  constructor(scene: Phaser.Scene, x: number, feetY: number) {
+  constructor(scene: Phaser.Scene, x: number, feetY: number, lives: number = HEALTH.lives) {
+    this.health = { ...initialHealth(HEALTH), lives };
     this.sprite = scene.physics.add.sprite(
       x,
       spriteYForFeet(feetY, PLAYER_FRAME.height, PLAYER_BODY),
@@ -164,6 +165,11 @@ export class Player {
     this.sprite.body.reset(x, spriteYForFeet(feetY, PLAYER_FRAME.height, PLAYER_BODY));
     this.anim = 'idle';
     this.sprite.play(animKey(ANIM_SHEETS.idle));
+  }
+
+  /** Extra lives (from scoring). */
+  addLives(n: number): void {
+    this.health = { ...this.health, lives: this.health.lives + n };
   }
 
   get dead(): boolean {

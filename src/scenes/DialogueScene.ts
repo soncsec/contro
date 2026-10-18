@@ -2,11 +2,14 @@ import Phaser from 'phaser';
 import { BACKGROUND_COLOR, DIALOGUE_CARD, GAME_WIDTH } from '../config/tuning';
 import { DIALOGUE, SPEAKERS, type DialogueId } from '../data/dialogue';
 import { PlayerInput } from '../systems/PlayerInput';
+import type { RunState } from './LevelScene';
 
 export interface DialogueSceneData {
   card: DialogueId;
   /** Level to start when the player continues. */
   nextLevel: string;
+  /** Score and lives to carry into it. */
+  run?: RunState;
 }
 
 const PORTRAIT = 48;
@@ -28,6 +31,7 @@ const HINT_BLINK_MS = 500;
 export class DialogueScene extends Phaser.Scene {
   private card!: DialogueId;
   private nextLevel!: string;
+  private run: RunState | undefined;
   private controls!: PlayerInput;
   private shownMs = 0;
   private leaving = false;
@@ -39,6 +43,7 @@ export class DialogueScene extends Phaser.Scene {
   init(data: DialogueSceneData): void {
     this.card = data.card;
     this.nextLevel = data.nextLevel;
+    this.run = data.run;
     this.shownMs = 0;
     this.leaving = false;
   }
@@ -101,7 +106,7 @@ export class DialogueScene extends Phaser.Scene {
     this.leaving = true;
     this.cameras.main.fadeOut(DIALOGUE_CARD.fadeMs);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Level', { level: this.nextLevel });
+      this.scene.start('Level', { level: this.nextLevel, ...(this.run ? { run: this.run } : {}) });
     });
   }
 }

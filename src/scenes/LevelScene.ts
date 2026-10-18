@@ -7,6 +7,7 @@ import {
   HEALTH,
   PLATFORMS,
   PLAYER_BODY,
+  SCORING,
   GRAVITY_Y,
   PARALLAX_BACK_FACTOR,
   RIFLE_DAMAGE,
@@ -22,12 +23,22 @@ import { Player, type PlayerSnapshot } from '../entities/Player';
 import { afterExit } from '../logic/campaign';
 import { standingOn } from '../logic/ground';
 import { respawnPoint } from '../logic/health';
+import { addPoints, newRun, type ScoreState } from '../logic/score';
 import { NO_ACTIONS, type ActionFrame } from '../logic/input';
 import { readLevelLayout, type LevelLayout } from '../logic/levelMap';
 import { PlayerInput } from '../systems/PlayerInput';
+import { SaveStore } from '../systems/SaveStore';
+
+/** What carries from room to room: the score and lives. */
+export interface RunState {
+  score: number;
+  lives: number;
+}
 
 export interface LevelSceneData {
   level?: string;
+  /** Score and lives carried in from the previous room; a fresh run if missing. */
+  run?: RunState;
 }
 
 /** State the e2e test hook reads. */
@@ -56,6 +67,7 @@ export interface LevelSnapshot {
   reachedX: number;
   respawnAt: { x: number; y: number };
   gameOver: boolean;
+  score: { score: number; best: number };
 }
 
 const DEFAULT_LEVEL = 'corridor-test';
@@ -82,6 +94,9 @@ export class LevelScene extends Phaser.Scene {
   private gameOver = false;
   private reachedX = 0;
   private hud!: Hud;
+  private score: ScoreState = newRun(0);
+  /** The run as it was when this room started (for Restart room). */
+  private runAtStart: RunState | null = null;
   private back: Phaser.GameObjects.TileSprite | null = null;
 
   constructor() {
@@ -90,6 +105,10 @@ export class LevelScene extends Phaser.Scene {
 
   init(data: LevelSceneData): void {
     this.levelKey = data.level ?? DEFAULT_LEVEL;
+    this.runAtStart = data.run ?? null;
+    this.score = { ...newRun(SaveStore.load().bestScore), score: data.run?.score ?? 0 };
+    // Thresholds already passed before this room don't award again.
+    this.score.livesAwarded = SCORING.extraLifeAt.filter((t) => this.score.score >= t).length;
     this.elapsedMs = 0;
     this.exiting = false;
     this.gameOver = false;
@@ -141,7 +160,7 @@ export class LevelScene extends Phaser.Scene {
     this.physics.world.setBoundsCollision(true, true, false, false);
 
     const start = this.layout.playerStart;
-    this.player = new Player(this, start.x, start.y);
+    this.player = new Player(this, start.x, start.y, this.runAtStart?.lives ?? HEALTH.lives);
     this.physics.add.collider(this.player.sprite, solids);
     // Down + jump drops through a catwalk for a moment.
     this.physics.add.collider(
@@ -165,6 +184,7 @@ export class LevelScene extends Phaser.Scene {
 
     this.enemies = new Enemies(this, this.layout.enemies, (type, x, y) => {
       this.effects.play(ENEMIES[type].deathEffect, x, y);
+      this.addScore(ENEMIES[type].points);
     });
     this.physics.add.collider(this.enemies.group, solids);
     this.physics.add.overlap(this.bullets.group, this.enemies.group, (bullet, enemy) => {
@@ -241,7 +261,7 @@ export class LevelScene extends Phaser.Scene {
       this.player.fall();
     }
     const p = this.player.snapshot();
-    this.hud.update(p.hp, p.lives);
+    this.hud.update(p.hp, p.lives, this.score.score, this.score.best);
     this.bullets.update();
     const p0 = this.player.snapshot();
     // Enemies aim at the middle of the marine's body.
@@ -271,6 +291,7 @@ export class LevelScene extends Phaser.Scene {
     this.time.delayedCall(HEALTH.gameOverMs, () => {
       this.cameras.main.fadeOut(DIALOGUE_CARD.fadeMs);
       this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+        // A fresh run: score back to zero, full lives (the best score is kept).
         this.scene.restart({ level: this.levelKey });
       });
     });
@@ -282,8 +303,27 @@ export class LevelScene extends Phaser.Scene {
     const { card, nextLevel } = afterExit(CAMPAIGN, this.levelKey);
     this.cameras.main.fadeOut(DIALOGUE_CARD.fadeMs);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Dialogue', { card, nextLevel });
+      this.scene.start('Dialogue', { card, nextLevel, run: this.run() });
     });
+  }
+
+  /** Adds points, awards any extra lives, and saves a new best score. */
+  addScore(points: number): void {
+    const r = addPoints(this.score, points, SCORING.extraLifeAt);
+    const newBest = r.state.best > this.score.best;
+    this.score = r.state;
+    if (r.extraLives > 0) this.player.addLives(r.extraLives);
+    if (newBest) SaveStore.save({ version: 1, bestScore: this.score.best });
+  }
+
+  /** The score and lives to carry into the next room. */
+  run(): RunState {
+    return { score: this.score.score, lives: this.player.snapshot().lives };
+  }
+
+  /** The run this room started with (null on a fresh run), for Restart room. */
+  get startingRun(): RunState | null {
+    return this.runAtStart;
   }
 
   /** Test hook: hurt the player as if touched by something just in front of them. */
@@ -321,6 +361,7 @@ export class LevelScene extends Phaser.Scene {
       reachedX: this.reachedX,
       respawnAt: this.respawnAt(),
       gameOver: this.gameOver,
+      score: { score: this.score.score, best: this.score.best },
     };
   }
 }
