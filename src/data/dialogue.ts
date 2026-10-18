@@ -28,7 +28,7 @@ export const DIALOGUE = {
   // Before level 1 (shown once the title screen exists, M3.4).
   'level-1-intro': {
     speaker: 'ops',
-    lines: ['Corridor A is clear.', 'More hostiles past the next door.'],
+    lines: ['Corridor A is clear.', 'More hostiles past', 'the next door.'],
   },
   // After level 1's last section.
   'level-1-end': {

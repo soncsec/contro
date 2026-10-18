@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import './style.css';
-import { BACKGROUND_COLOR, GAME_HEIGHT, GAME_WIDTH } from './config/tuning';
+import { BACKGROUND_COLOR, FONT, GAME_HEIGHT, GAME_WIDTH } from './config/tuning';
 import { integerZoom } from './logic/scaling';
 import { installFullscreenKey } from './systems/Fullscreen';
 import { AssetPreviewScene } from './scenes/AssetPreviewScene';
@@ -8,6 +8,9 @@ import { DialogueScene } from './scenes/DialogueScene';
 import { LevelScene } from './scenes/LevelScene';
 import { PauseScene } from './scenes/PauseScene';
 import { PreloadScene } from './scenes/PreloadScene';
+
+// Load the font before any text is drawn, so the first frame doesn't use the fallback.
+await document.fonts.load(`8px ${FONT.family}`).catch(() => undefined);
 
 const zoomForWindow = (): number =>
   integerZoom(window.innerWidth, window.innerHeight, GAME_WIDTH, GAME_HEIGHT);

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_HEIGHT, GAME_WIDTH } from '../config/tuning';
+import { FONT, GAME_HEIGHT, GAME_WIDTH } from '../config/tuning';
 import { ACTION_CHEATS, CheatMatcher, WORD_CHEATS, type CheatId } from '../logic/cheats';
 import { stepMenu } from '../logic/menu';
 import { PlayerInput } from '../systems/PlayerInput';
@@ -12,7 +12,7 @@ export interface PauseSceneData {
 export const PAUSE_OPTIONS = ['RESUME', 'RESTART ROOM'] as const;
 export type PauseOption = (typeof PAUSE_OPTIONS)[number];
 
-const TEXT = { fontFamily: 'monospace', fontSize: '8px' } as const;
+const TEXT = { fontFamily: FONT.family, fontSize: FONT.size } as const;
 const COLORS = {
   dim: 0x000000,
   panel: 0x101826,

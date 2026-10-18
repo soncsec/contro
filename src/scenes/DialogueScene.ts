@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BACKGROUND_COLOR, DIALOGUE_CARD, GAME_WIDTH } from '../config/tuning';
+import { BACKGROUND_COLOR, DIALOGUE_CARD, FONT, GAME_WIDTH } from '../config/tuning';
 import { DIALOGUE, SPEAKERS, type DialogueId } from '../data/dialogue';
 import { PlayerInput } from '../systems/PlayerInput';
 import type { RunState } from './LevelScene';
@@ -21,7 +21,7 @@ const COLORS = {
   text: '#e6eef7',
   hint: '#7f8ea3',
 };
-const TEXT = { fontFamily: 'monospace', fontSize: '8px' } as const;
+const TEXT = { fontFamily: FONT.family, fontSize: FONT.size } as const;
 const HINT_BLINK_MS = 500;
 
 /**

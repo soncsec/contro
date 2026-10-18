@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, HEALTH } from '../config/tuning';
+import { FONT, GAME_WIDTH, HEALTH } from '../config/tuning';
 import { formatScore } from '../logic/score';
 
 const PIP = { width: 6, height: 4, gap: 2 } as const;
@@ -42,14 +42,14 @@ export class Hud {
     }
     this.lives = scene.add
       .text(ORIGIN.x + HEALTH.maxHp * (PIP.width + PIP.gap) + 4, ORIGIN.y - 3, '', {
-        fontFamily: 'monospace',
-        fontSize: '8px',
+        fontFamily: FONT.family,
+        fontSize: FONT.size,
         color: COLORS.text,
       })
       .setScrollFactor(0)
       .setDepth(DEPTH);
     const right = GAME_WIDTH - ORIGIN.x;
-    const style = { fontFamily: 'monospace', fontSize: '8px', color: COLORS.text };
+    const style = { fontFamily: FONT.family, fontSize: FONT.size, color: COLORS.text };
     this.score = scene.add
       .text(right, ORIGIN.y - 3, '', style)
       .setOrigin(1, 0)

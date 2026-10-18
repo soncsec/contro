@@ -95,7 +95,7 @@
 - [ ] M3.6 CC0 audio: sound effects and Level 1 music — *sources need approval*
 - [ ] M3.7 Playwright: complete Level 1 via the test hook and reach the Level 2 card
 - [ ] M3.8 Security build check (owner approved 2026-10-18): a CI step and release-script check that fail if the production build contains the e2e test hook, inline scripts or styles, `eval`/`new Function`, `innerHTML`, or any URL to another host. It runs before every release
-- [ ] M3.9 Press Start 2P font (owner approved 2026-10-18): the same file and checksum as Star Destroyer, bundled and served from our origin; used for the HUD, banners and cards; CREDITS.md and the OFL licence text
+- [x] M3.9 Press Start 2P font (owner approved 2026-10-18): the same file and checksum as Star Destroyer, bundled and served from our origin; used for the HUD, banners and cards; CREDITS.md and the OFL licence text. Built: every text style uses `FONT` in `tuning.ts`; the game waits for the font before drawing; card lines now fit 26 characters (the 8 px font is wider than the old fallback), up to 3 lines
 - [ ] M3.10 Title screen with a controls guide (keyboard, gamepad, and touch once M3.11 lands), Start to play, and a link back to the portal; moved ahead of Level 1 (owner approved 2026-10-18)
 - [ ] M3.11 Phone touch controls (owner approved 2026-10-18): on-screen move, jump, fire and pause buttons on touch screens only; aiming and crouch; whole-number scaling on a phone screen. Layout mocked up for the owner first. Tested in Playwright with touch emulation
 

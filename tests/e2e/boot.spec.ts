@@ -39,3 +39,20 @@ test('asset preview pages through every group with no console errors', async ({ 
   expect(await page.evaluate(() => window.__contro?.previewGroup() ?? null)).toBe('player');
   expect(watched.errors).toEqual([]);
 });
+
+test('text uses the bundled Press Start 2P font, loaded from our own origin (M3.9)', async ({
+  page,
+}) => {
+  const watched = watchPage(page);
+  const fontRequests: string[] = [];
+  page.on('requestfinished', (req) => {
+    if (req.resourceType() === 'font') fontRequests.push(new URL(req.url()).pathname);
+  });
+  await page.goto('./');
+  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  expect(await page.evaluate(() => document.fonts.check('8px "Press Start 2P"'))).toBe(true);
+  expect(fontRequests).toHaveLength(1);
+  expect(fontRequests[0]).toMatch(/\/assets\/PressStart2P-Regular-[\w-]+\.ttf$/);
+  expect(watched.errors).toEqual([]);
+  expect(watched.foreignRequests).toEqual([]);
+});

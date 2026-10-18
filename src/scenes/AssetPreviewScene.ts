@@ -1,13 +1,13 @@
 import Phaser from 'phaser';
 import { ASSETS, ASSET_GROUPS, animKey, type Asset, type AssetGroup } from '../assets/manifest';
-import { GAME_HEIGHT, GAME_WIDTH } from '../config/tuning';
+import { FONT, GAME_HEIGHT, GAME_WIDTH } from '../config/tuning';
 
 const MARGIN = 4;
 const LABEL_HEIGHT = 9;
 const TOP = MARGIN + LABEL_HEIGHT + 2;
 /** Non-looping animations replay after this pause so they can be checked. */
 const REPLAY_DELAY_MS = 600;
-const TEXT_STYLE = { fontFamily: 'monospace', fontSize: '8px' };
+const TEXT_STYLE = { fontFamily: FONT.family, fontSize: FONT.size };
 /** Approximate width of one label character at TEXT_STYLE, used to keep labels apart. */
 const LABEL_CHAR_WIDTH = 5;
 
