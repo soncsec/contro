@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { ASSETS, LEVELS } from '../../src/assets/manifest';
+import { BOSS_TYPES } from '../../src/data/bosses';
 import { ENEMY_TYPES } from '../../src/data/enemies';
 import { readLevelLayout, validateLevelMap } from '../../src/logic/levelMap';
 
@@ -71,7 +72,9 @@ const layer = (map: Record<string, unknown>, name: string): Layer =>
 
 describe('level maps in public/assets', () => {
   it.each(LEVELS)('$key is valid', (level) => {
-    expect(validateLevelMap(readJson(`${PUBLIC_DIR}/${level.path}`), ENEMY_TYPES)).toEqual([]);
+    expect(
+      validateLevelMap(readJson(`${PUBLIC_DIR}/${level.path}`), ENEMY_TYPES, BOSS_TYPES),
+    ).toEqual([]);
   });
 
   it.each(LEVELS)('$key: each tileset is an image asset at the same file', (level) => {
@@ -88,14 +91,22 @@ describe('level maps in public/assets', () => {
   });
 
   it.each(LEVELS)('$key: each parallax layer is a known image asset', (level) => {
-    const layout = readLevelLayout(readJson(`${PUBLIC_DIR}/${level.path}`), ENEMY_TYPES);
+    const layout = readLevelLayout(
+      readJson(`${PUBLIC_DIR}/${level.path}`),
+      ENEMY_TYPES,
+      BOSS_TYPES,
+    );
     for (const layer of layout.parallax) {
       expect(ASSETS.find((a) => a.key === layer.key)?.kind).toBe('image');
     }
   });
 
   it.each(LEVELS)('$key fills the screen height (176 px)', (level) => {
-    const layout = readLevelLayout(readJson(`${PUBLIC_DIR}/${level.path}`), ENEMY_TYPES);
+    const layout = readLevelLayout(
+      readJson(`${PUBLIC_DIR}/${level.path}`),
+      ENEMY_TYPES,
+      BOSS_TYPES,
+    );
     expect(layout.heightPx).toBe(176);
   });
 });
@@ -264,6 +275,7 @@ describe('readLevelLayout', () => {
       checkpoints: [{ x: 32, y: 160 }],
       enemies: [{ x: 40, y: 160, enemy: 'alien-walker' }],
       exit: { x: 48, y: 96, width: 16, height: 64 },
+      boss: null,
     });
   });
 
@@ -313,6 +325,82 @@ describe('image layers', () => {
     expect(withLayer({ name: 'a', offsety: 'x' })).toEqual(['image layer 1: bad offsety']);
     expect(withLayer({ name: 'a', parallaxx: 1.5 })).toEqual([
       'image layer 1: parallaxx must be between 0 and 1',
+    ]);
+  });
+});
+
+describe('boss fights', () => {
+  /** The sample map made 20 tiles (one screen) wide, with an arena and a boss on the floor. */
+  function bossMap(boss: Record<string, unknown> = {}, arena: Record<string, unknown> = {}) {
+    const map = sampleMap();
+    map['width'] = 20;
+    const bg = layer(map, 'background');
+    bg.width = 20;
+    bg.data = Array(220).fill(1);
+    layer(map, 'spawns').objects?.push(
+      {
+        type: 'boss',
+        point: true,
+        x: 280,
+        y: 160,
+        properties: [{ name: 'boss', value: 'tank' }],
+        ...boss,
+      },
+      { type: 'arena', x: 0, y: 0, width: 320, height: 176, ...arena },
+    );
+    return map;
+  }
+
+  it('reads the boss and its arena', () => {
+    expect(validateLevelMap(bossMap(), ENEMY_TYPES, BOSS_TYPES)).toEqual([]);
+    expect(readLevelLayout(bossMap(), ENEMY_TYPES, BOSS_TYPES).boss).toEqual({
+      x: 280,
+      y: 160,
+      type: 'tank',
+      arena: { x: 0, y: 0, width: 320, height: 176 },
+    });
+  });
+
+  it('rejects an unknown boss, or one placed as a rectangle', () => {
+    expect(validateLevelMap(bossMap(), ENEMY_TYPES)).toEqual(['spawn 5: unknown boss type "tank"']);
+    expect(
+      validateLevelMap(bossMap({ point: false, width: 8, height: 8 }), ENEMY_TYPES, BOSS_TYPES),
+    ).toEqual(['spawn 5: boss must be a point']);
+  });
+
+  it('needs an arena one screen wide at the right edge, with the boss inside', () => {
+    const v = (arena: Record<string, unknown>, boss: Record<string, unknown> = {}) =>
+      validateLevelMap(bossMap(boss, arena), ENEMY_TYPES, BOSS_TYPES);
+    expect(v({ width: 300 })).toEqual([
+      'arena must be 320 px (one screen) wide',
+      "arena must reach the map's right edge",
+    ]);
+    expect(v({ point: true, width: 0, height: 0 })).toContain('spawn 6: arena must be a rectangle');
+    const wider = bossMap();
+    wider['width'] = 21;
+    const bg = layer(wider, 'background');
+    bg.width = 21;
+    bg.data = Array(231).fill(1);
+    expect(validateLevelMap(wider, ENEMY_TYPES, BOSS_TYPES)).toEqual([
+      "arena must reach the map's right edge",
+    ]);
+    // On a map wider than the arena, a boss left of the arena is outside it.
+    const wide = bossMap({ x: 40 }, { x: 80 });
+    wide['width'] = 25;
+    const wideBg = layer(wide, 'background');
+    wideBg.width = 25;
+    wideBg.data = Array(275).fill(1);
+    expect(validateLevelMap(wide, ENEMY_TYPES, BOSS_TYPES)).toEqual([
+      'boss must be inside its arena',
+    ]);
+  });
+
+  it('a boss needs an arena, and an arena needs a boss', () => {
+    const noArena = bossMap();
+    const spawns = layer(noArena, 'spawns');
+    spawns.objects = (spawns.objects ?? []).filter((o) => o['type'] !== 'arena');
+    expect(validateLevelMap(noArena, ENEMY_TYPES, BOSS_TYPES)).toEqual([
+      'a boss fight needs exactly one "boss" and one "arena"',
     ]);
   });
 });

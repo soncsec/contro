@@ -9,10 +9,15 @@
  * - object layer "spawns": one "player-start" point, one "exit" rectangle,
  *   "enemy" points with an `enemy` string property naming a known enemy type,
  *   and any number of "checkpoint" points (respawn places)
+ * - optionally a boss fight (M3.2): one "boss" point with a `boss` string property naming a
+ *   known boss type, and one "arena" rectangle exactly one screen wide, reaching the map's
+ *   right edge, with the boss inside it. Each needs the other.
  * - optional image layers (Tiled "imagelayer"), drawn behind everything in map order as
  *   parallax scenery: the layer name is the image's asset key, `offsety` places it, and
  *   `parallaxx` (0–1, default 1) is how fast it scrolls with the camera; repeated sideways
  */
+import { GAME_WIDTH } from '../config/tuning';
+
 export const TILE_SIZE = 16;
 export const REQUIRED_TILE_LAYERS = ['background'] as const;
 export const OPTIONAL_TILE_LAYERS = ['platforms'] as const;
@@ -38,6 +43,8 @@ export interface LevelLayout {
   checkpoints: { x: number; y: number }[];
   enemies: { x: number; y: number; enemy: string }[];
   exit: Rect;
+  /** The boss and its arena, if this map ends in a boss fight. */
+  boss: { x: number; y: number; type: string; arena: Rect } | null;
 }
 
 export interface ParallaxLayer {
@@ -102,7 +109,11 @@ function objectLayer(layers: TiledLayer[], name: string): TiledObject[] | null {
 }
 
 /** Checks a parsed .tmj map. Returns a list of problems; empty means valid. */
-export function validateLevelMap(raw: unknown, knownEnemies: readonly string[]): string[] {
+export function validateLevelMap(
+  raw: unknown,
+  knownEnemies: readonly string[],
+  knownBosses: readonly string[] = [],
+): string[] {
   const problems: string[] = [];
   if (!isRecord(raw)) return ['map is not a JSON object'];
 
@@ -233,10 +244,37 @@ export function validateLevelMap(raw: unknown, knownEnemies: readonly string[]):
         }
       } else if (o.type === 'checkpoint') {
         if (o.point !== true) problems.push(`${where}: checkpoint must be a point`);
+      } else if (o.type === 'boss') {
+        if (o.point !== true) problems.push(`${where}: boss must be a point`);
+        const boss = property(o, 'boss');
+        if (typeof boss !== 'string' || !knownBosses.includes(boss)) {
+          problems.push(`${where}: unknown boss type ${JSON.stringify(boss)}`);
+        }
+      } else if (o.type === 'arena') {
+        if (!isRect(o)) problems.push(`${where}: arena must be a rectangle`);
       } else if (o.type !== 'player-start' && o.type !== 'exit') {
         problems.push(`${where}: unknown spawn type ${JSON.stringify(o.type)}`);
       }
     });
+    problems.push(...bossProblems(spawns, widthPx));
+  }
+  return problems;
+}
+
+function bossProblems(spawns: TiledObject[], widthPx: number): string[] {
+  const bosses = spawns.filter((o) => o.type === 'boss');
+  const arenas = spawns.filter((o) => o.type === 'arena');
+  if (bosses.length === 0 && arenas.length === 0) return [];
+  if (bosses.length !== 1 || arenas.length !== 1) {
+    return ['a boss fight needs exactly one "boss" and one "arena"'];
+  }
+  const [boss, arena] = [bosses[0] as TiledObject, arenas[0] as TiledObject];
+  if (!isNum(arena.x) || !isNum(arena.width) || !isNum(boss.x)) return [];
+  const problems: string[] = [];
+  if (arena.width !== GAME_WIDTH) problems.push(`arena must be ${GAME_WIDTH} px (one screen) wide`);
+  if (arena.x + arena.width !== widthPx) problems.push("arena must reach the map's right edge");
+  if (boss.x < arena.x || boss.x > arena.x + arena.width) {
+    problems.push('boss must be inside its arena');
   }
   return problems;
 }
@@ -245,8 +283,12 @@ export function validateLevelMap(raw: unknown, knownEnemies: readonly string[]):
  * Extracts what the level scene needs from a map that passed validateLevelMap.
  * Throws if the map is invalid, so a broken map fails loudly rather than half-loading.
  */
-export function readLevelLayout(raw: unknown, knownEnemies: readonly string[]): LevelLayout {
-  const problems = validateLevelMap(raw, knownEnemies);
+export function readLevelLayout(
+  raw: unknown,
+  knownEnemies: readonly string[],
+  knownBosses: readonly string[] = [],
+): LevelLayout {
+  const problems = validateLevelMap(raw, knownEnemies, knownBosses);
   if (problems.length > 0) throw new Error(`invalid level map: ${problems.join('; ')}`);
   const map = raw as Record<string, unknown>;
   const layers = map['layers'] as TiledLayer[];
@@ -261,6 +303,8 @@ export function readLevelLayout(raw: unknown, knownEnemies: readonly string[]): 
   const start = spawns.find((o) => o.type === 'player-start') as TiledObject;
   const exit = spawns.find((o) => o.type === 'exit') as TiledObject;
   const background = property(map, 'background');
+  const boss = spawns.find((o) => o.type === 'boss');
+  const arena = spawns.find((o) => o.type === 'arena');
   return {
     widthPx: (map['width'] as number) * TILE_SIZE,
     heightPx: (map['height'] as number) * TILE_SIZE,
@@ -281,5 +325,14 @@ export function readLevelLayout(raw: unknown, knownEnemies: readonly string[]): 
       .filter((o) => o.type === 'enemy')
       .map((o) => ({ x: o.x as number, y: o.y as number, enemy: property(o, 'enemy') as string })),
     exit: rect(exit),
+    boss:
+      boss && arena
+        ? {
+            x: boss.x as number,
+            y: boss.y as number,
+            type: property(boss, 'boss') as string,
+            arena: rect(arena),
+          }
+        : null,
   };
 }

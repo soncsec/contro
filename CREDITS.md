@@ -27,6 +27,8 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/effects/enemy-death.png` | `Explosions and Magic/EnemyDeath/spritesheet.png` | unchanged |
 | `assets/effects/air-jump-ring.png` | `Explosions and Magic/Grotto-escape-2-FX/spritesheets/slash-circular.png` | unchanged |
 | `assets/effects/hit.png` | `Explosions and Magic/Hit/hit.png` | unchanged |
+| `assets/enemies/tank.png` | `Warped/Characters/tank-unit/Spritesheet.png` | unchanged |
+| `assets/effects/ground-explosion.png` | `Explosions and Magic/Ground Explosion/spritesheet/explosion-animation.png` | unchanged |
 | `assets/enemies/alien-flyer.png` | `Warped/Characters/alien-flying-enemy/spritesheet.png` | unchanged |
 | `assets/effects/enemy-shot.png` | `Gothicvania/Misc/EnemyProjectile/spritesheet.png` | unchanged |
 | `assets/enemies/alien-walker-idle.png` | `Warped/Characters/alien-walking-enemy/Spritesheets/alien-enemy-idle.png` | unchanged |

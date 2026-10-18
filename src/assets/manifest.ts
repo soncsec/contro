@@ -79,6 +79,8 @@ export const ASSETS: readonly Asset[] = [
   sheet('enemies', 'alien-walker-idle', 'alien-walker-idle.png', 48, 48, 4, 6, true),
   sheet('enemies', 'alien-walker-walk', 'alien-walker-walk.png', 57, 42, 6, 10, true),
   sheet('enemies', 'alien-flyer', 'alien-flyer.png', 83, 64, 8, 12, true),
+  // Level 1 boss (M3.3): the tank's treads roll through 4 frames
+  sheet('enemies', 'tank', 'tank.png', 128, 64, 4, 10, true),
 
   // Effects
   sheet('effects', 'bullet', 'bullet.png', 10, 4, 2, 12, true),
@@ -89,6 +91,7 @@ export const ASSETS: readonly Asset[] = [
   sheet('effects', 'wall-impact', 'wall-impact.png', 16, 23, 2, 14, false),
   sheet('effects', 'enemy-death', 'enemy-death.png', 48, 48, 8, 14, false),
   sheet('effects', 'hit', 'hit.png', 31, 32, 3, 14, false),
+  sheet('effects', 'ground-explosion', 'ground-explosion.png', 112, 128, 9, 14, false),
   // Double jump: an expanding ring, squashed flat under the marine's feet
   sheet('effects', 'air-jump-ring', 'air-jump-ring.png', 52, 48, 6, 24, false),
 

@@ -34,9 +34,10 @@ const SECTIONS = [
     key: 'steelworks-5',
     name: 'the furnace hall',
     tiles: 180,
-    walkers: 26,
-    flyers: 7,
+    walkers: 24,
+    flyers: 6,
     outdoor: false,
+    boss: true,
   },
 ] as const;
 
@@ -69,18 +70,26 @@ SECTIONS.forEach((section, i) => {
       expect((await level(page)).label).toBe(`2-${i + 2}`);
     });
   } else {
-    test(`${label} ${section.name} ends the level with its card, then the campaign starts again`, async ({
+    test(`${label} ${section.name} ends the level with its card, after its boss`, async ({
       page,
     }) => {
+      test.setTimeout(120_000);
       await openSection(page, section.key);
-      const exit = await walkThroughExit(page);
-      expect(exit.scene).toBe('Dialogue');
-      // The last section so far: after its card the campaign starts again from the beginning.
+      // The exit stays shut until the boss is destroyed (M3.2): start the fight and win it.
+      // (The fight itself is tested in boss.spec.ts.)
+      expect('boss' in section && section.boss).toBe(true);
+      const exitX = (await level(page)).exitX;
+      await page.evaluate((x) => window.__contro?.teleportPlayer(x), exitX);
+      await expect
+        .poll(async () => (await level(page)).boss?.mode, { timeout: 60_000 })
+        .toBe('fight');
+      await page.evaluate(() => window.__contro?.hurtBoss(1000));
+      await expect.poll(() => sceneKey(page), { timeout: 60_000 }).toBe('Dialogue');
+      // The last level so far: after its card the campaign starts again from the beginning.
       expect(await page.evaluate(() => window.__contro?.dialogue())).toMatchObject({
         card: 'level-1-end',
         nextLevel: 'corridor-test',
       });
-      expect(await sceneKey(page)).toBe('Dialogue');
     });
   }
 });

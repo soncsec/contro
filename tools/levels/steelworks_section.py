@@ -11,6 +11,7 @@ Layouts are in LAYOUTS below. A layout gives the width in tiles and lists, in 16
              ("Ng" puts one on the ground under a walkway)
   flyers     (column, y px) alien flyers
   checkpoints, start, exit: columns
+  boss       optional (type, column): a boss fight in an arena, the map's last screen (20 tiles)
   tileset    "steelworks" (default) or "rust" (tools/art/rust.py, the same rows, 18 columns)
   indoor     True for a section inside the steelworks: the piped wall fills the space above the
              ground instead of the open sky and skyline
@@ -118,7 +119,7 @@ LAYOUTS = {
     },
     # 1-5: the furnace hall, the last section, in rust. An upper route of ledges and walkways
     # that link up over a lower path with pits, then a long flat floor at the end: the arena
-    # where the Level 1 boss will wait (M3.2–M3.3). Until then, a last rush of walkers.
+    # where the Level 1 boss, the tank, waits (M3.2–M3.3), after a last rush of walkers.
     "furnace": {
         "width": 180,
         "tileset": "rust",
@@ -128,8 +129,10 @@ LAYOUTS = {
                    (86, 92, 6), (104, 108, 5), (108, 112, 3), (112, 116, 6), (128, 134, 5)],
         "walkways": [(26, 10, 5), (54, 7, 5), (72, 12, 4), (94, 8, 5), (118, 9, 4)],
         "walkers": [8, 14, 18, 28, "29g", 38, 44, 56, "57g", 64, 68, 74, 82, "83g", 90, 97, 106,
-                    110, 120, "124g", 131, 137, 146, 152, 158, 164],
-        "flyers": [(30, 40), (60, 36), (86, 30), (100, 40), (124, 34), (150, 40), (160, 30)],
+                    110, 120, "124g", 131, 137, 146, 152],
+        "flyers": [(30, 40), (60, 36), (86, 30), (100, 40), (124, 34), (150, 40)],
+        # The last screen is the tank's arena (M3.3); the exit opens once it is destroyed.
+        "boss": ("tank", 176),
         "checkpoints": [53, 102, 142],
         "start": 3,
         "exit": 175,
@@ -242,6 +245,11 @@ def build(layout: dict) -> dict:
         spawns.append(obj("checkpoint", col * TILE, surface(col)))
     ex = layout["exit"]
     spawns.append(obj("exit", ex * TILE, surface(ex) - 64, 4 * TILE, 64))
+    if "boss" in layout:
+        boss_type, col = layout["boss"]
+        spawns.append(obj("boss", col * TILE, surface(col), boss=boss_type))
+        screen = 20  # tiles: the arena is the last screen of the map
+        spawns.append(obj("arena", (width - screen) * TILE, 0, screen * TILE, HEIGHT * TILE))
 
     image_layers = []
     for i, (key, image, h, below, factor) in enumerate([] if layout.get("indoor") else PARALLAX):

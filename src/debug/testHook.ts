@@ -31,6 +31,8 @@ export interface TestHook {
   addScore(points: number): void;
   /** Hurts the player as if touched from the front. Throws if no level is running. */
   hurtPlayer(damage: number): void;
+  /** Hurts the boss as if hit by bullets. Throws if no level is running. */
+  hurtBoss(damage: number): void;
   /** Moves the player to x (level pixels). Throws if no level is running. */
   teleportPlayer(x: number): void;
   /** Leaves whatever is showing and starts a fresh run in the named map. */
@@ -92,6 +94,13 @@ export function installTestHook(game: Phaser.Game): void {
       if (!Number.isFinite(damage))
         throw new Error(`hurtPlayer needs a number, got ${String(damage)}`);
       scene.hurtPlayer(damage);
+    },
+    hurtBoss: (damage) => {
+      const scene = level();
+      if (!scene) throw new Error('no level is running');
+      if (!Number.isFinite(damage))
+        throw new Error(`hurtBoss needs a number, got ${String(damage)}`);
+      scene.hurtBoss(damage);
     },
     teleportPlayer: (x) => {
       const scene = level();

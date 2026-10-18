@@ -48,6 +48,8 @@ export interface EnemyShot {
   y: number;
   vx: number;
   vy: number;
+  /** Lobbed shells fall (the tank's mortar); others fly straight. */
+  gravity?: boolean;
 }
 
 /**

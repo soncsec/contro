@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { LEVELS } from '../../src/assets/manifest';
 import { GRAVITY_Y, MOVEMENT } from '../../src/config/tuning';
+import { BOSS_TYPES } from '../../src/data/bosses';
 import { ENEMY_TYPES } from '../../src/data/enemies';
 import { readLevelLayout } from '../../src/logic/levelMap';
 import { jumpReach, routeProblems, SAFETY } from '../../src/logic/route';
@@ -47,6 +48,8 @@ describe('every map can be crossed along the ground', () => {
     const raw = JSON.parse(
       new TextDecoder().decode(readFileSync(`${process.cwd()}/public/${level.path}`)),
     ) as unknown;
-    expect(routeProblems(readLevelLayout(raw, ENEMY_TYPES).colliders, reach)).toEqual([]);
+    expect(routeProblems(readLevelLayout(raw, ENEMY_TYPES, BOSS_TYPES).colliders, reach)).toEqual(
+      [],
+    );
   });
 });
