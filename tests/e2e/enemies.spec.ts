@@ -11,8 +11,9 @@ test('the map places two alien walkers that stand on the floor and patrol', asyn
   const watched = watchPage(page);
   await openLevel(page);
   const start = await level(page);
-  expect(start.enemies.map((e) => e.type)).toEqual(['alien-walker', 'alien-walker']);
-  for (const e of start.enemies) expect(e).toMatchObject({ hp: 3, alive: true, feetY: 160 });
+  const walkers = start.enemies.filter((e) => e.type === 'alien-walker');
+  expect(walkers).toHaveLength(2);
+  for (const e of walkers) expect(e).toMatchObject({ hp: 3, alive: true, feetY: 160 });
 
   // Watch the first walker (spawned at x=420) every frame until the level has run 6 s of game
   // time: walking 48 px each way at 30 px/s with 0.4 s pauses is one full cycle in 4 s.

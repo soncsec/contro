@@ -56,7 +56,8 @@ test('walking into the exit shows the card, then the next room', async ({ page }
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
   const room2 = await level(page);
   expect(room2.level).toBe('corridor-test-2');
-  expect(room2.enemies).toHaveLength(3);
+  expect(room2.enemies.filter((e) => e.type === 'alien-walker')).toHaveLength(3);
+  expect(room2.enemies.filter((e) => e.type === 'alien-flyer')).toHaveLength(2);
   expect(room2.exiting).toBe(false);
   expect(room2.player.x).toBeLessThan(80); // back at the start
   expect(watched.errors).toEqual([]);
@@ -80,7 +81,9 @@ test('the second room leads back to the first, and the first still plays', async
   // Back in room 1 with fresh enemies, and shooting still works after the restart.
   const back = await level(page);
   expect(back.level).toBe('corridor-test');
-  expect(back.enemies.every((e) => e.alive && e.hp === 3)).toBe(true);
+  // Fresh enemies: all alive at full health (walkers 3, flyers 2).
+  const full = { 'alien-walker': 3, 'alien-flyer': 2 } as const;
+  expect(back.enemies.every((e) => e.alive && e.hp === full[e.type])).toBe(true);
   await page.keyboard.press('KeyX');
   await expect.poll(async () => (await level(page)).bullets.fired).toBe(1);
   expect(watched.errors).toEqual([]);

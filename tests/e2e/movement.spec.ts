@@ -103,7 +103,9 @@ test('tapping jump gives a clearly lower hop than holding it', async ({ page }) 
 
   const hopSampling = highestFeetY(page, 1000);
   await page.keyboard.down('Space');
-  await page.waitForTimeout(60);
+  // Let go as soon as the jump has started. A fixed 60 ms wait could last several frames when
+  // the machine is busy, which is a held jump, not a tap.
+  await expect.poll(async () => (await player(page)).vy, { intervals: [5] }).toBeLessThan(0);
   await page.keyboard.up('Space');
   const hop = 160 - (await hopSampling);
   await expect.poll(async () => (await player(page)).onFloor).toBe(true);

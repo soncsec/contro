@@ -26,6 +26,8 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/effects/wall-impact.png` | `Warped/Characters/space-marine-lite/Sprites/Misc/wall-impact-blast1.png … wall-impact-blast2.png` | 2 frames packed into a strip |
 | `assets/effects/enemy-death.png` | `Explosions and Magic/EnemyDeath/spritesheet.png` | unchanged |
 | `assets/effects/hit.png` | `Explosions and Magic/Hit/hit.png` | unchanged |
+| `assets/enemies/alien-flyer.png` | `Warped/Characters/alien-flying-enemy/spritesheet.png` | unchanged |
+| `assets/effects/enemy-shot.png` | `Gothicvania/Misc/EnemyProjectile/spritesheet.png` | unchanged |
 | `assets/enemies/alien-walker-idle.png` | `Warped/Characters/alien-walking-enemy/Spritesheets/alien-enemy-idle.png` | unchanged |
 | `assets/enemies/alien-walker-walk.png` | `Warped/Characters/alien-walking-enemy/Spritesheets/alien-enemy-walk.png` | unchanged |
 | `assets/portraits/commander.png` | `Warped/Misc/Warped Portraits Files/portraits with bg/base1.png` | unchanged |
