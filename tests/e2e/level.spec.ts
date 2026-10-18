@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import type { LevelSnapshot } from '../../src/scenes/LevelScene';
-import { sceneKey, watchPage } from './watch';
+import { startGame, watchPage } from './watch';
 
 const VIEW_WIDTH = 320;
 
@@ -11,8 +11,7 @@ async function level(page: Page): Promise<LevelSnapshot> {
 }
 
 async function openLevel(page: Page): Promise<void> {
-  await page.goto('./');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await startGame(page);
 }
 
 test('the player lands on the corridor floor at the start', async ({ page }) => {

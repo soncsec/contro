@@ -4,6 +4,7 @@ import type { AssetPreviewScene } from '../scenes/AssetPreviewScene';
 import type { DialogueScene } from '../scenes/DialogueScene';
 import type { PauseScene } from '../scenes/PauseScene';
 import type { LevelScene, LevelSnapshot } from '../scenes/LevelScene';
+import type { TitleScene } from '../scenes/TitleScene';
 
 /**
  * Test-only hook for Playwright (Star Destroyer ADR-006). It is loaded only in
@@ -18,6 +19,8 @@ export interface TestHook {
   previewPageCount(): number | null;
   /** Level state, or null if no level is running. */
   level(): LevelSnapshot | null;
+  /** The title screen's state, or null if it isn't showing. */
+  title(): ReturnType<TitleScene['snapshot']> | null;
   /** The highlighted pause-menu option, or null if the game isn't paused. */
   pauseMenu(): string | null;
   /** The last cheat confirmation on the pause screen, or null. */
@@ -56,6 +59,8 @@ export function installTestHook(game: Phaser.Game): void {
         ? (game.scene.getScene('AssetPreview') as AssetPreviewScene).pageCount
         : null,
     level: () => level()?.snapshot() ?? null,
+    title: () =>
+      game.scene.isActive('Title') ? (game.scene.getScene('Title') as TitleScene).snapshot() : null,
     cheatMessage: () =>
       game.scene.isActive('Pause')
         ? (game.scene.getScene('Pause') as PauseScene).cheatMessage

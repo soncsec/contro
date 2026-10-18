@@ -1,12 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, sceneKey, waitGameTime, watchPage } from './watch';
+import { level, startGame, waitGameTime, watchPage } from './watch';
 
 // Room 1's flyer hovers around (680, 70), drifting 64 px either side.
 const FLYER = { x: 680, y: 70 };
 
 async function openLevel(page: Page): Promise<void> {
-  await page.goto('./');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await startGame(page);
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
 }
 

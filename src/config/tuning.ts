@@ -193,3 +193,17 @@ export const FONT = {
   /** Twice native, for banners and GAME OVER. */
   large: '16px',
 } as const;
+
+/** Title screen (M3.10). */
+export const TITLE = {
+  /** Ignore presses this long after the screen appears, so a held key can't skip it. */
+  inputDelayMs: 300,
+  /** Fade into the first level. */
+  fadeMs: 250,
+  /** Where MORE GAMES goes: the games portal, one folder up from the game. */
+  portalUrl: '../',
+  /** How fast the corridor drifts behind the title, in px/s. */
+  scrollSpeed: 6,
+  /** The game's name, at four times the font's native size. */
+  logoSize: '32px',
+} as const;

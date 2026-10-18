@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, sceneKey, waitGameTime, watchPage } from './watch';
+import { level, startGame, waitGameTime, watchPage } from './watch';
 
 const RUN_SPEED = 90; // px/s, MOVEMENT.runSpeed in src/config/tuning.ts
 
@@ -28,8 +28,7 @@ async function runFor(page: Page, key: string, ms: number) {
 }
 
 async function openLevel(page: Page): Promise<void> {
-  await page.goto('./');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await startGame(page);
   await expect.poll(async () => (await player(page)).onFloor).toBe(true);
 }
 

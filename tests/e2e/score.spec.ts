@@ -1,9 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, nextSection, sceneKey, waitGameTime, watchPage } from './watch';
+import { level, nextSection, startGame, waitGameTime, watchPage } from './watch';
 
 async function openLevel(page: Page): Promise<void> {
-  await page.goto('./');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await startGame(page);
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
 }
 
@@ -31,8 +30,7 @@ test('destroying an alien scores its points, and the best score is saved', async
 test('the best score survives a reload, and a new run starts at zero', async ({ page }) => {
   await openLevel(page);
   await addScore(page, 1500);
-  await page.reload();
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await startGame(page); // a fresh page load, through the title screen
   expect(await score(page)).toEqual({ score: 0, best: 1500 });
 });
 
