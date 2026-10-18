@@ -87,13 +87,19 @@
 **Demonstrable result:** Level 1 is playable from title screen to the tank boss's defeat, with sound and music.
 
 - [x] M3.0 Level structure (ADR-C10): a level is a sequence of sections (maps) played back to back with a checkpoint at each; dialogue cards only between levels; campaign data lists levels → sections; validation tests
-- [ ] M3.1 Industrial art: choose the tileset, assemble parallax; Level 1 as **at least 5 varied sections, 10–15 minutes**, including at least one **multi-level ground** stretch (upper and lower paths, Contra-style) and one outdoor stretch (industrial parallax)
+- [ ] M3.1 Industrial art: choose the tileset (owner picks from mockups), assemble parallax; Level 1 as **at least 5 varied sections, 10–15 minutes**, including at least one **multi-level ground** stretch (upper and lower paths, Contra-style) and one outdoor stretch (industrial parallax). **Shipped in slices** (owner approved 2026-10-18): each section is its own PR and its own release (1-1 first), so it can be played and commented on while the rest is built
 - [ ] M3.2 Boss framework: arena lock, health bar, phases, attack patterns, defeat (data-driven)
 - [ ] M3.3 Tank boss
-- [ ] M3.4 HUD, title screen with portal link, game over and continue
+- [ ] M3.4 HUD, game over and continue (the title screen moved to M3.10)
 - [ ] M3.5 Save data (ADR-C08)
 - [ ] M3.6 CC0 audio: sound effects and Level 1 music — *sources need approval*
 - [ ] M3.7 Playwright: complete Level 1 via the test hook and reach the Level 2 card
+- [ ] M3.8 Security build check (owner approved 2026-10-18): a CI step and release-script check that fail if the production build contains the e2e test hook, inline scripts or styles, `eval`/`new Function`, `innerHTML`, or any URL to another host. It runs before every release
+- [ ] M3.9 Press Start 2P font (owner approved 2026-10-18): the same file and checksum as Star Destroyer, bundled and served from our origin; used for the HUD, banners and cards; CREDITS.md and the OFL licence text
+- [ ] M3.10 Title screen with a controls guide (keyboard, gamepad, and touch once M3.11 lands), Start to play, and a link back to the portal; moved ahead of Level 1 (owner approved 2026-10-18)
+- [ ] M3.11 Phone touch controls (owner approved 2026-10-18): on-screen move, jump, fire and pause buttons on touch screens only; aiming and crouch; whole-number scaling on a phone screen. Layout mocked up for the owner first. Tested in Playwright with touch emulation
+
+**Order** (owner approved 2026-10-18, to get a playable build in front of players sooner): M3.0 → M3.8 security build check → M3.9 font → M3.10 title screen → M3.1 Level 1 one section at a time, each released as it lands → M3.11 touch controls → M3.2 onward.
 
 **Acceptance criteria:** the owner beats Level 1; no console errors; 60 fps during the boss fight.
 
