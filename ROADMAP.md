@@ -78,7 +78,7 @@
 - [x] M2.11 Cheat codes (owner request 2026-10-17): entered on the pause screen; Konami code +5 lives, invincibility, invisibility, room skip (all weapons after M4); a HUD marker while any cheat is on; cheating stops the best score from being saved; code matching unit tested. Built: Konami code (keys or d-pad) +5 lives; typed IRON invincibility, GHOUL invisibility, THRU room skip (letters chosen so they never clash with game keys)
 - [x] M2.12 Basic gun fires one shot per press (owner request 2026-10-17, issue #21; after M2.10 and M2.11): holding fire (keys or gamepad) fires once; each new press fires again, at most every 90 ms. Holding fire for 2 s fires exactly one shot (e2e); rule tests in `src/logic/weapon.ts`
 - [x] M2.13 Health carries between sections and levels (owner request 2026-10-18): the run state carries hp like score and lives; Restart room restores the hp the section was entered with; respawns still start at full health; e2e covered
-- [ ] M2.14 Show the current level (owner request 2026-10-18): HUD label `level-section` (e.g. `1-2`) and a banner with the level's number and name when it starts; names and numbers are campaign data
+- [x] M2.14 Show the current level (owner request 2026-10-18): HUD label `level-section` (e.g. `1-2`) and a banner with the level's number and name when it starts; names and numbers are campaign data
 
 **Acceptance criteria:** the owner signs off on feel; logic coverage at least 80%; works with keyboard and a gamepad in both browsers.
 

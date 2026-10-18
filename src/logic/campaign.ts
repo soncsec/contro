@@ -4,6 +4,21 @@
 export interface Step {
   level: string;
   exitCard: string;
+  stage: number;
+  section: number;
+  name: string;
+}
+
+/** The label shown in the HUD: level number and section, e.g. "1-2". */
+export function levelLabel(step: { stage: number; section: number }): string {
+  return `${step.stage}-${step.section}`;
+}
+
+/** The campaign step for a map key. Throws if the map isn't in the campaign. */
+export function stepFor<S extends Step>(campaign: readonly S[], level: string): S {
+  const step = campaign.find((s) => s.level === level);
+  if (!step) throw new Error(`level ${level} is not in the campaign`);
+  return step;
 }
 
 /** The card to show after `level`'s exit and the level to play next (wrapping to the first). */
@@ -18,7 +33,11 @@ export function afterExit(
   return { card: step.exitCard, nextLevel: next.level };
 }
 
-/** Problems with a campaign: unknown levels or cards, or a level listed twice. */
+/**
+ * Problems with a campaign: unknown maps or cards, a map listed twice, or numbering that
+ * isn't in order (levels from 1, sections from 1 within each level, no gaps), or a level
+ * whose sections don't share one name.
+ */
 export function validateCampaign(
   campaign: readonly Step[],
   levels: readonly string[],
@@ -33,6 +52,21 @@ export function validateCampaign(
     if (seen.has(step.level)) problems.push(`level "${step.level}" is listed twice`);
     seen.add(step.level);
   }
+  campaign.forEach((step, i) => {
+    const prev = campaign[i - 1];
+    const expected = !prev
+      ? { stage: 1, section: 1 }
+      : step.stage === prev.stage
+        ? { stage: prev.stage, section: prev.section + 1 }
+        : { stage: prev.stage + 1, section: 1 };
+    if (step.stage !== expected.stage || step.section !== expected.section) {
+      problems.push(`"${step.level}" is ${levelLabel(step)}, expected ${levelLabel(expected)}`);
+    }
+    if (prev && step.stage === prev.stage && step.name !== prev.name) {
+      problems.push(`level ${step.stage} has more than one name`);
+    }
+    if (step.name.trim() === '') problems.push(`"${step.level}" has no level name`);
+  });
   return problems;
 }
 

@@ -23,7 +23,8 @@ export class Hud {
   private readonly best: Phaser.GameObjects.Text;
   private readonly cheat: Phaser.GameObjects.Text;
 
-  constructor(scene: Phaser.Scene) {
+  /** `label` is the current level and section, e.g. "1-2", shown top centre (M2.14). */
+  constructor(scene: Phaser.Scene, label: string) {
     for (let i = 0; i < HEALTH.maxHp; i++) {
       const pip = scene.add
         .rectangle(
@@ -57,6 +58,11 @@ export class Hud {
     this.best = scene.add
       .text(right, ORIGIN.y - 3 + LINE, '', { ...style, color: COLORS.best })
       .setOrigin(1, 0)
+      .setScrollFactor(0)
+      .setDepth(DEPTH);
+    scene.add
+      .text(GAME_WIDTH / 2, ORIGIN.y - 3, label, { ...style, color: COLORS.best })
+      .setOrigin(0.5, 0)
       .setScrollFactor(0)
       .setDepth(DEPTH);
     // Shown for the rest of a run once any cheat is used (the best score isn't saved then).

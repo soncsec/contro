@@ -169,3 +169,6 @@ export const SCORING = {
 
 /** Lives the Konami code adds (M2.11). */
 export const CHEAT_EXTRA_LIVES = 5;
+
+/** Level banner when a section starts (M2.14): shown this long, then fades out. */
+export const LEVEL_BANNER = { showMs: 1800, fadeMs: 400 } as const;
