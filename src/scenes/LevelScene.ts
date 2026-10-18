@@ -5,6 +5,7 @@ import {
   GAME_HEIGHT,
   GAME_WIDTH,
   HEALTH,
+  PLAYER_BODY,
   GRAVITY_Y,
   PARALLAX_BACK_FACTOR,
   RIFLE_DAMAGE,
@@ -14,6 +15,7 @@ import { ENEMIES, ENEMY_TYPES } from '../data/enemies';
 import { Bullets } from '../entities/Bullets';
 import { Effects } from '../entities/Effects';
 import { Enemies, type EnemySnapshot } from '../entities/Enemies';
+import { EnemyShots } from '../entities/EnemyShots';
 import { Hud } from '../entities/Hud';
 import { Player, type PlayerSnapshot } from '../entities/Player';
 import { afterExit } from '../logic/campaign';
@@ -45,6 +47,7 @@ export interface LevelSnapshot {
     lastShot: { x: number; y: number; aim: string } | null;
   };
   enemies: EnemySnapshot[];
+  enemyShots: { active: number; fired: number };
   /** True once the player has reached the exit and the room is fading out. */
   exiting: boolean;
   /** Furthest x the player has reached, and where they would respawn now. */
@@ -70,6 +73,7 @@ export class LevelScene extends Phaser.Scene {
   private bullets!: Bullets;
   private effects!: Effects;
   private enemies!: Enemies;
+  private enemyShots!: EnemyShots;
   private elapsedMs = 0;
   /** Set once the player reaches the exit; input is ignored while the scene fades out. */
   private exiting = false;
@@ -161,6 +165,20 @@ export class LevelScene extends Phaser.Scene {
       const damage = this.enemies.contactDamage(enemy as Phaser.GameObjects.GameObject);
       if (damage > 0) this.player.hurt(damage, (enemy as Phaser.GameObjects.Sprite).x);
     });
+    // Enemy shots hurt the marine and pop on walls and floors.
+    this.enemyShots = new EnemyShots(this);
+    type Orb = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+    this.physics.add.overlap(this.player.sprite, this.enemyShots.group, (_player, orb) => {
+      const o = orb as Orb;
+      if (!o.active || this.player.dead) return;
+      if (this.player.hurt(1, o.x) !== 'ignored') this.effects.play('hit', o.x, o.y);
+      this.enemyShots.remove(o);
+    });
+    this.physics.add.overlap(this.enemyShots.group, solids, (orb) => {
+      const o = orb as Orb;
+      if (o.active) this.effects.play('hit', o.x, o.y);
+      this.enemyShots.remove(o);
+    });
     this.hud = new Hud(this);
 
     // Reaching the exit shows this room's card, then the next room.
@@ -199,7 +217,11 @@ export class LevelScene extends Phaser.Scene {
     const p = this.player.snapshot();
     this.hud.update(p.hp, p.lives);
     this.bullets.update();
-    this.enemies.update(deltaMs);
+    const p0 = this.player.snapshot();
+    // Enemies aim at the middle of the marine's body.
+    const target = p0.dead ? null : { x: p0.x, y: p0.feetY - PLAYER_BODY.height / 2 };
+    for (const shot of this.enemies.update(deltaMs, target)) this.enemyShots.fire(shot);
+    this.enemyShots.update();
     if (this.back) this.back.tilePositionX = this.cameras.main.scrollX * PARALLAX_BACK_FACTOR;
   }
 
@@ -268,6 +290,7 @@ export class LevelScene extends Phaser.Scene {
         },
       },
       enemies: this.enemies.snapshot(),
+      enemyShots: { active: this.enemyShots.active, fired: this.enemyShots.fired },
       exiting: this.exiting,
       reachedX: this.reachedX,
       respawnAt: this.respawnAt(),

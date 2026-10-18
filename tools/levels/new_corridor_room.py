@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Creates a starting Tiled map (.tmj) by chaining room sections of the corridor tileset.
 
-Usage: python3 tools/levels/new_corridor_room.py <out.tmj> <section>... [--enemy X]... [--checkpoint X]... [--exit]
+Usage: python3 tools/levels/new_corridor_room.py <out.tmj> <section>... [--enemy X]... [--flyer X:Y]... [--checkpoint X]... [--exit]
 
 This only makes a first version of a map. After that, the .tmj file is the source of
 truth: edit it in Tiled (or by hand) and validate it with `npm test` (ARCHITECTURE.md ADR-C01).
@@ -29,7 +29,8 @@ HEIGHT = 11
 FLOOR_Y = 160  # where feet touch the floor, in pixels from the top of the map
 
 
-def build(sections: list[str], enemies: list[int], with_exit: bool, checkpoints: list[int] | None = None) -> dict:
+def build(sections: list[str], enemies: list[int], with_exit: bool, checkpoints: list[int] | None = None,
+          flyers: list[str] | None = None) -> dict:
     columns = [(SECTIONS[s][0] + dx, SECTIONS[s][1]) for s in sections for dx in range(SECTIONS[s][2])]
     width = len(columns)
     data = []
@@ -44,6 +45,11 @@ def build(sections: list[str], enemies: list[int], with_exit: bool, checkpoints:
         spawns.append({"id": next(objects_id), "name": "", "type": "enemy", "point": True,
                        "x": x, "y": FLOOR_Y, "width": 0, "height": 0, "rotation": 0, "visible": True,
                        "properties": [{"name": "enemy", "type": "string", "value": "alien-walker"}]})
+    for xy in flyers or []:
+        fx, fy = (int(v) for v in xy.split(":"))
+        spawns.append({"id": next(objects_id), "name": "", "type": "enemy", "point": True,
+                       "x": fx, "y": fy, "width": 0, "height": 0, "rotation": 0, "visible": True,
+                       "properties": [{"name": "enemy", "type": "string", "value": "alien-flyer"}]})
     for x in checkpoints or []:
         spawns.append({"id": next(objects_id), "name": "", "type": "checkpoint", "point": True,
                        "x": x, "y": FLOOR_Y, "width": 0, "height": 0, "rotation": 0, "visible": True})
@@ -80,9 +86,10 @@ if __name__ == "__main__":
     ap.add_argument("out")
     ap.add_argument("sections", nargs="+", choices=sorted(SECTIONS))
     ap.add_argument("--enemy", type=int, action="append", default=[], help="enemy x position in px")
+    ap.add_argument("--flyer", action="append", default=[], help="flying alien at X:Y (its hover point) in px")
     ap.add_argument("--checkpoint", type=int, action="append", default=[], help="checkpoint x position in px")
     ap.add_argument("--exit", action="store_true", help="add an exit at the EXIT door")
     args = ap.parse_args()
     out = pathlib.Path(args.out)
-    out.write_text(json.dumps(build(args.sections, args.enemy, args.exit, args.checkpoint), indent=1) + "\n")
+    out.write_text(json.dumps(build(args.sections, args.enemy, args.exit, args.checkpoint, args.flyer), indent=1) + "\n")
     print(f"wrote {out}")

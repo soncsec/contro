@@ -53,6 +53,8 @@ ASSETS = [
     ("assets/effects/wall-impact.png", f"{MARINE}/Misc", "pack:wall-impact-blast*.png"),
     ("assets/effects/enemy-death.png", "Explosions and Magic/EnemyDeath/spritesheet.png", "copy"),
     ("assets/effects/hit.png", "Explosions and Magic/Hit/hit.png", "copy"),
+    ("assets/enemies/alien-flyer.png", "Warped/Characters/alien-flying-enemy/spritesheet.png", "copy"),
+    ("assets/effects/enemy-shot.png", "Gothicvania/Misc/EnemyProjectile/spritesheet.png", "copy"),
     ("assets/enemies/alien-walker-idle.png", "Warped/Characters/alien-walking-enemy/Spritesheets/alien-enemy-idle.png", "copy"),
     ("assets/enemies/alien-walker-walk.png", "Warped/Characters/alien-walking-enemy/Spritesheets/alien-enemy-walk.png", "copy"),
     ("assets/portraits/commander.png", f"{PORTRAITS}/base1.png", "copy"),

@@ -11,7 +11,7 @@
  "tilewidth": 16,
  "tileheight": 16,
  "nextlayerid": 4,
- "nextobjectid": 7,
+ "nextobjectid": 8,
  "properties": [
   {
    "name": "background",
@@ -825,7 +825,7 @@
    "visible": true,
    "objects": [
     {
-     "id": 6,
+     "id": 7,
      "name": "",
      "type": "solid",
      "x": 0,
@@ -900,6 +900,25 @@
     {
      "id": 4,
      "name": "",
+     "type": "enemy",
+     "point": true,
+     "x": 680,
+     "y": 70,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "properties": [
+      {
+       "name": "enemy",
+       "type": "string",
+       "value": "alien-flyer"
+      }
+     ]
+    },
+    {
+     "id": 5,
+     "name": "",
      "type": "checkpoint",
      "point": true,
      "x": 560,
@@ -910,7 +929,7 @@
      "visible": true
     },
     {
-     "id": 5,
+     "id": 6,
      "name": "",
      "type": "exit",
      "x": 944,
