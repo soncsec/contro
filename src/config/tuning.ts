@@ -156,3 +156,9 @@ export const PLATFORMS = {
   /** Below the bottom of the map by this much, the marine has fallen into a pit. */
   fallMargin: 8,
 } as const;
+
+/** Scoring (M2.9). Points per enemy are enemy data (src/data/enemies.ts). */
+export const SCORING = {
+  /** An extra life at each of these scores, as in Contra. */
+  extraLifeAt: [20_000, 50_000],
+} as const;
