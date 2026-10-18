@@ -113,8 +113,15 @@ export class Player {
   private jumpPeakFeetY = Infinity;
   private health: HealthState = initialHealth(HEALTH);
 
-  constructor(scene: Phaser.Scene, x: number, feetY: number, lives: number = HEALTH.lives) {
-    this.health = { ...initialHealth(HEALTH), lives };
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    feetY: number,
+    lives: number = HEALTH.lives,
+    hp: number = HEALTH.maxHp,
+  ) {
+    // Health carries over from the previous room (M2.13), kept within 1..maxHp.
+    this.health = { ...initialHealth(HEALTH), lives, hp: Math.min(HEALTH.maxHp, Math.max(1, hp)) };
     this.sprite = scene.physics.add.sprite(
       x,
       spriteYForFeet(feetY, PLAYER_FRAME.height, PLAYER_BODY),
