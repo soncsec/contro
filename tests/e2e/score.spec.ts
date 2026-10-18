@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { DIALOGUE_CARD, HEALTH } from '../../src/config/tuning';
 import { level, nextSection, startGame, waitGameTime, watchPage } from './watch';
 
 async function openLevel(page: Page): Promise<void> {
@@ -72,10 +73,22 @@ test('game over resets the score but keeps the best', async ({ page }) => {
     }
   }
   await expect.poll(async () => (await level(page)).gameOver, { timeout: 10_000 }).toBe(true);
+  // GAME OVER shows for gameOverMs of game time, then fades and the level restarts. Wait on
+  // the game's own clock, not real time: under load the game can run many times slower.
+  const shown = await level(page);
+  const restartMs = HEALTH.gameOverMs + DIALOGUE_CARD.fadeMs;
   await expect
-    .poll(async () => (await page.evaluate(() => window.__contro?.level() ?? null))?.gameOver, {
-      timeout: 15_000,
-    })
+    .poll(
+      async () => {
+        const s = await page.evaluate(() => window.__contro?.level() ?? null);
+        // Restarted (a new level clock), or the game time for the restart has passed.
+        return !s || !s.gameOver || s.timeMs - shown.timeMs >= restartMs + 500;
+      },
+      { timeout: 120_000 },
+    )
+    .toBe(true);
+  await expect
+    .poll(async () => (await page.evaluate(() => window.__contro?.level() ?? null))?.gameOver)
     .toBe(false);
   expect(await score(page)).toEqual({ score: 0, best: 900 });
   expect((await level(page)).player.lives).toBe(3);
