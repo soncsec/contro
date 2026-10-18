@@ -18,7 +18,11 @@ export class PreloadScene extends Phaser.Scene {
         this.load.image(asset.key, asset.path);
       }
     }
-    for (const level of LEVELS) this.load.tilemapTiledJSON(level.key, level.path);
+    // The training corridor test rooms are only part of the e2e build's campaign.
+    const e2e = import.meta.env.MODE === 'e2e';
+    for (const level of LEVELS) {
+      if (e2e || !level.testOnly) this.load.tilemapTiledJSON(level.key, level.path);
+    }
   }
 
   create(): void {

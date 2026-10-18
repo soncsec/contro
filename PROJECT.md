@@ -30,6 +30,7 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 | Levels | **3 levels, each ending in a boss** (owner decision 2026-10-17): 1 Industrial, 2 Cyberpunk Corridor, 3 Alien Hive. **Each level is a lot longer and more varied** (owner request 2026-10-18): about **10–15 minutes**, built from **at least 5 sections** (separate maps played back to back, with a checkpoint at each), each with its own scenery and set piece: e.g. multi-level ground, catwalk climbs, pit runs, an outdoor or rooftop stretch, a gauntlet of mixed enemies, a mini-boss. Dialogue cards only between levels |
 | Multi-level ground | Some side-scrolling stretches have **ground at several heights**, like Contra: raised ledges, upper and lower paths, and drops between them, each with enemies (owner request 2026-10-17) |
 | Level display | The screen shows the **current level and section** (e.g. `1-3`) in the HUD, and a banner with the level's number and name when a level starts (owner request 2026-10-18) |
+| Test rooms | The two corridor test rooms are **not part of the game** (owner left it to Claude, 2026-10-18): they stay in the repo as a training level that only the e2e build plays first, so browser tests keep small fixed rooms |
 | Health between sections | **Health carries over** from section to section and level to level, like score and lives (owner request 2026-10-18). A respawn after losing a life still starts with full health |
 | Player | The Warped space marine: idle, run, jump, crouch, shoot, die |
 | Aiming | Forward (standing, running, jumping), crouched forward, and **diagonal up**. The diagonal frame is derived from the existing art by Claude. Aim poses are data in the asset manifest so better art can replace them later without code changes (owner decision 2026-10-17) |
@@ -72,7 +73,7 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 | Player | `Warped/Characters/space-marine-lite` (75×48 frames) plus Claude-derived aim frames |
 | Enemies | `Warped/Characters/alien-walking-enemy`, `alien-flying-enemy`, `bipedal-Unit` |
 | Bosses | `Warped/Characters/tank-unit`, `mech-unit`, `Gothicvania/Characters/Grotto-escape-2-boss-dragon` or `demon-Files` |
-| Level 1 Industrial | `Warped/Environments/parallax-industrial-web` (backgrounds) with tiles from `sci-fi-interior-platform` or `sci-fi-environment-background-files` (chosen in M3) |
+| Level 1 Industrial | **The Steelworks** (owner chose option B of three mockups, 2026-10-18): teal steel floor, raised ledges and scaffold walkways from `Warped/Environments/bulkhead-walls/v1`, under the `parallax-industrial-web` skyline outdoors; one or two rust factory rooms from `bulkhead-walls/v2` (option C) for variety |
 | Level 2 Cyberpunk Corridor | `Warped/Environments/cyberpunk-corridor-files`, props from `cyberpunk-detective-props` |
 | Level 3 Alien Hive | `Warped/Environments/alien-environment` |
 | Portraits | `Warped/Misc/Warped Portraits Files` (4 portraits, 48×48) |
@@ -89,8 +90,7 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 ## 8. Open items
 
 - Default key layout (M1/M2 play-test).
-- Level 1 tileset choice (M3).
-- Phone touch controls: button layout, and whether to require landscape (M3.11).
+- Phone touch controls: button layout (M3.11). **Landscape only** (owner decision 2026-10-18): held upright, the game asks the player to turn the phone.
 - Weapon pickup set and rules (M4).
 - Level 3 boss art: dragon or demon (M5).
 - Specific CC0 audio sources (M3; each needs approval).

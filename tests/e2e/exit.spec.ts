@@ -35,7 +35,8 @@ test("the level's last section ends with a card, then the next level", async ({ 
 
   const exit = await walkThroughExit(page);
   expect(exit).toEqual({ lastVx: 0, scene: 'Dialogue' });
-  expect(await dialogue(page)).toMatchObject({ card: 'level-1-end', nextLevel: 'corridor-test' });
+  // In the e2e build, training (level 1) is followed by the steelworks (level 2).
+  expect(await dialogue(page)).toMatchObject({ card: 'training-end', nextLevel: 'steelworks-1' });
 
   // A press during the first moments is ignored, so a held key can't skip the card.
   await page.keyboard.press('Space');
@@ -47,13 +48,13 @@ test("the level's last section ends with a card, then the next level", async ({ 
   await expect.poll(() => sceneKey(page)).toBe('Level');
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
 
-  // With one level so far, the campaign starts again: room 1, fresh enemies at full health.
-  const back = await level(page);
-  expect(back.level).toBe('corridor-test');
-  expect(back.label).toBe('1-1');
+  // The next level starts at its first section, with fresh enemies at full health.
+  const next = await level(page);
+  expect(next.level).toBe('steelworks-1');
+  expect(next.label).toBe('2-1');
   const full = { 'alien-walker': 3, 'alien-flyer': 2 } as const;
-  expect(back.enemies.every((e) => e.alive && e.hp === full[e.type])).toBe(true);
-  // Shooting still works after the restart.
+  expect(next.enemies.every((e) => e.alive && e.hp === full[e.type])).toBe(true);
+  // Shooting still works in the new level.
   await page.keyboard.press('KeyX');
   await expect.poll(async () => (await level(page)).bullets.fired).toBe(1);
   expect(watched.errors).toEqual([]);

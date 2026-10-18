@@ -81,10 +81,15 @@ export interface LevelSnapshot {
   /** Current level and section shown in the HUD, e.g. "1-2". */
   label: string;
   bannerVisible: boolean;
+  /** Asset keys of the parallax scenery layers, back to front. */
+  scenery: string[];
+  /** Left edge of the exit, in level pixels. */
+  exitX: number;
   airJumps: number;
 }
 
-const DEFAULT_LEVEL = 'corridor-test';
+/** The first section of the campaign, when no section is named. */
+const DEFAULT_LEVEL = CAMPAIGN[0]?.level ?? 'steelworks-1';
 
 /** Input used while the level fades out after the exit: the marine stops. */
 const NO_INPUT: ActionFrame = { held: NO_ACTIONS, pressed: NO_ACTIONS };
@@ -118,6 +123,8 @@ export class LevelScene extends Phaser.Scene {
   /** The run as it was when this room started (for Restart room). */
   private runAtStart: RunState | null = null;
   private back: Phaser.GameObjects.TileSprite | null = null;
+  /** Parallax scenery from the map's image layers, with how fast each scrolls. */
+  private scenery: { sprite: Phaser.GameObjects.TileSprite; factor: number }[] = [];
 
   constructor() {
     super('Level');
@@ -145,6 +152,15 @@ export class LevelScene extends Phaser.Scene {
     const { widthPx, heightPx } = this.layout;
 
     // Far background: fixed to the camera, scrolled slowly for depth.
+    // (Fields outlive a scene restart, so clear what the previous map made.)
+    this.back = null;
+    this.scenery = this.layout.parallax.map(({ key, y, factor }) => ({
+      sprite: this.add
+        .tileSprite(0, y, GAME_WIDTH, this.textures.get(key).getSourceImage().height, key)
+        .setOrigin(0)
+        .setScrollFactor(0),
+      factor,
+    }));
     if (this.layout.background) {
       this.back = this.add
         .tileSprite(0, 0, GAME_WIDTH, heightPx, this.layout.background)
@@ -313,7 +329,9 @@ export class LevelScene extends Phaser.Scene {
       p0.dead || this.cheats.invisible ? null : { x: p0.x, y: p0.feetY - PLAYER_BODY.height / 2 };
     for (const shot of this.enemies.update(deltaMs, target)) this.enemyShots.fire(shot);
     this.enemyShots.update();
-    if (this.back) this.back.tilePositionX = this.cameras.main.scrollX * PARALLAX_BACK_FACTOR;
+    const scrollX = this.cameras.main.scrollX;
+    if (this.back) this.back.tilePositionX = scrollX * PARALLAX_BACK_FACTOR;
+    for (const { sprite, factor } of this.scenery) sprite.tilePositionX = scrollX * factor;
   }
 
   private respawnAt(): { x: number; y: number } {
@@ -476,6 +494,8 @@ export class LevelScene extends Phaser.Scene {
       cheats: this.cheats,
       label: this.label,
       bannerVisible: this.bannerVisible,
+      scenery: this.scenery.map((l) => l.sprite.texture.key),
+      exitX: this.layout.exit.x,
       airJumps: this.airJumps,
     };
   }

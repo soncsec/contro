@@ -30,6 +30,11 @@ export const DIALOGUE = {
     speaker: 'ops',
     lines: ['Corridor A is clear.', 'More hostiles past', 'the next door.'],
   },
+  // After the training corridor (e2e build only).
+  'training-end': {
+    speaker: 'ops',
+    lines: ['Training complete.', 'Report to the steelworks.'],
+  },
   // After level 1's last section.
   'level-1-end': {
     speaker: 'hive',

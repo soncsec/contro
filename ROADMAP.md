@@ -10,7 +10,7 @@
 | M0 Setup | Done except M0.4 (Tiled install) |
 | M1 Walking skeleton (to production) | Done: live at games.soncrant.com/contro/ |
 | M2 Core feel | In progress |
-| M3 Level 1 Industrial (vertical slice) | Not started |
+| M3 Level 1 Industrial (vertical slice) | In progress |
 | M4 Level 2 Cyberpunk Corridor | Not started |
 | M5 Level 3 Alien Hive | Not started |
 | M6 Polish and v1.0 release | Not started |
@@ -87,7 +87,7 @@
 **Demonstrable result:** Level 1 is playable from title screen to the tank boss's defeat, with sound and music.
 
 - [x] M3.0 Level structure (ADR-C10): a level is a sequence of sections (maps) played back to back with a checkpoint at each; dialogue cards only between levels; campaign data lists levels → sections; validation tests
-- [ ] M3.1 Industrial art: choose the tileset (owner picks from mockups), assemble parallax; Level 1 as **at least 5 varied sections, 10–15 minutes**, including at least one **multi-level ground** stretch (upper and lower paths, Contra-style) and one outdoor stretch (industrial parallax). **Shipped in slices** (owner approved 2026-10-18): each section is its own PR and its own release (1-1 first), so it can be played and commented on while the rest is built
+- [ ] M3.1 Industrial art: choose the tileset (owner picks from mockups), assemble parallax; Level 1 as **at least 5 varied sections, 10–15 minutes**, including at least one **multi-level ground** stretch (upper and lower paths, Contra-style) and one outdoor stretch (industrial parallax). **Shipped in slices** (owner approved 2026-10-18): each section is its own PR and its own release (1-1 first), so it can be played and commented on while the rest is built. Art chosen: option B steelworks + C for variety (2026-10-18). **1-1 The yard** done: outdoor, 180 tiles, steps up to a 4-high ledge, an upper walkway route over a lower path, three pits, 12 walkers and 4 flyers, 3 checkpoints; maps made by `tools/levels/steelworks_section.py`, parallax from Tiled image layers, and a route check (`src/logic/route.ts`) proves every pit and step is within jump reach
 - [ ] M3.2 Boss framework: arena lock, health bar, phases, attack patterns, defeat (data-driven)
 - [ ] M3.3 Tank boss
 - [ ] M3.4 HUD, game over and continue (the title screen moved to M3.10)

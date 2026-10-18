@@ -87,6 +87,13 @@ describe('level maps in public/assets', () => {
     }
   });
 
+  it.each(LEVELS)('$key: each parallax layer is a known image asset', (level) => {
+    const layout = readLevelLayout(readJson(`${PUBLIC_DIR}/${level.path}`), ENEMY_TYPES);
+    for (const layer of layout.parallax) {
+      expect(ASSETS.find((a) => a.key === layer.key)?.kind).toBe('image');
+    }
+  });
+
   it.each(LEVELS)('$key fills the screen height (176 px)', (level) => {
     const layout = readLevelLayout(readJson(`${PUBLIC_DIR}/${level.path}`), ENEMY_TYPES);
     expect(layout.heightPx).toBe(176);
@@ -251,6 +258,7 @@ describe('readLevelLayout', () => {
       widthPx: 64,
       heightPx: 176,
       background: 'corridor-back',
+      parallax: [],
       colliders: [{ type: 'solid', x: 0, y: 160, width: 64, height: 16 }],
       playerStart: { x: 8, y: 160 },
       checkpoints: [{ x: 32, y: 160 }],
@@ -267,5 +275,44 @@ describe('readLevelLayout', () => {
 
   it('throws on an invalid map', () => {
     expect(() => readLevelLayout({}, ENEMY_TYPES)).toThrow(/invalid level map/);
+  });
+
+  it('reads image layers as parallax scenery, back to front, with defaults', () => {
+    const map = sampleMap();
+    map['layers'] = [
+      { type: 'imagelayer', name: 'industrial-sky', image: 'x.png', parallaxx: 0 },
+      { type: 'imagelayer', name: 'industrial-far', image: 'y.png', offsety: -4, parallaxx: 0.15 },
+      { type: 'imagelayer', name: 'near', image: 'z.png' },
+      ...(map['layers'] as unknown[]),
+    ];
+    expect(readLevelLayout(map, ENEMY_TYPES).parallax).toEqual([
+      { key: 'industrial-sky', y: 0, factor: 0 },
+      { key: 'industrial-far', y: -4, factor: 0.15 },
+      { key: 'near', y: 0, factor: 1 },
+    ]);
+  });
+});
+
+describe('image layers', () => {
+  const withLayer = (layer: Record<string, unknown>) => {
+    const map = sampleMap();
+    map['layers'] = [
+      { type: 'imagelayer', image: 'a.png', ...layer },
+      ...(map['layers'] as unknown[]),
+    ];
+    return validateLevelMap(map, ENEMY_TYPES);
+  };
+
+  it('accepts a named layer with a vertical offset and a parallax factor', () => {
+    expect(withLayer({ name: 'sky', offsety: 12, parallaxx: 0.5 })).toEqual([]);
+  });
+
+  it('rejects a missing name, a sideways offset, a bad offset, or a factor outside 0–1', () => {
+    expect(withLayer({ name: '' })).toEqual(['image layer 1: needs a name']);
+    expect(withLayer({ name: 'a', offsetx: 5 })).toEqual(['image layer 1: offsetx must be 0']);
+    expect(withLayer({ name: 'a', offsety: 'x' })).toEqual(['image layer 1: bad offsety']);
+    expect(withLayer({ name: 'a', parallaxx: 1.5 })).toEqual([
+      'image layer 1: parallaxx must be between 0 and 1',
+    ]);
   });
 });

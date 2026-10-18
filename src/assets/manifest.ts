@@ -104,6 +104,12 @@ export const ASSETS: readonly Asset[] = [
   image('levels', 'corridor-tileset', 'corridor/tileset.png', 512, 608),
   // Drawn by Claude: catwalks and pit edges in the corridor's colours (tools/art/catwalk.py)
   image('levels', 'corridor-catwalk', 'corridor/catwalk.png', 48, 48),
+  // Level 1 art: industrial skyline (parallax, back to front) and the steelworks tileset
+  image('levels', 'industrial-sky', 'industrial/sky.png', 272, 160),
+  image('levels', 'industrial-far', 'industrial/far.png', 213, 142),
+  image('levels', 'industrial-mid', 'industrial/mid.png', 272, 150),
+  image('levels', 'industrial-near', 'industrial/near.png', 272, 104),
+  image('levels', 'steelworks-tileset', 'steelworks/tileset.png', 352, 240),
 ];
 
 /** Key of a sheet's default animation. */
@@ -116,6 +122,8 @@ export interface LevelAsset {
   path: string;
   /** Tileset name inside the map → image key in ASSETS. */
   tilesets: Readonly<Record<string, string>>;
+  /** Only loaded in the e2e build (the training corridor test rooms). */
+  testOnly?: boolean;
 }
 
 export const LEVELS: readonly LevelAsset[] = [
@@ -123,10 +131,17 @@ export const LEVELS: readonly LevelAsset[] = [
     key: 'corridor-test',
     path: 'assets/levels/corridor-test.tmj',
     tilesets: { corridor: 'corridor-tileset', catwalk: 'corridor-catwalk' },
+    testOnly: true,
   },
   {
     key: 'corridor-test-2',
     path: 'assets/levels/corridor-test-2.tmj',
     tilesets: { corridor: 'corridor-tileset', catwalk: 'corridor-catwalk' },
+    testOnly: true,
+  },
+  {
+    key: 'steelworks-1',
+    path: 'assets/levels/steelworks-1.tmj',
+    tilesets: { steelworks: 'steelworks-tileset' },
   },
 ];
