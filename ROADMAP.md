@@ -73,6 +73,9 @@
 - [ ] M2.6 Movement tuning pass with the owner (jump arc, speed, fire rate)
 - [x] M2.7 Playwright: take damage, die, respawn at checkpoint (done with M2.1: `tests/e2e/health.spec.ts`)
 - [ ] M2.8 Double jump (owner request 2026-10-17, for an upcoming sprint): one extra jump in mid-air, restored on landing, also after walking off a ledge; its height in `tuning.ts`; logic unit tested and covered by Playwright. Proposed after the M2.6 tuning pass, since it changes jump heights and level layouts
+- [ ] M2.9 Scoring (owner request 2026-10-17): points per enemy (walker 100, flyer 200) as enemy data; score and best score in the HUD; best score saved (ADR-C08); extra lives at 20,000 and 50,000; score carries across rooms, resets on game over; logic unit tested, Playwright covers it
+- [ ] M2.10 Fullscreen key (owner request 2026-10-17): F toggles fullscreen; whole-number scaling recalculated for the new size
+- [ ] M2.11 Cheat codes (owner request 2026-10-17): entered on the pause screen; Konami code +5 lives, invincibility, invisibility, room skip (all weapons after M4); a HUD marker while any cheat is on; cheating stops the best score from being saved; code matching unit tested
 
 **Acceptance criteria:** the owner signs off on feel; logic coverage at least 80%; works with keyboard and a gamepad in both browsers.
 
