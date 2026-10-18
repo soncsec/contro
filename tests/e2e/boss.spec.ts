@@ -4,10 +4,16 @@ import { level, title, watchPage } from './watch';
 /**
  * The Level 1 boss fight (M3.2–M3.3): the tank in the arena at the end of section 1-5.
  * Arena: x 2560–2880. It locks once the marine's centre reaches x 2720.
+ *
+ * Waits for things that take game time (rolling in, cannon cooldowns, blowing up) allow
+ * GAME_WAIT of real time: under load the game can run many times slower than real time.
  */
 const ARENA_X = 2560;
 const LOCK_X = 2720;
 const SAFE_X = 2600; // left side of the arena, out of the tank's reach
+const GAME_WAIT = { timeout: 60_000 };
+// A fight takes seconds of game time; give each test room for a slowed-down game.
+test.describe.configure({ timeout: 120_000 });
 
 async function openFurnace(page: Page): Promise<void> {
   await page.goto('./');
@@ -32,7 +38,7 @@ async function startFight(page: Page): Promise<void> {
   await teleport(page, LOCK_X + 10);
   await expect.poll(async () => (await boss(page)).arenaLocked).toBe(true);
   await teleport(page, SAFE_X);
-  await expect.poll(async () => (await boss(page)).mode, { timeout: 15_000 }).toBe('fight');
+  await expect.poll(async () => (await boss(page)).mode, GAME_WAIT).toBe('fight');
 }
 
 test('the tank waits until the marine reaches the middle of the arena', async ({ page }) => {
@@ -48,7 +54,7 @@ test('the tank waits until the marine reaches the middle of the arena', async ({
   await expect.poll(async () => (await boss(page)).arenaLocked).toBe(true);
   expect((await level(page)).cameraX).toBe(ARENA_X);
   // It rolls in from the right, then fights.
-  await expect.poll(async () => (await boss(page)).mode, { timeout: 15_000 }).toBe('fight');
+  await expect.poll(async () => (await boss(page)).mode, GAME_WAIT).toBe('fight');
   expect(watched.errors).toEqual([]);
 });
 
@@ -83,14 +89,14 @@ test('the cannon fires at head height: crouching ducks under it, standing is hit
   // Crouched through two cannon shots, he is not hurt.
   await page.keyboard.down('ArrowDown');
   await expect
-    .poll(async () => (await level(page)).enemyShots.fired, { timeout: 15_000 })
+    .poll(async () => (await level(page)).enemyShots.fired, GAME_WAIT)
     .toBeGreaterThanOrEqual(start.enemyShots.fired + 2);
-  await expect.poll(async () => (await level(page)).enemyShots.active, { timeout: 15_000 }).toBe(0);
+  await expect.poll(async () => (await level(page)).enemyShots.active, GAME_WAIT).toBe(0);
   expect((await level(page)).player.hp).toBe(start.player.hp);
   await page.keyboard.up('ArrowDown');
   // Standing, the next shot hits him.
   await expect
-    .poll(async () => (await level(page)).player.hp, { timeout: 15_000 })
+    .poll(async () => (await level(page)).player.hp, GAME_WAIT)
     .toBeLessThan(start.player.hp);
 });
 
@@ -118,9 +124,7 @@ test('destroyed, it blows up for 5000 points and the level ends with its card', 
   await expect.poll(async () => (await boss(page)).mode).toBe('dying');
   expect((await level(page)).score.score).toBe(before + 5000);
   await expect
-    .poll(() => page.evaluate(() => window.__contro?.dialogue()?.card ?? null), {
-      timeout: 15_000,
-    })
+    .poll(() => page.evaluate(() => window.__contro?.dialogue()?.card ?? null), GAME_WAIT)
     .toBe('level-1-end');
   expect(watched.errors).toEqual([]);
 });
@@ -133,7 +137,7 @@ test('dying in the fight starts it again: full health, arena open', async ({ pag
   expect((await boss(page)).hp).toBe(maxHp - 20);
   await page.evaluate(() => window.__contro?.hurtPlayer(99));
   await expect.poll(async () => (await level(page)).player.dead).toBe(true);
-  await expect.poll(async () => (await level(page)).player.dead, { timeout: 10_000 }).toBe(false);
+  await expect.poll(async () => (await level(page)).player.dead, GAME_WAIT).toBe(false);
   const s = await level(page);
   expect(s.boss).toMatchObject({ hp: maxHp, mode: 'waiting', arenaLocked: false });
   expect(s.player.x).toBeLessThan(ARENA_X); // back at the checkpoint before the arena
