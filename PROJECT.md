@@ -33,7 +33,7 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 | Health between sections | **Health carries over** from section to section and level to level, like score and lives (owner request 2026-10-18). A respawn after losing a life still starts with full health |
 | Player | The Warped space marine: idle, run, jump, crouch, shoot, die |
 | Aiming | Forward (standing, running, jumping), crouched forward, and **diagonal up**. The diagonal frame is derived from the existing art by Claude. Aim poses are data in the asset manifest so better art can replace them later without code changes (owner decision 2026-10-17) |
-| Controls | Keyboard and **gamepad** (standard mapping). Default keys: arrows or WASD to move, jump, fire, aim-up modifier, pause. Final key layout settled in M1/M2 play-tests |
+| Controls | Keyboard, **gamepad** (standard mapping) and **phone touch controls** (on-screen buttons on touch screens; owner approved 2026-10-18). Default keys: arrows or WASD to move, jump, fire, aim-up modifier, pause. Final key layout settled in M1/M2 play-tests |
 | Health | **Health bar** with several hits per life, brief invulnerability after a hit, **mid-level checkpoints**, and a small number of lives with continue from the last checkpoint (owner decision 2026-10-17). Exact numbers live in `src/config/tuning.ts` |
 | Enemies | Walking alien, flying alien, bipedal walker, alien creatures; enemy shots |
 | Bosses | Level 1: **tank**. Level 2: **mech**. Level 3: an alien boss using **Gothicvania boss art (dragon or demon), recolored** to fit (owner approved 2026-10-17). Each with a health bar, phases and attack patterns |
@@ -46,13 +46,13 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 | Scoring | **Points for each enemy destroyed** (walker 100, flyer 200, bosses more), shown in the HUD; best score saved. **Extra life at 20,000 and 50,000 points**, as in Contra. The score carries from room to room and resets on game over (owner request 2026-10-17, roadmap M2.9) |
 | Fullscreen | **F toggles fullscreen** (owner request 2026-10-17, roadmap M2.10) |
 | Cheat codes | Entered on the pause screen (owner request 2026-10-17, roadmap M2.11): **Konami code** (up up down down left right left right fire jump, keyboard or gamepad) for +5 lives; typed **IRON** invincibility (pits still kill), **GHOUL** invisibility (enemies don't aim or dive at you), **THRU** room skip; **all weapons** once pickups exist (M4). A cheat shows CHEAT on the HUD and stops the best score from being saved |
-| Screens | Title (with a link back to the portal), level intro card, game, pause, game over, continue, ending, credits |
+| Screens | Title (with a link back to the portal and a **controls guide**, built early so first-time players know the keys; owner approved 2026-10-18), level intro card, game, pause, game over, continue, ending, credits |
+| Font | **Press Start 2P** (SIL OFL 1.1), the same file Star Destroyer and the portal use, for the HUD, banners, cards and title (owner approved 2026-10-18). Bundled, never loaded from Google |
 | Display | 320×176 game area at native pixel size, scaled by whole numbers with sharp pixels (confirmed in M1.2) |
 
 ### Out of scope (v1)
 
 - Two-player co-op
-- Mobile and touch controls
 - Full 8-way aiming and straight-up aiming (possible later with new art)
 - Slopes
 - Online leaderboards, accounts, payments, analytics
@@ -90,6 +90,7 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 
 - Default key layout (M1/M2 play-test).
 - Level 1 tileset choice (M3).
+- Phone touch controls: button layout, and whether to require landscape (M3.11).
 - Weapon pickup set and rules (M4).
 - Level 3 boss art: dragon or demon (M5).
 - Specific CC0 audio sources (M3; each needs approval).
