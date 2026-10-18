@@ -60,10 +60,32 @@ test('the interior loads indoors, with no skyline, and the marine stands on the 
   expect(watched.foreignRequests).toEqual([]);
 });
 
-test('the interior ends with the level-end card, then the campaign starts again', async ({
+test('the interior leads straight into the rust factory, with no card', async ({ page }) => {
+  await openSection(page, 'steelworks-2');
+  const exit = await walkThroughExit(page);
+  expect(exit.scene).toBe('Level');
+  await expect.poll(async () => (await level(page)).level).toBe('steelworks-3');
+  expect((await level(page)).label).toBe('2-3');
+});
+
+test('the rust factory loads indoors, and the marine stands on its floor', async ({ page }) => {
+  const watched = watchPage(page);
+  await openSection(page, 'steelworks-3');
+  const s = await level(page);
+  expect(s.scenery).toEqual([]);
+  expect(s.label).toBe('2-3');
+  expect(s.player.feetY).toBe(136);
+  expect(s.widthPx).toBe(160 * 16);
+  expect(s.enemies.filter((e) => e.type === 'alien-walker')).toHaveLength(18);
+  expect(s.enemies.filter((e) => e.type === 'alien-flyer')).toHaveLength(5);
+  expect(watched.errors).toEqual([]);
+  expect(watched.foreignRequests).toEqual([]);
+});
+
+test('the rust factory ends with the level-end card, then the campaign starts again', async ({
   page,
 }) => {
-  await openSection(page, 'steelworks-2');
+  await openSection(page, 'steelworks-3');
   const exit = await walkThroughExit(page);
   expect(exit.scene).toBe('Dialogue');
   // The last section so far: after its card the campaign starts again from the beginning.

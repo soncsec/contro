@@ -52,8 +52,13 @@ def build(back_path: str, walkway_path: str, cols_path: str, pipes_path: str) ->
     )
 
 
-def pit_tile(kind: str) -> list[list[tuple[int, int, int, int]]]:
-    """kind: 'shaft', 'left' (the floor's cut face on the left), 'right'."""
+STEEL_PIT = (SHAFT, SHAFT_MID, RIM, RIM_DARK)
+
+
+def pit_tile(kind: str, colours: tuple = STEEL_PIT) -> list[list[tuple[int, int, int, int]]]:
+    """kind: 'shaft', 'left' (the floor's cut face on the left), 'right'.
+    colours: (shaft, shaft top, rim, rim shadow)."""
+    SHAFT, SHAFT_MID, RIM, RIM_DARK = colours  # noqa: N806 (shadows the module colours)
     tile = [[SHAFT] * TILE for _ in range(TILE)]
     for y in range(TILE):
         for x in range(TILE):
@@ -67,8 +72,8 @@ def pit_tile(kind: str) -> list[list[tuple[int, int, int, int]]]:
     return tile
 
 
-def pit_row(width: int) -> list[list[tuple[int, int, int, int]]]:
-    tiles = [pit_tile("shaft"), pit_tile("left"), pit_tile("right")]
+def pit_row(width: int, colours: tuple = STEEL_PIT) -> list[list[tuple[int, int, int, int]]]:
+    tiles = [pit_tile(k, colours) for k in ("shaft", "left", "right")]
     clear = (0, 0, 0, 0)
     return [
         [px for t in tiles for px in t[y]] + [clear] * (width - TILE * len(tiles))

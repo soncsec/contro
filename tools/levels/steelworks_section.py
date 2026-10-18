@@ -11,6 +11,7 @@ Layouts are in LAYOUTS below. A layout gives the width in tiles and lists, in 16
              ("Ng" puts one on the ground under a walkway)
   flyers     (column, y px) alien flyers
   checkpoints, start, exit: columns
+  tileset    "steelworks" (default) or "rust" (tools/art/rust.py, the same rows, 18 columns)
   indoor     True for a section inside the steelworks: the piped wall fills the space above the
              ground instead of the open sky and skyline
 
@@ -26,7 +27,10 @@ import pathlib
 import sys
 
 TILE = 16
-COLUMNS = 22
+TILESETS = {  # name -> (image under assets/levels/, columns)
+    "steelworks": ("steelworks/tileset.png", 22),
+    "rust": ("rust/tileset.png", 18),
+}
 HEIGHT = 11  # 176 px
 FLOOR_ROW = 8  # top row of the ground
 FEET_IN = 8  # feet stand this far below the top edge of a floor plate
@@ -78,15 +82,34 @@ LAYOUTS = {
         "start": 3,
         "exit": 165,
     },
+    # 1-3: the rust factory, deeper in (option C for variety). Shorter and denser: four pits,
+    # ledges in pairs, staggered walkways climbing over a pit, walkers above and below.
+    "factory": {
+        "width": 160,
+        "tileset": "rust",
+        "indoor": True,
+        "floor": [(0, 30), (33, 58), (61, 84), (87, 112), (115, 160)],
+        "blocks": [(10, 16, 6), (40, 46, 6), (46, 50, 4), (70, 78, 6), (96, 100, 7),
+                   (100, 104, 5), (104, 108, 7), (128, 136, 5), (136, 140, 7)],
+        "walkways": [(18, 8, 6), (52, 6, 6), (60, 7, 4), (88, 8, 5), (118, 8, 6), (146, 6, 4)],
+        "walkers": [8, 13, 24, "25g", 36, 44, 48, 55, 64, "65g", 74, 82, 92, 102, 120, "122g",
+                    132, 150],
+        "flyers": [(30, 40), (58, 30), (84, 36), (112, 40), (140, 34)],
+        "checkpoints": [34, 80, 116],
+        "start": 3,
+        "exit": 155,
+    },
 }
-
-
-def gid(row: int, col: int) -> int:
-    return 1 + row * COLUMNS + col
 
 
 def build(layout: dict) -> dict:
     width = layout["width"]
+    tileset_name = layout.get("tileset", "steelworks")
+    tileset_image, COLUMNS = TILESETS[tileset_name]  # noqa: N806
+
+    def gid(row: int, col: int) -> int:
+        return 1 + row * COLUMNS + col
+
     background = [0] * (width * HEIGHT)
     platforms = [0] * (width * HEIGHT)
     top = [None] * width  # top tile row of the ground in each column (None = pit)
@@ -210,7 +233,7 @@ def build(layout: dict) -> dict:
             {"id": 4, "name": "spawns", "type": "objectgroup", "draworder": "topdown",
              "objects": spawns, "opacity": 1, "visible": True, "x": 0, "y": 0},
         ],
-        "tilesets": [{"firstgid": 1, "name": "steelworks", "image": "steelworks/tileset.png",
+        "tilesets": [{"firstgid": 1, "name": tileset_name, "image": tileset_image,
                       "imagewidth": COLUMNS * TILE, "imageheight": TILESET_ROWS * TILE, "tilewidth": TILE,
                       "tileheight": TILE, "tilecount": COLUMNS * TILESET_ROWS, "columns": COLUMNS,
                       "margin": 0, "spacing": 0}],

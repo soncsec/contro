@@ -15,6 +15,7 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import aim  # noqa: E402
 import catwalk  # noqa: E402
+import rust  # noqa: E402
 import steelworks  # noqa: E402
 import png  # noqa: E402
 
@@ -39,6 +40,7 @@ PORTRAITS = "Warped/Misc/Warped Portraits Files/portraits with bg"
 #   how = "rot45:<glob>:WxH" rotate each frame 45° up onto a W×H canvas (bullets, flashes)
 #   how = "draw:catwalk"   new tiles drawn by tools/art/catwalk.py in the colours of the source
 #   how = "steelworks"     crop and stack the bulkhead-walls v1 layers (tools/art/steelworks.py)
+#   how = "rust"           the bulkhead-walls v2 wall and floor, rust walkway (tools/art/rust.py)
 ASSETS = [
     ("assets/player/marine-idle.png", f"{MARINE}/Idle Gun/sprites", "pack:idle-gun*.png"),
     ("assets/player/marine-run.png", f"{MARINE}/Run with Gun/sprites", "pack:run-with-gun*.png"),
@@ -72,6 +74,8 @@ ASSETS = [
     ("assets/levels/corridor/tileset.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "copy"),
     # Level 1 Industrial (owner chose option B, teal steelworks, 2026-10-18)
     ("assets/levels/steelworks/tileset.png", "Warped/Environments/bulkhead-walls/v1/layers", "steelworks"),
+    # Level 1 rust factory rooms (option C, for variety)
+    ("assets/levels/rust/tileset.png", "Warped/Environments/bulkhead-walls", "rust"),
     ("assets/levels/industrial/sky.png", "Warped/Environments/parallax-industrial-web/Layers/bg.png", "copy"),
     ("assets/levels/industrial/far.png", "Warped/Environments/parallax-industrial-web/Layers/far-buildings.png", "copy"),
     ("assets/levels/industrial/mid.png", "Warped/Environments/parallax-industrial-web/Layers/buildings.png", "copy"),
@@ -129,6 +133,9 @@ def build() -> list[tuple[str, str, str]]:
         elif how == "steelworks":
             png.write(str(dest), steelworks.build(str(source / "bulkhead-walls-back.png"), str(source / "bulkhead-walls-platform.png"), str(source / "cols.png"), str(source / "bulkhead-walls-pipes.png")))
             rows.append((out, f"{src}/bulkhead-walls-back.png, bulkhead-walls-platform.png, cols.png, bulkhead-walls-pipes.png", "*derived*: ceiling cropped off, wall and floor stacked with the scaffold walkway and a copy of the wall with the columns and pipes layered on, pixels unchanged; plus pit tiles *drawn by Claude* in the floor's colours (`tools/art/steelworks.py`)"))
+        elif how == "rust":
+            png.write(str(dest), rust.build(str(source / "v2/PNG/bg-wall-with-supports.png"), str(source / "v2/PNG/floor.png"), str(source / "v1/layers/bulkhead-walls-platform.png")))
+            rows.append((out, f"{src}/v2/PNG/bg-wall-with-supports.png, v2/PNG/floor.png, v1/layers/bulkhead-walls-platform.png", "*derived*: v2 wall (ceiling cropped off) and floor, pixels unchanged; the v1 scaffold walkway recoloured with v2 colours; under-floor panels and pit tiles *drawn by Claude* in the v2 colours (`tools/art/rust.py`)"))
         elif how == "draw:catwalk":
             png.write(str(dest), catwalk.build(str(source)))
             rows.append((out, src, "*drawn by Claude* (`tools/art/catwalk.py`): catwalk and pit tiles in this tileset's colours, pit edges reuse its floor pixels"))
