@@ -42,9 +42,13 @@ export const MOVEMENT = {
   maxStepMs: 50,
 } as const;
 
-/** The default rifle (M1.5). Tap to fire faster than holding, like Contra. */
+/**
+ * The default rifle (M1.5). One shot per press (owner request, issue #21): holding fire doesn't
+ * keep firing. The machine-gun pickup (M4.1) will set autoFire.
+ */
 export const WEAPON = {
-  /** Time between shots while fire is held. */
+  autoFire: false,
+  /** Time between shots while fire is held, for weapons with autoFire. */
   autoIntervalMs: 160,
   /** Shortest time between shots when fire is tapped. */
   tapMinMs: 90,

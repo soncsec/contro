@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, sceneKey, watchPage } from './watch';
+import { level, sceneKey, waitGameTime, watchPage } from './watch';
 
 // Room 1's flyer hovers around (680, 70), drifting 64 px either side.
 const FLYER = { x: 680, y: 70 };
@@ -91,11 +91,13 @@ test('the flyer takes two hits and dies', async ({ page }) => {
   // Diagonal shots from just left of the flyer's path cross its height as it drifts.
   await page.evaluate(() => window.__contro?.teleportPlayer(600));
   await page.keyboard.down('ArrowUp');
-  await page.keyboard.down('KeyX');
-  await expect
-    .poll(async () => (await flyer(page)).alive, { timeout: 30_000, intervals: [100] })
-    .toBe(false);
-  await page.keyboard.up('KeyX');
+  // One shot per press, so keep tapping fire until it's down.
+  for (let i = 0; i < 150 && (await flyer(page)).alive; i++) {
+    await page.keyboard.press('KeyX');
+    const s = await level(page);
+    await waitGameTime(page, s.timeMs, 110);
+  }
   await page.keyboard.up('ArrowUp');
+  expect((await flyer(page)).alive).toBe(false);
   expect((await flyer(page)).hp).toBe(0);
 });

@@ -1,8 +1,11 @@
 /**
- * Fire-rate rules. Holding fire shoots every autoIntervalMs; tapping can shoot as often
- * as every tapMinMs, so a fast tapper fires faster than holding, as in Contra.
+ * Fire-rate rules. Each press fires once, at most every tapMinMs. A weapon with autoFire
+ * (the planned machine gun, M4.1) also keeps firing every autoIntervalMs while fire is held;
+ * the basic rifle doesn't (owner request, issue #21).
  */
 export interface WeaponTuning {
+  /** Keep firing while fire is held. */
+  autoFire: boolean;
   autoIntervalMs: number;
   tapMinMs: number;
 }
@@ -28,7 +31,7 @@ export function stepWeapon(
   t: WeaponTuning,
 ): { state: WeaponState; fired: boolean } {
   const since = prev.sinceShotMs + Math.max(dtMs, 0);
-  const fired = (fire || firePressed) && since >= (firePressed ? t.tapMinMs : t.autoIntervalMs);
+  const fired = firePressed ? since >= t.tapMinMs : t.autoFire && fire && since >= t.autoIntervalMs;
   return { state: { sinceShotMs: fired ? 0 : since }, fired };
 }
 

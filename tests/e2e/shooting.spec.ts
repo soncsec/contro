@@ -20,22 +20,32 @@ test('a tap fires one bullet that flies off screen without an impact', async ({ 
   expect(watched.errors).toEqual([]);
 });
 
-test('holding fire shoots every 160 ms of game time in the braced shoot pose', async ({ page }) => {
+test('holding fire for 2 s fires exactly one shot, in the braced shoot pose (issue #21)', async ({
+  page,
+}) => {
   await openLevel(page);
   await page.keyboard.down('KeyX');
   await expect.poll(async () => (await level(page)).bullets.fired).toBe(1);
   const first = await level(page);
   expect(first.player.anim).toBe('shoot');
-  const later = await waitGameTime(page, first.timeMs, 960);
+  const later = await waitGameTime(page, first.timeMs, 2000);
+  expect(later.bullets.fired).toBe(1);
+  expect(later.player.anim).toBe('shoot'); // still braced while the key is held
   await page.keyboard.up('KeyX');
-  // Game time is measured from the first shot, so 960 ms adds 6 more shots (±1 for frame edges).
-  const extra = later.bullets.fired - 1;
-  const expected = Math.floor((later.timeMs - first.timeMs) / 160);
-  expect(Math.abs(extra - expected)).toBeLessThanOrEqual(1);
   await expect.poll(async () => (await level(page)).player.anim).toBe('idle');
 });
 
-test('running while firing keeps the run animation', async ({ page }) => {
+test('each new press fires again', async ({ page }) => {
+  await openLevel(page);
+  for (let shot = 1; shot <= 3; shot++) {
+    await page.keyboard.press('KeyJ');
+    await expect.poll(async () => (await level(page)).bullets.fired).toBe(shot);
+    const s = await level(page);
+    await waitGameTime(page, s.timeMs, 120); // past the 90 ms limit between shots
+  }
+});
+
+test('running while holding fire keeps the run animation and fires once', async ({ page }) => {
   await openLevel(page);
   await page.keyboard.down('ArrowRight');
   await page.keyboard.down('KeyJ');
@@ -45,7 +55,7 @@ test('running while firing keeps the run animation', async ({ page }) => {
   await page.keyboard.up('KeyJ');
   await page.keyboard.up('ArrowRight');
   expect(snap.player.anim).toBe('run');
-  expect(snap.bullets.fired).toBeGreaterThanOrEqual(3); // shots at 0, 160 and 320 ms
+  expect(snap.bullets.fired).toBe(1);
 });
 
 test('a bullet fired into the level wall makes an impact', async ({ page }) => {

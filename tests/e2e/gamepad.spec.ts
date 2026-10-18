@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, sceneKey, watchPage } from './watch';
+import { level, sceneKey, waitGameTime, watchPage } from './watch';
 
 // Standard gamepad button indexes (W3C): A = 0, B = 1, X = 2, Start = 9, d-pad 12–15.
 const A = 0;
@@ -96,7 +96,11 @@ test('the d-pad runs, A jumps and X fires', async ({ page }) => {
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
 
   await button(page, X, true);
-  await expect.poll(async () => (await level(page)).bullets.fired).toBeGreaterThan(0);
+  await expect.poll(async () => (await level(page)).bullets.fired).toBe(1);
+  // Holding X fires once, like the keyboard (issue #21).
+  const held = await level(page);
+  const later = await waitGameTime(page, held.timeMs, 2000);
+  expect(later.bullets.fired).toBe(1);
   await button(page, X, false);
   expect(watched.errors).toEqual([]);
 });
