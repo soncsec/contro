@@ -19,7 +19,10 @@ export const DEFAULT_KEY_BINDINGS: Bindings = {
   pause: ['Escape', 'KeyP'],
 };
 
-/** Every key the game listens to, so the page doesn't also scroll on arrows or Space. */
+/**
+ * Every key the game listens to, so the page doesn't also scroll on arrows or Space.
+ * F (fullscreen) is handled outside the action layer: see src/systems/Fullscreen.ts.
+ */
 export function boundKeys(bindings: Bindings): string[] {
   return [...new Set(ACTIONS.flatMap((a) => bindings[a]))];
 }

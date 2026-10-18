@@ -17,3 +17,8 @@ body {
 canvas {
   image-rendering: pixelated;
 }
+
+/* Fullscreen (F): fill the screen with the page background around the scaled canvas. */
+#game:fullscreen {
+  background: #07060d;
+}
