@@ -16,7 +16,7 @@ Art: Ansimuz Legacy Collection (CC0). See CREDITS.md once assets are added.
 - Production: http://games.soncrant.com/contro/
 - Staging (every merge to `main`): https://soncsec.github.io/contro/
 
-Keys: arrows or WASD to move (up aims, down crouches), Space/Z/K to jump, X/J to fire, Esc/P to pause.
+Keys: arrows or WASD to move (up aims, down crouches), Space/Z/K to jump, X/J to fire, Esc/P to pause, F for fullscreen.
 Gamepad (standard mapping): d-pad or left stick, A to jump, X or B to fire, Start to pause.
 
 ## Release

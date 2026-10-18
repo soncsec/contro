@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import './style.css';
 import { BACKGROUND_COLOR, GAME_HEIGHT, GAME_WIDTH } from './config/tuning';
 import { integerZoom } from './logic/scaling';
+import { installFullscreenKey } from './systems/Fullscreen';
 import { AssetPreviewScene } from './scenes/AssetPreviewScene';
 import { DialogueScene } from './scenes/DialogueScene';
 import { LevelScene } from './scenes/LevelScene';
@@ -31,6 +32,9 @@ export const game = new Phaser.Game({
   },
   scene: [PreloadScene, LevelScene, PauseScene, DialogueScene, AssetPreviewScene],
 });
+
+const container = document.getElementById('game');
+if (container) installFullscreenKey(container);
 
 window.addEventListener('resize', () => {
   const zoom = zoomForWindow();
