@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { startGame } from './watch';
 
 // The Content-Security-Policy production Apache sends for every game on
 // games.soncrant.com. Source of truth: soncsec/games-portal
@@ -31,8 +32,8 @@ test('the game runs under the production Content-Security-Policy', async ({ page
     });
   });
 
-  await page.goto('./');
-  await expect.poll(() => page.evaluate(() => window.__contro?.scene() ?? null)).toBe('Level');
+  // Through the title screen into the level, all under the production policy.
+  await startGame(page);
   // The page stylesheet applied: the canvas is centred by the flex container.
   expect(
     await page.evaluate(() => {

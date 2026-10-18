@@ -1,9 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, nextSection, sceneKey, walkThroughExit, watchPage } from './watch';
+import { level, nextSection, sceneKey, startGame, walkThroughExit, watchPage } from './watch';
 
 async function openLevel(page: Page): Promise<void> {
-  await page.goto('./');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await startGame(page);
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
 }
 

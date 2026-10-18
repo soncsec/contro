@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, sceneKey, waitGameTime, watchPage } from './watch';
+import { level, startGame, waitGameTime, watchPage } from './watch';
 
 // Room 1: low catwalk x 176–304 (deck y 119), high catwalk x 336–416 (deck y 87),
 // pit gap x 844–884, checkpoint x 560.
@@ -8,8 +8,7 @@ const HIGH = 87;
 const FLOOR = 160;
 
 async function openLevel(page: Page): Promise<void> {
-  await page.goto('./');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await startGame(page);
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
 }
 

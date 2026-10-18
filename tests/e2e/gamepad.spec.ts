@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, sceneKey, waitGameTime, watchPage } from './watch';
+import { level, sceneKey, startGame, title, waitGameTime, watchPage } from './watch';
 
 // Standard gamepad button indexes (W3C): A = 0, B = 1, X = 2, Start = 9, d-pad 12–15.
 const A = 0;
 const X = 2;
 const START = 9;
+const UP = 12;
+const DOWN = 13;
 const RIGHT = 15;
 
 /**
@@ -76,8 +78,7 @@ function frames(page: Page, n = 3): Promise<void> {
 
 async function openLevel(page: Page): Promise<void> {
   await installFakePad(page);
-  await page.goto('./');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await startGame(page);
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
 }
 
@@ -155,4 +156,22 @@ test('the Konami code works on the d-pad in the pause menu', async ({ page }) =>
   await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBeNull();
   await button(page, START, false);
   expect((await level(page)).player.lives).toBe(8);
+});
+
+test('on the title screen, the d-pad chooses and Start selects (M3.10)', async ({ page }) => {
+  await installFakePad(page);
+  await page.goto('./');
+  await expect.poll(async () => (await title(page))?.ready, { timeout: 15_000 }).toBe(true);
+  await button(page, DOWN, true);
+  await frames(page);
+  await button(page, DOWN, false);
+  await expect.poll(async () => (await title(page))?.option).toBe('CONTROLS');
+  await button(page, UP, true);
+  await frames(page);
+  await button(page, UP, false);
+  await expect.poll(async () => (await title(page))?.option).toBe('START');
+  await button(page, START, true);
+  await frames(page);
+  await button(page, START, false);
+  await expect.poll(() => sceneKey(page)).toBe('Level');
 });

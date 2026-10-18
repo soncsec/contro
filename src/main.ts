@@ -8,6 +8,7 @@ import { DialogueScene } from './scenes/DialogueScene';
 import { LevelScene } from './scenes/LevelScene';
 import { PauseScene } from './scenes/PauseScene';
 import { PreloadScene } from './scenes/PreloadScene';
+import { TitleScene } from './scenes/TitleScene';
 
 // Load the font before any text is drawn, so the first frame doesn't use the fallback.
 await document.fonts.load(`8px ${FONT.family}`).catch(() => undefined);
@@ -33,7 +34,7 @@ export const game = new Phaser.Game({
     default: 'arcade',
     arcade: { debug: false },
   },
-  scene: [PreloadScene, LevelScene, PauseScene, DialogueScene, AssetPreviewScene],
+  scene: [PreloadScene, TitleScene, LevelScene, PauseScene, DialogueScene, AssetPreviewScene],
 });
 
 const container = document.getElementById('game');

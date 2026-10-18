@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, sceneKey, watchPage } from './watch';
+import { level, startGame, watchPage } from './watch';
 
 const fullscreenId = (page: Page) => page.evaluate(() => document.fullscreenElement?.id ?? null);
 const canvasSize = (page: Page) =>
@@ -8,8 +8,7 @@ const canvasSize = (page: Page) =>
 test('F toggles fullscreen, and the game keeps whole-number scaling', async ({ page }) => {
   const watched = watchPage(page);
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page.goto('./');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await startGame(page);
   expect(await fullscreenId(page)).toBeNull();
 
   await page.keyboard.press('KeyF');
@@ -28,8 +27,7 @@ test('F toggles fullscreen, and the game keeps whole-number scaling', async ({ p
 });
 
 test('F with a modifier key does nothing', async ({ page }) => {
-  await page.goto('./');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await startGame(page);
   await page.keyboard.press('Control+KeyF');
   await page.waitForTimeout(300);
   expect(await fullscreenId(page)).toBeNull();

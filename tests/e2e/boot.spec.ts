@@ -1,10 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { sceneKey, watchPage } from './watch';
+import { sceneKey, startGame, watchPage } from './watch';
 
 test('boots with no console errors and no third-party requests', async ({ page }) => {
   const watched = watchPage(page);
-  await page.goto('./');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await startGame(page);
   await expect(page.locator('#game canvas')).toBeVisible();
   await page.waitForTimeout(1000);
   expect(watched.errors).toEqual([]);
@@ -13,8 +12,7 @@ test('boots with no console errors and no third-party requests', async ({ page }
 
 test('canvas is scaled by a whole number', async ({ page }) => {
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page.goto('./');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await startGame(page);
   const box = await page.locator('#game canvas').boundingBox();
   expect(box).not.toBeNull();
   // 320x176 at zoom 4 (1366 / 320 = 4.27, 768 / 176 = 4.36)
@@ -48,8 +46,7 @@ test('text uses the bundled Press Start 2P font, loaded from our own origin (M3.
   page.on('requestfinished', (req) => {
     if (req.resourceType() === 'font') fontRequests.push(new URL(req.url()).pathname);
   });
-  await page.goto('./');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await startGame(page);
   expect(await page.evaluate(() => document.fonts.check('8px "Press Start 2P"'))).toBe(true);
   expect(fontRequests).toHaveLength(1);
   expect(fontRequests[0]).toMatch(/\/assets\/PressStart2P-Regular-[\w-]+\.ttf$/);

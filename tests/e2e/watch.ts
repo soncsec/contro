@@ -94,3 +94,16 @@ export async function nextSection(page: Page): Promise<string | null> {
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
   return card;
 }
+
+/** The title screen's state, or null if it isn't showing. */
+export function title(page: Page) {
+  return page.evaluate(() => window.__contro?.title() ?? null);
+}
+
+/** Opens the game and chooses START on the title screen; resolves once the level runs. */
+export async function startGame(page: Page, path = './'): Promise<void> {
+  await page.goto(path);
+  await expect.poll(async () => (await title(page))?.ready, { timeout: 15_000 }).toBe(true);
+  await page.keyboard.press('Space');
+  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+}
