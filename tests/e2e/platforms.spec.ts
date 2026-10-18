@@ -126,15 +126,33 @@ test('a running jump clears the pit', async ({ page }) => {
   await openLevel(page);
   await teleport(page, 780);
   await landed(page);
+  // Take off with the body still on the near side (centre between about 816 and 852). The
+  // press happens inside the page in the frame he reaches 824: polling from outside can be
+  // late on a busy machine and run him into the pit. Jump stays held for a full jump.
+  // He also stops running in the frame he lands, or a slow check could let him run on into
+  // the EXIT door just past the pit.
+  const tookOff = page.evaluate(async () => {
+    let airborne = false;
+    for (let i = 0; i < 1800; i++) {
+      const p = window.__contro?.level()?.player;
+      if (p && !airborne && p.x >= 824) {
+        window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', key: ' ' }));
+        airborne = true;
+      } else if (p && airborne && p.onFloor && p.vy === 0 && p.x > 844) {
+        window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ArrowRight', key: 'ArrowRight' }));
+        return true;
+      }
+      await new Promise((r) => requestAnimationFrame(r));
+    }
+    return false;
+  });
   await page.keyboard.down('ArrowRight');
-  // Take off with the body still on the near side: centre between about 816 and 852.
-  await expect
-    .poll(async () => (await player(page)).x, { intervals: [5] })
-    .toBeGreaterThanOrEqual(824);
-  await page.keyboard.down('Space');
-  await expect.poll(async () => (await player(page)).onFloor).toBe(false);
+  // The in-page script saw him take off and land past the pit edge.
+  expect(await tookOff).toBe(true);
   const feet = await landed(page);
-  await page.keyboard.up('Space');
+  await page.evaluate(() =>
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', key: ' ' })),
+  );
   await page.keyboard.up('ArrowRight');
   const p = await player(page);
   expect(feet).toBe(FLOOR);

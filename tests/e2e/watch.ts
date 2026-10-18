@@ -33,9 +33,10 @@ export async function level(page: Page): Promise<LevelSnapshot> {
  * Use this instead of wall-clock waits: under load the game runs slower than real time.
  */
 export async function waitGameTime(page: Page, fromMs: number, ms: number): Promise<LevelSnapshot> {
-  // Under load the game can run at a fraction of real time, so allow generously.
+  // Under load the game can run at a fraction of real time (a fifth was seen with other
+  // sessions' tests saturating the machine), so allow generously.
   await expect
-    .poll(async () => (await level(page)).timeMs - fromMs, { timeout: Math.max(5000, ms * 5) })
+    .poll(async () => (await level(page)).timeMs - fromMs, { timeout: Math.max(10_000, ms * 10) })
     .toBeGreaterThanOrEqual(ms);
   return level(page);
 }
