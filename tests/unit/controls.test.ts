@@ -44,6 +44,18 @@ describe('controlsGuide', () => {
     ]);
   });
 
+  it('shows the on-screen controls instead of keys on a touch screen', () => {
+    expect(controlsGuide(DEFAULT_KEY_BINDINGS, DEFAULT_PAD_BINDINGS, 'KeyF', true)).toEqual([
+      ['MOVE', 'STICK', 'D-PAD STICK'],
+      ['AIM UP', 'STICK UP', 'D-PAD STICK'],
+      ['CROUCH', 'STICK DOWN', 'D-PAD STICK'],
+      ['JUMP', 'JUMP', 'A'],
+      ['FIRE', 'FIRE', 'X B'],
+      ['PAUSE', 'II', 'START'],
+      ['FULLSCREEN', '[ ]', ''],
+    ]);
+  });
+
   it('follows changed bindings, including an unpaired left key', () => {
     const keys = {
       ...DEFAULT_KEY_BINDINGS,

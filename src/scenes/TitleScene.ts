@@ -7,6 +7,7 @@ import { stepMenu } from '../logic/menu';
 import { formatScore } from '../logic/score';
 import { FULLSCREEN_KEY } from '../systems/Fullscreen';
 import { PlayerInput } from '../systems/PlayerInput';
+import { TouchControls } from '../systems/TouchControls';
 import { SaveStore } from '../systems/SaveStore';
 
 export const TITLE_OPTIONS = ['START', 'CONTROLS', 'MORE GAMES'] as const;
@@ -51,6 +52,8 @@ export class TitleScene extends Phaser.Scene {
   private guide!: Phaser.GameObjects.Container;
   private items: Phaser.GameObjects.Text[] = [];
   private best!: Phaser.GameObjects.Text;
+  /** The guide shows the on-screen controls (a touch screen) instead of keys. */
+  private touchGuide = false;
 
   constructor() {
     super('Title');
@@ -115,10 +118,11 @@ export class TitleScene extends Phaser.Scene {
     const heading = this.add
       .text(GAME_WIDTH / 2, 18, 'CONTROLS', { ...TEXT, color: COLORS.heading })
       .setOrigin(0.5);
-    const header = ['', 'KEYS', 'PAD'].map((label, c) =>
+    const touch = (this.touchGuide = TouchControls.current !== null);
+    const header = ['', touch ? 'TOUCH' : 'KEYS', 'PAD'].map((label, c) =>
       this.add.text(GUIDE.x[c] ?? 0, GUIDE.top - 12, label, { ...TEXT, color: COLORS.dim }),
     );
-    const rows = controlsGuide(DEFAULT_KEY_BINDINGS, DEFAULT_PAD_BINDINGS, FULLSCREEN_KEY);
+    const rows = controlsGuide(DEFAULT_KEY_BINDINGS, DEFAULT_PAD_BINDINGS, FULLSCREEN_KEY, touch);
     const cells = rows.flatMap((row, r) =>
       row.map((label, c) =>
         this.add.text(GUIDE.x[c] ?? 0, GUIDE.top + r * GUIDE.row, label, {
@@ -191,12 +195,19 @@ export class TitleScene extends Phaser.Scene {
   }
 
   /** Test hook: the highlighted option, whether the guide is open, input is live, best score. */
-  snapshot(): { option: TitleOption; controls: boolean; ready: boolean; best: string } {
+  snapshot(): {
+    option: TitleOption;
+    controls: boolean;
+    ready: boolean;
+    best: string;
+    touch: boolean;
+  } {
     return {
       option: TITLE_OPTIONS[this.index] ?? 'START',
       controls: this.showingControls,
       ready: !this.leaving && this.shownMs >= TITLE.inputDelayMs,
       best: this.best.text,
+      touch: this.touchGuide,
     };
   }
 }

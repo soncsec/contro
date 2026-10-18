@@ -44,7 +44,12 @@ const unique = (labels: string[]): string[] => [...new Set(labels)];
  * The guide's rows. Left and right are shown as pairs (LEFT/RIGHT, A/D); the left stick
  * also moves and aims, so directions list it after the d-pad.
  */
-export function controlsGuide(keys: Bindings, pad: PadBindings, fullscreenKey: string): GuideRow[] {
+export function controlsGuide(
+  keys: Bindings,
+  pad: PadBindings,
+  fullscreenKey: string,
+  touch = false,
+): GuideRow[] {
   const k = (codes: readonly string[]) => codes.map(keyLabel).join(' ');
   const p = (buttons: readonly number[], stick = false) =>
     [...unique(buttons.map(padLabel)), ...(stick ? ['STICK'] : [])].join(' ');
@@ -52,13 +57,31 @@ export function controlsGuide(keys: Bindings, pad: PadBindings, fullscreenKey: s
     const right = keys.right[i];
     return right ? `${keyLabel(code)}/${keyLabel(right)}` : keyLabel(code);
   });
+  // On a touch screen the keys column shows the on-screen controls instead (M3.11).
+  const second: SixLabels = touch
+    ? TOUCH_GUIDE
+    : [pairs.join(' '), k(keys.up), k(keys.down), k(keys.jump), k(keys.fire), k(keys.pause)];
+  const fullscreen = touch ? TOUCH_FULLSCREEN : keyLabel(fullscreenKey);
   return [
-    ['MOVE', pairs.join(' '), p([...pad.buttons.left, ...pad.buttons.right], true)],
-    ['AIM UP', k(keys.up), p(pad.buttons.up, true)],
-    ['CROUCH', k(keys.down), p(pad.buttons.down, true)],
-    ['JUMP', k(keys.jump), p(pad.buttons.jump)],
-    ['FIRE', k(keys.fire), p(pad.buttons.fire)],
-    ['PAUSE', k(keys.pause), p(pad.buttons.pause)],
-    ['FULLSCREEN', keyLabel(fullscreenKey), ''],
+    ['MOVE', second[0], p([...pad.buttons.left, ...pad.buttons.right], true)],
+    ['AIM UP', second[1], p(pad.buttons.up, true)],
+    ['CROUCH', second[2], p(pad.buttons.down, true)],
+    ['JUMP', second[3], p(pad.buttons.jump)],
+    ['FIRE', second[4], p(pad.buttons.fire)],
+    ['PAUSE', second[5], p(pad.buttons.pause)],
+    ['FULLSCREEN', fullscreen, ''],
   ];
 }
+
+/** The on-screen controls' labels, as the buttons show them (src/systems/TouchControls.ts). */
+export const TOUCH_LABELS = { jump: 'JUMP', fire: 'FIRE', pause: 'II', fullscreen: '[ ]' } as const;
+type SixLabels = readonly [string, string, string, string, string, string];
+const TOUCH_GUIDE: SixLabels = [
+  'STICK',
+  'STICK UP',
+  'STICK DOWN',
+  TOUCH_LABELS.jump,
+  TOUCH_LABELS.fire,
+  TOUCH_LABELS.pause,
+] as const;
+const TOUCH_FULLSCREEN = TOUCH_LABELS.fullscreen;
