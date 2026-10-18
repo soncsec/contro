@@ -106,7 +106,8 @@ build() {
   npm ci --silent
   npm audit --audit-level=high
   npm run check
-  if grep -rq __contro dist; then die "test hook found in dist/"; fi
+  # Security build check (M3.8): no test hook, inline code or other hosts in the build.
+  python3 scripts/check_build.py dist || die "dist/ failed the security build check"
 }
 
 cmd_deploy() {
