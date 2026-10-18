@@ -32,20 +32,6 @@ async function openLevel(page: Page): Promise<void> {
   await expect.poll(async () => (await player(page)).onFloor).toBe(true);
 }
 
-/** Samples the player's feet every frame for `ms` and returns the highest point reached. */
-function highestFeetY(page: Page, ms: number): Promise<number> {
-  return page.evaluate(async (duration) => {
-    let min = Number.POSITIVE_INFINITY;
-    const start = performance.now();
-    while (performance.now() - start < duration) {
-      const y = window.__contro?.level()?.player.feetY;
-      if (y !== undefined) min = Math.min(min, y);
-      await new Promise((r) => requestAnimationFrame(r));
-    }
-    return min;
-  }, ms);
-}
-
 test('arrow keys run right and left, and the marine turns to face the way he runs', async ({
   page,
 }) => {
@@ -78,29 +64,29 @@ test('WASD moves the marine too', async ({ page }) => {
 
 test('holding jump gives a full jump about one marine tall, then he lands', async ({ page }) => {
   await openLevel(page);
-  const sampling = highestFeetY(page, 1200);
   await page.keyboard.down('Space');
   await expect.poll(async () => (await player(page)).anim).toBe('jump');
-  const top = await sampling;
+  // The game records the jump's highest point itself: sampling from outside for a fixed
+  // real time can end before the apex when a busy machine slows the game down.
+  await expect.poll(async () => (await player(page)).onFloor, { timeout: 15_000 }).toBe(true);
   await page.keyboard.up('Space');
+  const top = (await player(page)).jumpPeakFeetY ?? 160;
   // Apex = 300² / (2 × 900) = 50 px above the floor at y=160.
   expect(160 - top).toBeGreaterThanOrEqual(44);
   expect(160 - top).toBeLessThanOrEqual(52);
-  await expect.poll(async () => (await player(page)).onFloor).toBe(true);
   expect(await player(page)).toMatchObject({ feetY: 160, anim: 'idle' });
 });
 
 test('tapping jump gives a clearly lower hop than holding it', async ({ page }) => {
   await openLevel(page);
-  // The exact hop height depends on how long the key is really held, which varies with
-  // machine load, so compare a tap with a full jump measured the same way.
-  const fullSampling = highestFeetY(page, 1000);
+  // Heights are the game's own record of each jump's highest point (jumpPeakFeetY), so a
+  // slowed-down game can't cut the measurement short.
   await page.keyboard.down('Space');
-  const full = 160 - (await fullSampling);
+  await expect.poll(async () => (await player(page)).onFloor).toBe(false);
+  await expect.poll(async () => (await player(page)).onFloor, { timeout: 15_000 }).toBe(true);
   await page.keyboard.up('Space');
-  await expect.poll(async () => (await player(page)).onFloor).toBe(true);
+  const full = 160 - ((await player(page)).jumpPeakFeetY ?? 160);
 
-  const hopSampling = highestFeetY(page, 1000);
   // Let go in the very frame the jump starts, from inside the page. Waiting outside it (even
   // polling fast) can take several frames on a busy machine, which is a held jump, not a tap.
   const releaseOnTakeOff = page.evaluate(async () => {
@@ -115,9 +101,10 @@ test('tapping jump gives a clearly lower hop than holding it', async ({ page }) 
   });
   await page.keyboard.down('Space');
   expect(await releaseOnTakeOff).toBe(true);
-  const hop = 160 - (await hopSampling);
   await page.keyboard.up('Space');
-  await expect.poll(async () => (await player(page)).onFloor).toBe(true);
+  await expect.poll(async () => (await player(page)).onFloor).toBe(false);
+  await expect.poll(async () => (await player(page)).onFloor, { timeout: 15_000 }).toBe(true);
+  const hop = 160 - ((await player(page)).jumpPeakFeetY ?? 160);
 
   expect(hop).toBeGreaterThan(5);
   expect(hop).toBeLessThan(full - 10);
