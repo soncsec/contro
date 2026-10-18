@@ -130,9 +130,12 @@ export const DIALOGUE_CARD = {
   inputDelayMs: 400,
   /** Camera fade between the level and the card. */
   fadeMs: 250,
-  /** Longest line (characters) and most lines a card may have, so text fits the box. */
-  maxLineChars: 34,
-  maxLines: 2,
+  /**
+   * Longest line (characters) and most lines a card may have, so text fits the box: the
+   * text area is 210 px wide and Press Start 2P is 8 px a character.
+   */
+  maxLineChars: 26,
+  maxLines: 3,
 } as const;
 
 /**
@@ -180,3 +183,13 @@ export const CHEAT_EXTRA_LIVES = 5;
 export const LEVEL_BANNER = { showMs: 1800, fadeMs: 400 } as const;
 /** The double-jump ring under the marine's feet is squashed to this fraction of its height. */
 export const AIR_JUMP_RING_SQUASH = 0.4;
+
+/** Text (M3.9): Press Start 2P, the font Star Destroyer and the portal use, at its native size. */
+export const FONT = {
+  /** CSS font family, with a fallback while it loads or if it fails. */
+  family: '"Press Start 2P", monospace',
+  /** Native size: one pixel of the font per game pixel. */
+  size: '8px',
+  /** Twice native, for banners and GAME OVER. */
+  large: '16px',
+} as const;

@@ -41,6 +41,10 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/levels/corridor/tileset.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png` | unchanged |
 <!-- assets:end -->
 
+## Font
+
+- **Press Start 2P** by CodeMan38 (Copyright 2012 The Press Start 2P Project Authors), SIL Open Font License 1.1, used for all text in the game. Source: `google/fonts` repo, `ofl/pressstart2p/`, commit `e06fe11c39051bddaef73ec338a9d1c8175723f1`; file SHA-256 `034c77f1f05ec89421e4a63f0e3a4ca1ecf852cc6d2bf611f126f275728e017d` (the same file as Star Destroyer and the games portal). Bundled in `src/assets/fonts/` and served from our own origin. Licence text: `src/assets/fonts/PressStart2P-OFL.txt`. Approved by the owner for Contro 2026-10-18.
+
 ## Audio
 
 None yet. Each CC0 source is added here after owner approval (ARCHITECTURE.md ADR-C06).

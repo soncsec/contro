@@ -1,19 +1,20 @@
 import Phaser from 'phaser';
 import { LEVELS } from '../assets/manifest';
 import {
-  DIALOGUE_CARD,
-  GAME_HEIGHT,
-  GAME_WIDTH,
-  HEALTH,
-  PLATFORMS,
-  PLAYER_BODY,
   AIR_JUMP_RING_SQUASH,
   CHEAT_EXTRA_LIVES,
-  LEVEL_BANNER,
-  SCORING,
+  DIALOGUE_CARD,
+  FONT,
+  GAME_HEIGHT,
+  GAME_WIDTH,
   GRAVITY_Y,
+  HEALTH,
+  LEVEL_BANNER,
   PARALLAX_BACK_FACTOR,
+  PLATFORMS,
+  PLAYER_BODY,
   RIFLE_DAMAGE,
+  SCORING,
 } from '../config/tuning';
 import { CAMPAIGN } from '../data/campaign';
 import { ENEMIES, ENEMY_TYPES } from '../data/enemies';
@@ -324,15 +325,15 @@ export class LevelScene extends Phaser.Scene {
     const y = GAME_HEIGHT / 2 - 12;
     const title = this.add
       .text(GAME_WIDTH / 2, y, `LEVEL ${label}`, {
-        fontFamily: 'monospace',
-        fontSize: '16px',
+        fontFamily: FONT.family,
+        fontSize: FONT.large,
         color: '#ffd166',
       })
       .setOrigin(0.5);
     const sub = this.add
       .text(GAME_WIDTH / 2, y + 18, name, {
-        fontFamily: 'monospace',
-        fontSize: '8px',
+        fontFamily: FONT.family,
+        fontSize: FONT.size,
         color: '#4fe3c1',
       })
       .setOrigin(0.5);
@@ -365,8 +366,8 @@ export class LevelScene extends Phaser.Scene {
     this.gameOver = true;
     this.add
       .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'GAME OVER', {
-        fontFamily: 'monospace',
-        fontSize: '16px',
+        fontFamily: FONT.family,
+        fontSize: FONT.large,
         color: '#ff4fd8',
       })
       .setOrigin(0.5)
