@@ -34,9 +34,21 @@ describe('stepWeapon', () => {
     expect(play(initialWeapon(), Array(30).fill(false)).shots).toEqual([]);
   });
 
-  it('auto-fires every 160 ms while held', () => {
-    // 60 frames of 16 ms = 960 ms held: shots at 0, then every 10 frames (160 ms).
-    expect(play(initialWeapon(), Array(60).fill(true)).shots).toEqual([0, 10, 20, 30, 40, 50]);
+  it('fires once per press: holding fire does not keep firing', () => {
+    // 2 s held (125 frames of 16 ms): one shot, on the press.
+    expect(play(initialWeapon(), Array(125).fill(true)).shots).toEqual([0]);
+  });
+
+  it('a weapon with autoFire keeps firing every 160 ms while held (the planned machine gun)', () => {
+    const machineGun = { ...WEAPON, autoFire: true };
+    let s = initialWeapon();
+    const shots: number[] = [];
+    for (let i = 0; i < 60; i++) {
+      const r = stepWeapon(s, true, i === 0, FRAME, machineGun);
+      if (r.fired) shots.push(i);
+      s = r.state;
+    }
+    expect(shots).toEqual([0, 10, 20, 30, 40, 50]);
   });
 
   it('lets fast tapping fire every 90 ms or so', () => {
@@ -56,11 +68,11 @@ describe('stepWeapon', () => {
     expect(stepWeapon(initialWeapon(), false, true, FRAME, WEAPON).fired).toBe(true);
   });
 
-  it('counts a quick release and re-press as a tap, not as holding', () => {
+  it('counts a quick release and re-press as a new shot once 90 ms have passed', () => {
     // 6 frames held (96 ms since the shot), then a re-press within one frame.
     const held = play(initialWeapon(), Array(6).fill(true));
-    expect(stepWeapon(held.state, true, false, FRAME, WEAPON).fired).toBe(false); // holding: needs 160 ms
-    expect(stepWeapon(held.state, true, true, FRAME, WEAPON).fired).toBe(true); // tap: 90 ms is enough
+    expect(stepWeapon(held.state, true, false, FRAME, WEAPON).fired).toBe(false); // still holding
+    expect(stepWeapon(held.state, true, true, FRAME, WEAPON).fired).toBe(true); // new press
   });
 
   it('treats a negative step as no time passing', () => {
