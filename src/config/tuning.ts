@@ -40,6 +40,12 @@ export const MOVEMENT = {
   jumpCutFactor: 0.5,
   /** Longest frame step used by the movement rules, so a stall can't cause a huge jump. */
   maxStepMs: 50,
+  /**
+   * Double jump (M2.8): jumps allowed in mid-air before landing again, and their launch speed.
+   * 251² / 1800 = 35 px, about 70% of a ground jump.
+   */
+  airJumps: 1,
+  airJumpSpeed: 251,
 } as const;
 
 /**
@@ -169,3 +175,6 @@ export const SCORING = {
 
 /** Lives the Konami code adds (M2.11). */
 export const CHEAT_EXTRA_LIVES = 5;
+
+/** The double-jump ring under the marine's feet is squashed to this fraction of its height. */
+export const AIR_JUMP_RING_SQUASH = 0.4;
