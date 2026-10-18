@@ -1,6 +1,6 @@
 # Contro — Architecture
 
-> **Status:** ADR-C01 to ADR-C09 accepted by owner 2026-10-17.
+> **Status:** ADR-C01 to ADR-C09 accepted by owner 2026-10-17. ADR-C10 is **Proposed**.
 
 Contro reuses the platform decisions already made for Star Destroyer and the games portal. Those are recorded in `~/dev/games/stardestroyer/ARCHITECTURE.md` (ADR-001 to ADR-011) and are not repeated here. This file records how they apply to Contro, and the decisions that are new for a platformer.
 
@@ -104,6 +104,13 @@ flowchart LR
 - **Decision:** copy Star Destroyer's scaffold, CI workflows, security checks, test setup and release scripts into this repo and adapt the slug, ports and docs. Differences that would help every game are listed in `TEMPLATE-NOTES.md` for the template task (Star Destroyer T1).
 - **Alternatives:** wait for `soncsec/game-template` (blocks Contro on unstarted work).
 - **Tradeoffs:** later improvements to Star Destroyer's setup must be copied by hand.
+
+### ADR-C10: Levels made of sections — *Proposed 2026-10-18*
+
+- **Context:** the owner wants levels a lot longer and more varied (10–15 minutes each), plus the current level shown on screen.
+- **Decision (proposed):** a **level** is an ordered list of **sections**. Each section is its own Tiled map, so it can have its own tileset and scenery. Reaching a section's exit fades straight into the next section, with no card; a dialogue card plays only after a level's last section. Each section starts at a checkpoint. `src/data/campaign.ts` becomes levels → sections, with a number and display name per level. Validation tests check every section exists, the numbering, and that each level ends with a card.
+- **Alternatives:** one very long map per level (a single huge Tiled file: slow to edit and review, one tileset per map, so no changes of scenery); separate levels with a card after each section (breaks the flow and makes "level 1" meaningless).
+- **Tradeoffs:** more map files, but each stays small, reviewable and testable, and scenery can change between sections. Score, lives and health carry across sections the same way they now do across rooms.
 
 ## 4. Code structure
 
