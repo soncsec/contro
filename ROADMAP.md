@@ -72,6 +72,7 @@
 - [x] M2.5 Flying alien with dive attack; enemy projectiles. Hovers and drifts around its spawn, fires slow aimed orbs (Gothicvania enemy projectile) within 220 px, and dives at the marine when he's below it, after a 0.45 s warning; 2 hits to kill. One flyer in room 1, two in room 2
 - [ ] M2.6 Movement tuning pass with the owner (jump arc, speed, fire rate)
 - [x] M2.7 Playwright: take damage, die, respawn at checkpoint (done with M2.1: `tests/e2e/health.spec.ts`)
+- [ ] M2.8 Double jump (owner request 2026-10-17, for an upcoming sprint): one extra jump in mid-air, restored on landing, also after walking off a ledge; its height in `tuning.ts`; logic unit tested and covered by Playwright. Proposed after the M2.6 tuning pass, since it changes jump heights and level layouts
 
 **Acceptance criteria:** the owner signs off on feel; logic coverage at least 80%; works with keyboard and a gamepad in both browsers.
 
