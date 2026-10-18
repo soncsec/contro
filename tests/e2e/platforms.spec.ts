@@ -49,9 +49,33 @@ test('he can climb from the floor to the low catwalk, then the high one', async 
   await jump(page);
   expect(await player(page)).toMatchObject({ feetY: LOW, onPlatform: true });
 
-  // From its right end, a running jump reaches the high catwalk.
-  await teleport(page, 296);
-  await jump(page, 'ArrowRight');
+  // From its right end (x 304), a running jump reaches the high catwalk. Pressed from outside,
+  // jump could arrive early or late on a busy machine, so inside the page he runs right and
+  // jump goes down in the frame he reaches x 300, still on the catwalk. Both stay held until
+  // he lands. (Wait until he has landed after the move, too.)
+  await teleport(page, 288);
+  await landed(page);
+  await page.evaluate(async () => {
+    const key = (type: string, code: string) =>
+      window.dispatchEvent(new KeyboardEvent(type, { code, key: code === 'Space' ? ' ' : code }));
+    key('keydown', 'ArrowRight');
+    let jumped = false;
+    let airborne = false;
+    for (let i = 0; i < 1800; i++) {
+      await new Promise((r) => requestAnimationFrame(r));
+      const p = window.__contro?.level()?.player;
+      if (!p) continue;
+      if (!jumped && p.x >= 300) {
+        key('keydown', 'Space');
+        jumped = true;
+      }
+      if (jumped && !p.onFloor) airborne = true;
+      if (airborne && p.onFloor) break;
+    }
+    key('keyup', 'ArrowRight');
+    key('keyup', 'Space');
+  });
+  await landed(page);
   const p = await player(page);
   expect(p).toMatchObject({ feetY: HIGH, onPlatform: true });
   expect(p.x).toBeGreaterThan(336);
