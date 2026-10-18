@@ -9,7 +9,7 @@
 |---|---|
 | M0 Setup | Done except M0.4 (Tiled install) |
 | M1 Walking skeleton (to production) | Done: live at games.soncrant.com/contro/ |
-| M2 Core feel | In progress |
+| M2 Core feel | Done (feel signed off by the owner 2026-10-18) |
 | M3 Level 1 Industrial (vertical slice) | In progress |
 | M4 Level 2 Cyberpunk Corridor | Not started |
 | M5 Level 3 Alien Hive | Not started |
@@ -70,7 +70,7 @@
 - [x] M2.3 Gamepad support (standard mapping); pause menu. A jumps, X/B fire, Start pauses, d-pad or left stick move/aim/crouch; keyboard and pad merged. Esc/P/Start open a pause menu (Resume, Restart room). Tested in browsers with a fake standard gamepad
 - [x] M2.4 One-way platforms, pits and falling death. Catwalks (option C, drawn by Claude) at two heights in room 1 and one in room 2, a pit before each EXIT; down + jump drops through; a pit kills even while invulnerable and respawns at the checkpoint
 - [x] M2.5 Flying alien with dive attack; enemy projectiles. Hovers and drifts around its spawn, fires slow aimed orbs (Gothicvania enemy projectile) within 220 px, and dives at the marine when he's below it, after a 0.45 s warning; 2 hits to kill. One flyer in room 1, two in room 2
-- [ ] M2.6 Movement tuning pass with the owner (jump arc, speed, fire rate)
+- [x] M2.6 Movement tuning pass with the owner (jump arc, speed, fire rate). Owner played 1-1 on 2026-10-18: "Play is good"; the current numbers stay
 - [x] M2.7 Playwright: take damage, die, respawn at checkpoint (done with M2.1: `tests/e2e/health.spec.ts`)
 - [x] M2.8 Double jump (owner request 2026-10-17, for an upcoming sprint): one extra jump in mid-air, restored on landing, also after walking off a ledge; its height in `tuning.ts`; logic unit tested and covered by Playwright. Proposed after the M2.6 tuning pass, since it changes jump heights and level layouts
 - [x] M2.9 Scoring (owner request 2026-10-17): points per enemy (walker 100, flyer 200) as enemy data; score and best score in the HUD; best score saved (ADR-C08); extra lives at 20,000 and 50,000; score carries across rooms, resets on game over; logic unit tested, Playwright covers it
@@ -87,7 +87,7 @@
 **Demonstrable result:** Level 1 is playable from title screen to the tank boss's defeat, with sound and music.
 
 - [x] M3.0 Level structure (ADR-C10): a level is a sequence of sections (maps) played back to back with a checkpoint at each; dialogue cards only between levels; campaign data lists levels → sections; validation tests
-- [ ] M3.1 Industrial art: choose the tileset (owner picks from mockups), assemble parallax; Level 1 as **at least 5 varied sections, 10–15 minutes**, including at least one **multi-level ground** stretch (upper and lower paths, Contra-style) and one outdoor stretch (industrial parallax). **Shipped in slices** (owner approved 2026-10-18): each section is its own PR and its own release (1-1 first), so it can be played and commented on while the rest is built. Art chosen: option B steelworks + C for variety (2026-10-18). **1-1 The yard** done: outdoor, 180 tiles, steps up to a 4-high ledge, an upper walkway route over a lower path, three pits, 12 walkers and 4 flyers, 3 checkpoints; maps made by `tools/levels/steelworks_section.py`, parallax from Tiled image layers, and a route check (`src/logic/route.ts`) proves every pit and step is within jump reach
+- [ ] M3.1 Industrial art: choose the tileset (owner picks from mockups), assemble parallax; Level 1 as **at least 5 varied sections, 10–15 minutes**, including at least one **multi-level ground** stretch (upper and lower paths, Contra-style) and one outdoor stretch (industrial parallax). **Shipped in slices** (owner approved 2026-10-18): each section is its own PR and its own release (1-1 first), so it can be played and commented on while the rest is built. Art chosen: option B steelworks + C for variety (2026-10-18). **1-1 The yard** done: outdoor, 180 tiles, steps up to a 4-high ledge, an upper walkway route over a lower path, three pits, 12 walkers and 4 flyers, 3 checkpoints; maps made by `tools/levels/steelworks_section.py`, parallax from Tiled image layers, and a route check (`src/logic/route.ts`) proves every pit and step is within jump reach. **1-2 The interior** done: indoors under the pack's pipes and columns (no skyline), 170 tiles, a staircase up and down, a mezzanine 5 tiles up, four walkways over pits, 16 walkers and 5 flyers, 3 checkpoints; the level-end card now follows 1-2
 - [ ] M3.2 Boss framework: arena lock, health bar, phases, attack patterns, defeat (data-driven)
 - [ ] M3.3 Tank boss
 - [ ] M3.4 HUD, game over and continue (the title screen moved to M3.10)

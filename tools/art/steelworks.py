@@ -8,7 +8,10 @@ Source: the Warped "bulkhead-walls" v1 layers, 352×224. The game is 176 px tall
               is the top 11 px of row 11, ladder legs below it repeat every 16 px.
   row 14      pit tiles drawn in the floor's own colours: shaft, left wall, right wall (a lit
               rim where the floor is cut), and the shaft's top with the cut plate's edge.
-Rows 0–13 are cropped and stacked with no pixels changed; row 14 is drawn by Claude.
+  rows 15–22  the wall of rows 0–7 with the pack's support columns and pipes layered on top
+              (for indoor sections, M3.1 1-2).
+Rows 0–13 and 15–22 are cropped, stacked and layered with no pixels changed; row 14 is drawn
+by Claude.
 Used by build_assets.py ("steelworks").
 """
 import png
@@ -22,16 +25,30 @@ RIM_DARK = (34, 43, 41, 255)
 WALKWAY_TOP, WALKWAY_BOTTOM = 80, 128
 
 
-def build(back_path: str, walkway_path: str) -> png.Image:
+WALL_BOTTOM = CROP_TOP + 8 * TILE  # the wall is the 8 tile rows above the floor
+
+
+def over(base: png.Image, top: png.Image) -> png.Image:
+    """Lays top's opaque pixels over base (the pack's layers are fully opaque or clear)."""
+    return [[t if t[3] == 255 else b for b, t in zip(rb, rt)] for rb, rt in zip(base, top)]
+
+
+def build(back_path: str, walkway_path: str, cols_path: str, pipes_path: str) -> png.Image:
     back = png.read(back_path)
     walkway = png.read(walkway_path)
-    if len(back[0]) != len(walkway[0]):
+    cols = png.read(cols_path)
+    pipes = png.read(pipes_path)
+    if len({len(img[0]) for img in (back, walkway, cols, pipes)}) != 1:
         raise ValueError("layers differ in width")
+    if any(p[3] not in (0, 255) for img in (cols, pipes) for r in img for p in r):
+        raise ValueError("expected fully opaque or clear pixels in the column and pipe layers")
     width = len(back[0])
+    piped = over(over(back, cols), pipes)
     return (
         [list(r) for r in back[CROP_TOP:]]
         + [list(r) for r in walkway[WALKWAY_TOP:WALKWAY_BOTTOM]]
         + pit_row(width)
+        + [list(r) for r in piped[CROP_TOP:WALL_BOTTOM]]
     )
 
 

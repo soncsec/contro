@@ -109,7 +109,7 @@ export const ASSETS: readonly Asset[] = [
   image('levels', 'industrial-far', 'industrial/far.png', 213, 142),
   image('levels', 'industrial-mid', 'industrial/mid.png', 272, 150),
   image('levels', 'industrial-near', 'industrial/near.png', 272, 104),
-  image('levels', 'steelworks-tileset', 'steelworks/tileset.png', 352, 240),
+  image('levels', 'steelworks-tileset', 'steelworks/tileset.png', 352, 368),
 ];
 
 /** Key of a sheet's default animation. */
@@ -142,6 +142,11 @@ export const LEVELS: readonly LevelAsset[] = [
   {
     key: 'steelworks-1',
     path: 'assets/levels/steelworks-1.tmj',
+    tilesets: { steelworks: 'steelworks-tileset' },
+  },
+  {
+    key: 'steelworks-2',
+    path: 'assets/levels/steelworks-2.tmj',
     tilesets: { steelworks: 'steelworks-tileset' },
   },
 ];
