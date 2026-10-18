@@ -42,11 +42,13 @@ printf 'Repo checks\tcompleted\t%s\nBuild and test\tcompleted\tsuccess\nCodeQL a
 SH
 cat >"$T/bin/npm" <<'SH'
 #!/usr/bin/env bash
-# "npm run check" builds a tiny site; FAKE_BROKEN=1 builds one missing its script.
+# "npm run check" builds a tiny site; FAKE_BROKEN=1 builds one missing its script, and
+# FAKE_HOOK=1 one that still contains the e2e test hook.
 if [[ "$*" == "run check" ]]; then
   rm -rf dist && mkdir -p dist/assets
   printf '<!doctype html><title>Contro</title><script type="module" src="./assets/index-AbCd1234.js"></script>\n' >dist/index.html
   [[ "${FAKE_BROKEN:-}" == 1 ]] || echo "// game" >dist/assets/index-AbCd1234.js
+  if [[ "${FAKE_HOOK:-}" == 1 ]]; then echo "window.__contro={}" >dist/assets/testHook.js; fi
 fi
 SH
 chmod +x "$T/bin/"*
@@ -58,7 +60,7 @@ git init -q -b main
 # CI runners have no git identity; give this throwaway repo its own.
 git config user.name test && git config user.email test@example.invalid
 mkdir -p scripts deploy
-cp "$SRC/scripts/release.sh" "$SRC/scripts/release-remote.sh" "$SRC/scripts/smoke_test.py" scripts/
+cp "$SRC/scripts/release.sh" "$SRC/scripts/release-remote.sh" "$SRC/scripts/smoke_test.py" "$SRC/scripts/check_build.py" scripts/
 printf 'dist/\ndeploy/server.env\n' >.gitignore
 printf '{"name": "contro"}\n' >package.json
 git add -A && git commit -q -m init
@@ -101,6 +103,9 @@ echo dirty >untracked.txt
 out="$(release deploy)"
 if [[ $? -ne 0 && "$out" == *"working tree has changes"* ]]; then ok "refuses uncommitted changes"; else bad "dirty tree: $out"; fi
 rm untracked.txt
+
+out="$(FAKE_HOOK=1 release deploy)"
+if [[ $? -ne 0 && "$out" == *"failed the security build check"* && "$(count)" == 0 ]]; then ok "refuses a build that fails the security build check"; else bad "build check: $out"; fi
 
 out="$(release deploy --dry-run)"
 if [[ $? -eq 0 && "$out" == *"Dry run"* && "$(count)" == 0 ]]; then ok "dry run uploads nothing"; else bad "dry run: $out"; fi
