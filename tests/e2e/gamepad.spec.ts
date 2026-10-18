@@ -130,3 +130,25 @@ test('Start pauses and resumes', async ({ page }) => {
   await button(page, START, false);
   expect(await sceneKey(page)).toBe('Level');
 });
+
+test('the Konami code works on the d-pad in the pause menu', async ({ page }) => {
+  await openLevel(page);
+  await button(page, START, true);
+  await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBe('RESUME');
+  await button(page, START, false);
+  await frames(page);
+  // Up up down down left right left right, then X (fire) and A (jump).
+  for (const b of [12, 12, 13, 13, 14, 15, 14, 15, X, A]) {
+    await button(page, b, true);
+    await frames(page);
+    await button(page, b, false);
+    await frames(page);
+  }
+  await expect
+    .poll(() => page.evaluate(() => window.__contro?.cheatMessage() ?? null))
+    .toBe('+5 LIVES');
+  await button(page, START, true);
+  await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBeNull();
+  await button(page, START, false);
+  expect((await level(page)).player.lives).toBe(8);
+});

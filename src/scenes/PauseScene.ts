@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config/tuning';
+import { ACTION_CHEATS, CheatMatcher, WORD_CHEATS, type CheatId } from '../logic/cheats';
 import { stepMenu } from '../logic/menu';
 import { PlayerInput } from '../systems/PlayerInput';
 import type { LevelScene } from './LevelScene';
@@ -19,8 +20,9 @@ const COLORS = {
   title: '#ffd166',
   option: '#7f8ea3',
   selected: '#e6eef7',
+  cheat: '#ff4fd8',
 };
-const PANEL = { width: 120, height: 64 } as const;
+const PANEL = { width: 120, height: 78 } as const;
 const DIM_ALPHA = 0.6;
 const LINE = 14;
 
@@ -33,6 +35,10 @@ export class PauseScene extends Phaser.Scene {
   private controls!: PlayerInput;
   private index = 0;
   private items: Phaser.GameObjects.Text[] = [];
+  private actionCodes = new CheatMatcher(ACTION_CHEATS);
+  private wordCodes = new CheatMatcher(WORD_CHEATS);
+  private message!: Phaser.GameObjects.Text;
+  private lastCheat: string | null = null;
 
   constructor() {
     super('Pause');
@@ -42,6 +48,9 @@ export class PauseScene extends Phaser.Scene {
     this.level = data.level;
     this.index = 0;
     this.items = [];
+    this.actionCodes = new CheatMatcher(ACTION_CHEATS);
+    this.wordCodes = new CheatMatcher(WORD_CHEATS);
+    this.lastCheat = null;
   }
 
   create(): void {
@@ -56,14 +65,41 @@ export class PauseScene extends Phaser.Scene {
         this.add.text(GAME_WIDTH / 2, top + LINE * (i + 1.5), label, { ...TEXT }).setOrigin(0.5),
       );
     });
+    this.message = this.add
+      .text(GAME_WIDTH / 2, top + LINE * 3.6, '', { ...TEXT, color: COLORS.cheat })
+      .setOrigin(0.5);
+
     this.controls = new PlayerInput(this);
     // The pause key that opened the menu is still down: don't let it close the menu at once.
     this.controls.frame();
+    // Word cheats are typed letters, read straight from the keyboard.
+    const onKey = (e: KeyboardEvent): void => {
+      const m = /^Key([A-Z])$/.exec(e.code);
+      if (m?.[1] && !e.repeat) this.cheat(this.wordCodes.push(m[1]));
+    };
+    window.addEventListener('keydown', onKey);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () =>
+      window.removeEventListener('keydown', onKey),
+    );
     this.render();
   }
 
   override update(): void {
-    const step = stepMenu(this.index, PAUSE_OPTIONS.length, this.controls.frame().pressed);
+    const { pressed } = this.controls.frame();
+    // Feed the Konami code; while one is under way, fire and jump belong to it, not the menu.
+    let codeInput = false;
+    for (const action of ['up', 'down', 'left', 'right', 'fire', 'jump'] as const) {
+      if (!pressed[action]) continue;
+      const id = this.actionCodes.push(action);
+      if (id) {
+        this.cheat(id);
+        codeInput = true;
+      } else if (this.actionCodes.progress >= 2) {
+        codeInput = true;
+      }
+    }
+    const menuInput = codeInput ? { ...pressed, fire: false, jump: false } : pressed;
+    const step = stepMenu(this.index, PAUSE_OPTIONS.length, menuInput);
     if (step.index !== this.index) {
       this.index = step.index;
       this.render();
@@ -75,6 +111,20 @@ export class PauseScene extends Phaser.Scene {
   /** Test hook: the highlighted option. */
   get selected(): PauseOption {
     return PAUSE_OPTIONS[this.index] ?? 'RESUME';
+  }
+
+  /** Test hook: the last cheat confirmation shown, if any. */
+  get cheatMessage(): string | null {
+    return this.lastCheat;
+  }
+
+  private cheat(id: CheatId | null): void {
+    if (!id) return;
+    const level = this.scene.get('Level') as LevelScene;
+    this.lastCheat = level.applyCheat(id);
+    this.message.setText(this.lastCheat);
+    // Room skip takes effect straight away: back to the game, which leaves the room.
+    if (id === 'skip-room') this.resume();
   }
 
   private choose(option: PauseOption): void {
