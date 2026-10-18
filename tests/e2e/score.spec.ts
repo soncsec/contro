@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, sceneKey, waitGameTime, watchPage } from './watch';
+import { level, nextSection, sceneKey, waitGameTime, watchPage } from './watch';
 
 async function openLevel(page: Page): Promise<void> {
   await page.goto('./');
@@ -10,19 +10,6 @@ async function openLevel(page: Page): Promise<void> {
 const score = async (page: Page) => (await level(page)).score;
 const addScore = (page: Page, n: number) => page.evaluate((v) => window.__contro?.addScore(v), n);
 const saved = (page: Page) => page.evaluate(() => window.localStorage.getItem('contro.save.v1'));
-
-/** Walks into this room's exit and continues past the card. */
-async function nextRoom(page: Page): Promise<void> {
-  const { widthPx } = await level(page);
-  await page.evaluate((x) => window.__contro?.teleportPlayer(x), widthPx - 12 * 16 - 20);
-  await page.keyboard.down('ArrowRight');
-  await expect.poll(() => sceneKey(page)).toBe('Dialogue');
-  await page.keyboard.up('ArrowRight');
-  await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
-  await page.keyboard.press('KeyX');
-  await expect.poll(() => sceneKey(page)).toBe('Level');
-  await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
-}
 
 test('destroying an alien scores its points, and the best score is saved', async ({ page }) => {
   const watched = watchPage(page);
@@ -54,7 +41,7 @@ test('score and lives carry into the next room', async ({ page }) => {
   await addScore(page, 700);
   await page.evaluate(() => window.__contro?.hurtPlayer(99));
   await expect.poll(async () => (await level(page)).player.lives, { timeout: 10_000 }).toBe(2);
-  await nextRoom(page);
+  await nextSection(page);
   const room2 = await level(page);
   expect(room2.level).toBe('corridor-test-2');
   expect(room2.score.score).toBe(700);
@@ -99,7 +86,7 @@ test('game over resets the score but keeps the best', async ({ page }) => {
 test('Restart room restores the score the room was entered with', async ({ page }) => {
   await openLevel(page);
   await addScore(page, 500);
-  await nextRoom(page);
+  await nextSection(page);
   await addScore(page, 300);
   expect((await score(page)).score).toBe(800);
   await page.keyboard.press('Escape');

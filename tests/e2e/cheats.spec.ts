@@ -103,15 +103,16 @@ test('GHOUL hides him: the flyer never shoots or dives', async ({ page }) => {
   expect(later.enemies.find((e) => e.type === 'alien-flyer')?.mode).toBe('hover');
 });
 
-test('THRU skips straight to the next room, and cheats carry over', async ({ page }) => {
+test('THRU skips straight to the next section, and cheats carry over', async ({ page }) => {
   await openLevel(page);
   await pause(page);
   await enter(page, ['KeyI', 'KeyR', 'KeyO', 'KeyN']);
   await enter(page, ['KeyT', 'KeyH', 'KeyR', 'KeyU']);
-  await expect.poll(() => sceneKey(page)).toBe('Dialogue');
-  await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
-  await page.keyboard.press('KeyX');
-  await expect.poll(() => sceneKey(page)).toBe('Level');
+  // Room 2 is the next section of the same level, so no card comes between.
+  await expect
+    .poll(() => page.evaluate(() => window.__contro?.level()?.level ?? null))
+    .toBe('corridor-test-2');
+  expect(await sceneKey(page)).toBe('Level');
   const room2 = await level(page);
   expect(room2.level).toBe('corridor-test-2');
   expect(room2.cheats).toMatchObject({ invincible: true, used: true });

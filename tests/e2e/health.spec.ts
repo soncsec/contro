@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, sceneKey, waitGameTime, watchPage } from './watch';
+import { level, nextSection, sceneKey, waitGameTime, watchPage } from './watch';
 
 async function openLevel(page: Page): Promise<void> {
   await page.goto('./');
@@ -98,19 +98,6 @@ test('losing the last life shows game over, then the level restarts with full li
   expect(watched.errors).toEqual([]);
 });
 
-/** Walks into this room's exit and continues past the card. */
-async function nextRoom(page: Page): Promise<void> {
-  const { widthPx } = await level(page);
-  await page.evaluate((x) => window.__contro?.teleportPlayer(x), widthPx - 12 * 16 - 20);
-  await page.keyboard.down('ArrowRight');
-  await expect.poll(() => sceneKey(page)).toBe('Dialogue');
-  await page.keyboard.up('ArrowRight');
-  await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
-  await page.keyboard.press('KeyX');
-  await expect.poll(() => sceneKey(page)).toBe('Level');
-  await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
-}
-
 /** Hurts the marine by 1 and waits out the invulnerability. */
 async function loseHealth(page: Page): Promise<void> {
   await hurt(page, 1);
@@ -123,7 +110,7 @@ test('health carries into the next room (M2.13)', async ({ page }) => {
   await loseHealth(page);
   await loseHealth(page);
   expect((await level(page)).player.hp).toBe(2);
-  await nextRoom(page);
+  await nextSection(page);
   const room2 = await level(page);
   expect(room2.level).toBe('corridor-test-2');
   expect(room2.player).toMatchObject({ hp: 2, lives: 3 });
@@ -132,7 +119,7 @@ test('health carries into the next room (M2.13)', async ({ page }) => {
 test('Restart room puts health back to what the room was entered with', async ({ page }) => {
   await openLevel(page);
   await loseHealth(page);
-  await nextRoom(page);
+  await nextSection(page);
   expect((await level(page)).player.hp).toBe(3);
   await loseHealth(page);
   await loseHealth(page);
@@ -149,10 +136,31 @@ test('losing a life after carrying low health still respawns at full health', as
   await loseHealth(page);
   await loseHealth(page);
   await loseHealth(page);
-  await nextRoom(page);
+  await nextSection(page);
   expect((await level(page)).player.hp).toBe(1);
   await hurt(page, 1);
   await expect.poll(async () => (await level(page)).player.dead).toBe(true);
   await expect.poll(async () => (await level(page)).player.dead, { timeout: 10_000 }).toBe(false);
   expect((await level(page)).player).toMatchObject({ hp: 4, lives: 2 });
+});
+
+test('game over in a later section restarts that section, not the level (M3.0)', async ({
+  page,
+}) => {
+  await openLevel(page);
+  await nextSection(page);
+  expect((await level(page)).level).toBe('corridor-test-2');
+  await dieAndWait(page);
+  await dieAndWait(page);
+  await hurt(page, 99);
+  await expect.poll(async () => (await level(page)).gameOver, { timeout: 10_000 }).toBe(true);
+  await expect
+    .poll(async () => (await page.evaluate(() => window.__contro?.level() ?? null))?.gameOver, {
+      timeout: 15_000,
+    })
+    .toBe(false);
+  const after = await level(page);
+  expect(after.level).toBe('corridor-test-2');
+  expect(after.label).toBe('1-2');
+  expect(after.player).toMatchObject({ lives: 3, dead: false });
 });
