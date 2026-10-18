@@ -86,7 +86,7 @@
 
 **Demonstrable result:** Level 1 is playable from title screen to the tank boss's defeat, with sound and music.
 
-- [ ] M3.0 Level structure (ADR-C10, proposed): a level is a sequence of sections (maps) played back to back with a checkpoint at each; dialogue cards only between levels; campaign data lists levels → sections; validation tests
+- [x] M3.0 Level structure (ADR-C10): a level is a sequence of sections (maps) played back to back with a checkpoint at each; dialogue cards only between levels; campaign data lists levels → sections; validation tests
 - [ ] M3.1 Industrial art: choose the tileset, assemble parallax; Level 1 as **at least 5 varied sections, 10–15 minutes**, including at least one **multi-level ground** stretch (upper and lower paths, Contra-style) and one outdoor stretch (industrial parallax)
 - [ ] M3.2 Boss framework: arena lock, health bar, phases, attack patterns, defeat (data-driven)
 - [ ] M3.3 Tank boss

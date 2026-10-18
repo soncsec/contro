@@ -387,7 +387,9 @@ export class LevelScene extends Phaser.Scene {
     const { card, nextLevel } = afterExit(CAMPAIGN, this.levelKey);
     this.cameras.main.fadeOut(DIALOGUE_CARD.fadeMs);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Dialogue', { card, nextLevel, run: this.run() });
+      // Between sections of a level, go straight on; a card plays only at a level's end.
+      if (card) this.scene.start('Dialogue', { card, nextLevel, run: this.run() });
+      else this.scene.start('Level', { level: nextLevel, run: this.run() });
     });
   }
 

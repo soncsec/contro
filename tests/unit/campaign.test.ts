@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { ASSETS, LEVELS } from '../../src/assets/manifest';
-import { CAMPAIGN } from '../../src/data/campaign';
+import { CAMPAIGN, CAMPAIGN_LEVELS } from '../../src/data/campaign';
 import { DIALOGUE, SPEAKERS } from '../../src/data/dialogue';
 import { DIALOGUE_CARD } from '../../src/config/tuning';
 import {
+  type CampaignLevel,
   afterExit,
+  flattenCampaign,
   levelLabel,
   stepFor,
   validateCampaign,
@@ -15,12 +17,20 @@ const levelKeys = LEVELS.map((l) => l.key);
 const cardIds = Object.keys(DIALOGUE);
 
 describe('campaign data', () => {
-  it('only uses known levels and cards', () => {
-    expect(validateCampaign(CAMPAIGN, levelKeys, cardIds)).toEqual([]);
+  it('only uses known maps and cards, with levels numbered in order', () => {
+    expect(validateCampaign(CAMPAIGN_LEVELS, levelKeys, cardIds)).toEqual([]);
   });
 
-  it('plays every level in the manifest', () => {
+  it('plays every map in the manifest', () => {
     expect(CAMPAIGN.map((s) => s.level).sort()).toEqual([...levelKeys].sort());
+  });
+
+  it('shows a card only after the last section of each level', () => {
+    for (const step of CAMPAIGN) {
+      const level = CAMPAIGN_LEVELS[step.stage - 1];
+      const last = step.section === level?.sections.length;
+      expect(step.exitCard).toBe(last ? level?.endCard : null);
+    }
   });
 });
 
@@ -37,61 +47,78 @@ describe('dialogue data', () => {
   });
 });
 
+const levels: CampaignLevel[] = [
+  { stage: 1, name: 'ONE', sections: ['a', 'b'], endCard: 'end-1', introCard: 'intro-1' },
+  { stage: 2, name: 'TWO', sections: ['c'], endCard: 'end-2' },
+];
+const steps = flattenCampaign(levels);
+
+describe('flattenCampaign', () => {
+  it('lists every section in order with its level number and name', () => {
+    expect(steps).toEqual([
+      { level: 'a', stage: 1, section: 1, name: 'ONE', exitCard: null },
+      { level: 'b', stage: 1, section: 2, name: 'ONE', exitCard: 'end-1' },
+      { level: 'c', stage: 2, section: 1, name: 'TWO', exitCard: 'end-2' },
+    ]);
+  });
+});
+
 describe('afterExit', () => {
-  const steps = [
-    { level: 'a', exitCard: 'card-a', stage: 1, section: 1, name: 'ONE' },
-    { level: 'b', exitCard: 'card-b', stage: 1, section: 2, name: 'ONE' },
-  ];
-
-  it("shows the level's card and moves to the next level", () => {
-    expect(afterExit(steps, 'a')).toEqual({ card: 'card-a', nextLevel: 'b' });
+  it('goes straight to the next section of the same level, with no card', () => {
+    expect(afterExit(steps, 'a')).toEqual({ card: null, nextLevel: 'b' });
   });
 
-  it('wraps from the last level to the first', () => {
-    expect(afterExit(steps, 'b')).toEqual({ card: 'card-b', nextLevel: 'a' });
+  it("shows the level's end card before the next level", () => {
+    expect(afterExit(steps, 'b')).toEqual({ card: 'end-1', nextLevel: 'c' });
   });
 
-  it('rejects a level that is not in the campaign', () => {
+  it('wraps from the last section to the first', () => {
+    expect(afterExit(steps, 'c')).toEqual({ card: 'end-2', nextLevel: 'a' });
+  });
+
+  it('rejects a map not in the campaign', () => {
     expect(() => afterExit(steps, 'z')).toThrow(/not in the campaign/);
   });
 });
 
 describe('validateCampaign', () => {
-  const step = (level: string, stage: number, section: number, name = 'ONE') => ({
-    level,
-    exitCard: 'c',
-    stage,
-    section,
-    name,
+  const maps = ['a', 'b', 'c'];
+  const cards = ['end-1', 'end-2', 'intro-1'];
+
+  it('accepts a good campaign', () => {
+    expect(validateCampaign(levels, maps, cards)).toEqual([]);
   });
 
-  it('reports unknown levels and cards, repeats, and an empty campaign', () => {
-    expect(validateCampaign([], ['a'], ['c'])).toEqual(['campaign is empty']);
+  it('rejects an empty campaign', () => {
+    expect(validateCampaign([], maps, cards)).toEqual(['campaign is empty']);
+  });
+
+  it('rejects unknown maps and cards, and maps used twice', () => {
     expect(
       validateCampaign(
-        [step('a', 1, 1), { ...step('x', 1, 2), exitCard: 'y' }, step('a', 1, 3)],
-        ['a'],
-        ['c'],
+        [{ stage: 1, name: 'ONE', sections: ['a', 'x', 'a'], endCard: 'y', introCard: 'z' }],
+        maps,
+        cards,
       ),
-    ).toEqual(['unknown level "x"', 'unknown card "y"', 'level "a" is listed twice']);
-  });
-
-  it('accepts levels numbered from 1 with sections from 1 in order', () => {
-    const ok = [step('a', 1, 1), step('b', 1, 2), step('c', 2, 1, 'TWO'), step('d', 2, 2, 'TWO')];
-    expect(validateCampaign(ok, ['a', 'b', 'c', 'd'], ['c'])).toEqual([]);
-  });
-
-  it('reports numbering gaps, out-of-order sections and mixed level names', () => {
-    expect(validateCampaign([step('a', 1, 2)], ['a'], ['c'])).toEqual(['"a" is 1-2, expected 1-1']);
-    expect(validateCampaign([step('a', 1, 1), step('b', 3, 1)], ['a', 'b'], ['c'])).toEqual([
-      '"b" is 3-1, expected 2-1',
+    ).toEqual([
+      'level 1: unknown map "x"',
+      'map "a" is used twice',
+      'level 1: unknown card "y"',
+      'level 1: unknown card "z"',
     ]);
+  });
+
+  it('rejects levels out of order, unnamed, or with no sections', () => {
     expect(
-      validateCampaign([step('a', 1, 1), step('b', 1, 2, 'OTHER')], ['a', 'b'], ['c']),
-    ).toEqual(['level 1 has more than one name']);
-    expect(validateCampaign([step('a', 1, 1, ' ')], ['a'], ['c'])).toEqual([
-      '"a" has no level name',
-    ]);
+      validateCampaign(
+        [
+          { stage: 1, name: 'ONE', sections: ['a'], endCard: 'end-1' },
+          { stage: 3, name: ' ', sections: [], endCard: 'end-2' },
+        ],
+        maps,
+        cards,
+      ),
+    ).toEqual(['level 2 is numbered 3', 'level 3 has no name', 'level 3 has no sections']);
   });
 });
 

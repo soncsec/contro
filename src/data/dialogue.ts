@@ -25,11 +25,13 @@ export interface DialogueCard {
 }
 
 export const DIALOGUE = {
-  'room-1-exit': {
+  // Before level 1 (shown once the title screen exists, M3.4).
+  'level-1-intro': {
     speaker: 'ops',
     lines: ['Corridor A is clear.', 'More hostiles past the next door.'],
   },
-  'room-2-exit': {
+  // After level 1's last section.
+  'level-1-end': {
     speaker: 'hive',
     lines: ['Every step brings you', 'deeper into us, marine.'],
   },

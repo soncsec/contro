@@ -1,12 +1,43 @@
 /**
- * Campaign order and dialogue card checks. Pure, so the data can be validated in unit tests.
+ * Campaign order (ADR-C10: levels made of sections) and dialogue card checks.
+ * Pure, so the data can be validated in unit tests.
  */
-export interface Step {
+export interface CampaignLevel<Card extends string = string> {
+  /** Level number, from 1. */
+  stage: number;
+  /** Shown in the banner when each of its sections starts. */
+  name: string;
+  /** Map keys (LEVELS in src/assets/manifest.ts), played in order. */
+  sections: readonly string[];
+  /** Card shown after the level's last section. */
+  endCard: Card;
+  /** Card shown before the level starts (used once the title screen exists, M3.4). */
+  introCard?: Card;
+}
+
+/** One section in play order. */
+export interface Step<Card extends string = string> {
+  /** Map key. */
   level: string;
-  exitCard: string;
   stage: number;
   section: number;
   name: string;
+  /** The card after this section, or null between sections of the same level. */
+  exitCard: Card | null;
+}
+
+export function flattenCampaign<Card extends string>(
+  levels: readonly CampaignLevel<Card>[],
+): Step<Card>[] {
+  return levels.flatMap((lv) =>
+    lv.sections.map((map, i) => ({
+      level: map,
+      stage: lv.stage,
+      section: i + 1,
+      name: lv.name,
+      exitCard: i === lv.sections.length - 1 ? lv.endCard : null,
+    })),
+  );
 }
 
 /** The label shown in the HUD: level number and section, e.g. "1-2". */
@@ -21,11 +52,14 @@ export function stepFor<S extends Step>(campaign: readonly S[], level: string): 
   return step;
 }
 
-/** The card to show after `level`'s exit and the level to play next (wrapping to the first). */
-export function afterExit(
-  campaign: readonly Step[],
+/**
+ * What follows `level`'s exit: the card to show (null between sections of a level) and the
+ * section to play next, wrapping from the last to the first.
+ */
+export function afterExit<Card extends string>(
+  campaign: readonly Step<Card>[],
   level: string,
-): { card: string; nextLevel: string } {
+): { card: Card | null; nextLevel: string } {
   const i = campaign.findIndex((s) => s.level === level);
   const step = campaign[i];
   const next = campaign[(i + 1) % campaign.length];
@@ -34,38 +68,29 @@ export function afterExit(
 }
 
 /**
- * Problems with a campaign: unknown maps or cards, a map listed twice, or numbering that
- * isn't in order (levels from 1, sections from 1 within each level, no gaps), or a level
- * whose sections don't share one name.
+ * Problems with a campaign: levels not numbered 1, 2, 3…, a level with no sections or no
+ * name, unknown maps or cards, or a map used twice.
  */
 export function validateCampaign(
-  campaign: readonly Step[],
-  levels: readonly string[],
+  levels: readonly CampaignLevel[],
+  maps: readonly string[],
   cards: readonly string[],
 ): string[] {
   const problems: string[] = [];
-  if (campaign.length === 0) problems.push('campaign is empty');
+  if (levels.length === 0) problems.push('campaign is empty');
   const seen = new Set<string>();
-  for (const step of campaign) {
-    if (!levels.includes(step.level)) problems.push(`unknown level "${step.level}"`);
-    if (!cards.includes(step.exitCard)) problems.push(`unknown card "${step.exitCard}"`);
-    if (seen.has(step.level)) problems.push(`level "${step.level}" is listed twice`);
-    seen.add(step.level);
-  }
-  campaign.forEach((step, i) => {
-    const prev = campaign[i - 1];
-    const expected = !prev
-      ? { stage: 1, section: 1 }
-      : step.stage === prev.stage
-        ? { stage: prev.stage, section: prev.section + 1 }
-        : { stage: prev.stage + 1, section: 1 };
-    if (step.stage !== expected.stage || step.section !== expected.section) {
-      problems.push(`"${step.level}" is ${levelLabel(step)}, expected ${levelLabel(expected)}`);
+  levels.forEach((lv, i) => {
+    if (lv.stage !== i + 1) problems.push(`level ${i + 1} is numbered ${lv.stage}`);
+    if (lv.name.trim() === '') problems.push(`level ${lv.stage} has no name`);
+    if (lv.sections.length === 0) problems.push(`level ${lv.stage} has no sections`);
+    for (const map of lv.sections) {
+      if (!maps.includes(map)) problems.push(`level ${lv.stage}: unknown map "${map}"`);
+      if (seen.has(map)) problems.push(`map "${map}" is used twice`);
+      seen.add(map);
     }
-    if (prev && step.stage === prev.stage && step.name !== prev.name) {
-      problems.push(`level ${step.stage} has more than one name`);
+    for (const card of [lv.endCard, ...(lv.introCard ? [lv.introCard] : [])]) {
+      if (!cards.includes(card)) problems.push(`level ${lv.stage}: unknown card "${card}"`);
     }
-    if (step.name.trim() === '') problems.push(`"${step.level}" has no level name`);
   });
   return problems;
 }
