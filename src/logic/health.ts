@@ -101,3 +101,9 @@ export function respawnPoint<P extends { x: number }>(
     .filter((c) => c.x <= reachedX)
     .reduce((best, c) => (c.x > best.x ? c : best), start);
 }
+
+/** Falling into a pit: always fatal, even while invulnerable. Ignored if already dead. */
+export function fallDeath(s: HealthState): HealthState {
+  if (s.deadMs !== null) return s;
+  return { ...s, hp: 0, invulnerableMs: 0, stunMs: 0, deadMs: 0 };
+}

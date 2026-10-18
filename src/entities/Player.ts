@@ -7,6 +7,7 @@ import {
   MUZZLE,
   MUZZLE_FLASH_ANCHOR,
   MUZZLE_FLASH_DIAG_ANCHOR,
+  PLATFORMS,
   PLAYER_BODY,
   PLAYER_CROUCH_BODY,
   PLAYER_FRAME,
@@ -17,6 +18,7 @@ import { bodyOffsetX, framePointToWorld, spriteYForFeet, type BodyBox } from '..
 import { horizontalDirection, type ActionFrame } from '../logic/input';
 import { initialMovement, stepMovement, type MovementState } from '../logic/movement';
 import {
+  fallDeath,
   initialHealth,
   stepHealth,
   takeHit,
@@ -64,6 +66,8 @@ export interface PlayerSnapshot {
   lives: number;
   invulnerable: boolean;
   dead: boolean;
+  onPlatform: boolean;
+  droppingThrough: boolean;
 }
 
 /** What happened to the player this frame. */
@@ -94,6 +98,9 @@ export class Player {
   private crouching = false;
   private aim: Aim = 'forward';
   private box: BodyBox = PLAYER_BODY;
+  /** Time left during which catwalks don't hold him (after down + jump). */
+  private dropMs = 0;
+  private onPlatform = false;
   private health: HealthState = initialHealth(HEALTH);
 
   constructor(scene: Phaser.Scene, x: number, feetY: number) {
@@ -112,7 +119,9 @@ export class Player {
   }
 
   /** Moves the marine for this frame: health timers, movement, shooting, animation. */
-  update(dtMs: number, input: ActionFrame): PlayerUpdate {
+  update(dtMs: number, input: ActionFrame, ground: { onPlatform: boolean }): PlayerUpdate {
+    this.onPlatform = ground.onPlatform;
+    this.dropMs = Math.max(0, this.dropMs - dtMs);
     const step = stepHealth(this.health, dtMs, HEALTH);
     this.health = step.state;
     this.sprite.setVisible(visibleWhileInvulnerable(this.health.invulnerableMs, HEALTH.blinkMs));
@@ -148,6 +157,8 @@ export class Player {
     this.weapon = initialWeapon();
     this.crouching = false;
     this.aim = 'forward';
+    this.dropMs = 0;
+    this.sprite.body.setAllowGravity(true);
     this.setBody(PLAYER_BODY);
     this.face('right');
     this.sprite.body.reset(x, spriteYForFeet(feetY, PLAYER_FRAME.height, PLAYER_BODY));
@@ -157,6 +168,22 @@ export class Player {
 
   get dead(): boolean {
     return this.health.deadMs !== null;
+  }
+
+  /** True just after down + jump on a catwalk: catwalks let him fall through. */
+  get droppingThrough(): boolean {
+    return this.dropMs > 0;
+  }
+
+  /** Fell into a pit: dies at once (even if invulnerable) and stops falling out of sight. */
+  fall(): void {
+    if (this.dead) return;
+    this.health = fallDeath(this.health);
+    this.flash.setVisible(false);
+    this.sprite.body.stop();
+    this.sprite.body.setAllowGravity(false);
+    this.sprite.setVisible(false);
+    this.anim = 'die';
   }
 
   /** Movement, stance and shooting from the player's input. Returns the shot fired, if any. */
@@ -171,6 +198,7 @@ export class Player {
         jump: held.jump,
         jumpPressed: pressed.jump,
         crouch: stance.crouching,
+        onPlatform: this.onPlatform,
       },
       { onFloor: body.blocked.down, vy: body.velocity.y },
       dtMs,
@@ -180,9 +208,10 @@ export class Player {
     this.movement = result.state;
     body.setVelocityX(result.vx);
     if (result.vy !== null) body.setVelocityY(result.vy);
+    if (result.dropped) this.dropMs = PLATFORMS.dropThroughMs;
 
-    // Jumping out of a crouch stands the marine up.
-    const crouching = stance.crouching && !result.jumped;
+    // Jumping out of a crouch, or dropping through a catwalk, stands the marine up.
+    const crouching = stance.crouching && !result.jumped && !result.dropped;
     if (crouching !== this.crouching) {
       this.crouching = crouching;
       this.setBody(crouching ? PLAYER_CROUCH_BODY : PLAYER_BODY);
@@ -245,6 +274,8 @@ export class Player {
       lives: this.health.lives,
       invulnerable: this.health.invulnerableMs > 0,
       dead: this.dead,
+      onPlatform: this.onPlatform,
+      droppingThrough: this.droppingThrough,
     };
   }
 

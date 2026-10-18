@@ -5,6 +5,7 @@ import {
   GAME_HEIGHT,
   GAME_WIDTH,
   HEALTH,
+  PLATFORMS,
   PLAYER_BODY,
   GRAVITY_Y,
   PARALLAX_BACK_FACTOR,
@@ -19,6 +20,7 @@ import { EnemyShots } from '../entities/EnemyShots';
 import { Hud } from '../entities/Hud';
 import { Player, type PlayerSnapshot } from '../entities/Player';
 import { afterExit } from '../logic/campaign';
+import { standingOn } from '../logic/ground';
 import { respawnPoint } from '../logic/health';
 import { NO_ACTIONS, type ActionFrame } from '../logic/input';
 import { readLevelLayout, type LevelLayout } from '../logic/levelMap';
@@ -109,17 +111,22 @@ export class LevelScene extends Phaser.Scene {
     }
 
     const map = this.make.tilemap({ key: level.key });
-    for (const [name, imageKey] of Object.entries(level.tilesets)) {
+    const tilesets = Object.entries(level.tilesets).map(([name, imageKey]) => {
       const tileset = map.addTilesetImage(name, imageKey);
       if (!tileset) throw new Error(`tileset ${name} missing from ${level.key}`);
-      map.createLayer('background', tileset);
-    }
+      return tileset;
+    });
+    map.createLayer('background', tilesets);
+    // Catwalks and pit edges, drawn over the room.
+    if (map.getLayer('platforms')) map.createLayer('platforms', tilesets);
 
-    // Collision rectangles become invisible static bodies. Platforms only block from above.
+    // Collision rectangles become invisible static bodies. Catwalks (platforms) only block
+    // from above, and only the marine stands on them: bullets, orbs and enemies pass through.
     const solids = this.physics.add.staticGroup();
+    const platforms = this.physics.add.staticGroup();
     for (const c of this.layout.colliders) {
       const zone = this.add.zone(c.x + c.width / 2, c.y + c.height / 2, c.width, c.height);
-      solids.add(zone);
+      (c.type === 'platform' ? platforms : solids).add(zone);
       const body = zone.body as Phaser.Physics.Arcade.StaticBody;
       if (c.type === 'platform') {
         body.checkCollision.down = false;
@@ -129,13 +136,20 @@ export class LevelScene extends Phaser.Scene {
     }
 
     this.physics.world.gravity.y = GRAVITY_Y;
-    // Side walls only: falling out of the bottom is handled with pits in M2.4.
+    // Side walls only: there is no floor below the map, so pits are open.
     this.physics.world.setBounds(0, 0, widthPx, heightPx);
     this.physics.world.setBoundsCollision(true, true, false, false);
 
     const start = this.layout.playerStart;
     this.player = new Player(this, start.x, start.y);
     this.physics.add.collider(this.player.sprite, solids);
+    // Down + jump drops through a catwalk for a moment.
+    this.physics.add.collider(
+      this.player.sprite,
+      platforms,
+      undefined,
+      () => !this.player.droppingThrough,
+    );
     this.controls = new PlayerInput(this);
     // Keys released while paused would otherwise look held (or freshly pressed) on resume.
     this.events.on(Phaser.Scenes.Events.RESUME, () => this.controls.clear());
@@ -205,7 +219,14 @@ export class LevelScene extends Phaser.Scene {
       this.scene.pause();
       return;
     }
-    const { shot, event } = this.player.update(deltaMs, this.exiting ? NO_INPUT : input);
+    const body = this.player.sprite.body;
+    const ground = standingOn(
+      { left: body.left, right: body.right, bottom: body.bottom },
+      this.layout.colliders,
+    );
+    const { shot, event } = this.player.update(deltaMs, this.exiting ? NO_INPUT : input, {
+      onPlatform: ground === 'platform',
+    });
     if (shot) this.bullets.fire(shot);
     if (!this.player.dead) this.reachedX = Math.max(this.reachedX, this.player.snapshot().x);
     if (event === 'respawn') {
@@ -213,6 +234,11 @@ export class LevelScene extends Phaser.Scene {
       this.player.respawn(at.x, at.y);
     } else if (event === 'game-over') {
       this.showGameOver();
+    }
+    // Below the bottom of the map: fell into a pit. Checked after a respawn has moved him back,
+    // or the frame he respawns (still down the pit) would count as a second fall.
+    if (!this.player.dead && body.top > this.layout.heightPx + PLATFORMS.fallMargin) {
+      this.player.fall();
     }
     const p = this.player.snapshot();
     this.hud.update(p.hp, p.lives);

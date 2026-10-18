@@ -58,7 +58,14 @@ function sampleMap(): Record<string, unknown> {
   };
 }
 
-type Layer = { name: string; objects?: Record<string, unknown>[]; data?: unknown[] | undefined };
+type Layer = {
+  name: string;
+  type?: string;
+  width?: number;
+  height?: number;
+  objects?: Record<string, unknown>[];
+  data?: unknown[] | undefined;
+};
 const layer = (map: Record<string, unknown>, name: string): Layer =>
   (map['layers'] as Layer[]).find((l) => l.name === name) as Layer;
 
@@ -108,15 +115,49 @@ describe('validateLevelMap', () => {
     ]);
   });
 
-  it('checks the tileset', () => {
-    const msg =
-      'tileset must be embedded, start at gid 1, use 16×16 tiles, and match its image size';
+  it('checks the tilesets', () => {
     expect(validateLevelMap({ ...sampleMap(), tilesets: [] }, ENEMY_TYPES)).toContain(
-      'map must embed exactly one tileset',
+      'map must embed at least one tileset',
     );
+    const external = sampleMap();
+    (external['tilesets'] as Record<string, unknown>[])[0] = {
+      firstgid: 1,
+      source: 'corridor.tsj',
+    };
+    expect(validateLevelMap(external, ENEMY_TYPES)).toContain(
+      'tileset 1 must be embedded, start at gid 1, use 16×16 tiles, and match its image size',
+    );
+  });
+
+  it('accepts a second tileset whose gids follow on, and checks tiles against both', () => {
     const map = sampleMap();
-    (map['tilesets'] as Record<string, unknown>[])[0] = { firstgid: 1, source: 'corridor.tsj' };
-    expect(validateLevelMap(map, ENEMY_TYPES)).toContain(msg);
+    const second = {
+      ...(map['tilesets'] as Record<string, unknown>[])[0],
+      firstgid: 5,
+      name: 'catwalk',
+    };
+    map['tilesets'] = [...(map['tilesets'] as Record<string, unknown>[]), second];
+    (map['layers'] as Layer[]).push({
+      name: 'platforms',
+      type: 'tilelayer',
+      width: 4,
+      height: 11,
+      data: Array(44).fill(8),
+    } as Layer);
+    expect(validateLevelMap(map, ENEMY_TYPES)).toEqual([]);
+    layer(map, 'platforms').data = Array(44).fill(9);
+    expect(validateLevelMap(map, ENEMY_TYPES)).toContain(
+      'tile layer "platforms" uses tiles outside the tileset',
+    );
+  });
+
+  it('rejects a second tileset whose gids overlap the first', () => {
+    const map = sampleMap();
+    const second = { ...(map['tilesets'] as Record<string, unknown>[])[0], firstgid: 3 };
+    map['tilesets'] = [...(map['tilesets'] as Record<string, unknown>[]), second];
+    expect(validateLevelMap(map, ENEMY_TYPES)).toContain(
+      'tileset 2 must be embedded, start at gid 5, use 16×16 tiles, and match its image size',
+    );
   });
 
   it('checks the background tile layer', () => {

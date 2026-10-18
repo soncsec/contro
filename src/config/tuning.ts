@@ -148,3 +148,11 @@ export const HEALTH = {
   /** "GAME OVER" shows this long before the level restarts. */
   gameOverMs: 2500,
 } as const;
+
+/** Catwalks and pits (M2.4). */
+export const PLATFORMS = {
+  /** After down + jump on a catwalk, the marine passes through catwalks for this long. */
+  dropThroughMs: 250,
+  /** Below the bottom of the map by this much, the marine has fallen into a pit. */
+  fallMargin: 8,
+} as const;

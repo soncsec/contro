@@ -100,6 +100,8 @@ export const ASSETS: readonly Asset[] = [
   image('levels', 'corridor-back', 'corridor/back.png', 192, 176),
   image('levels', 'corridor-foreground', 'corridor/foreground.png', 272, 176),
   image('levels', 'corridor-tileset', 'corridor/tileset.png', 512, 608),
+  // Drawn by Claude: catwalks and pit edges in the corridor's colours (tools/art/catwalk.py)
+  image('levels', 'corridor-catwalk', 'corridor/catwalk.png', 48, 48),
 ];
 
 /** Key of a sheet's default animation. */
@@ -118,11 +120,11 @@ export const LEVELS: readonly LevelAsset[] = [
   {
     key: 'corridor-test',
     path: 'assets/levels/corridor-test.tmj',
-    tilesets: { corridor: 'corridor-tileset' },
+    tilesets: { corridor: 'corridor-tileset', catwalk: 'corridor-catwalk' },
   },
   {
     key: 'corridor-test-2',
     path: 'assets/levels/corridor-test-2.tmj',
-    tilesets: { corridor: 'corridor-tileset' },
+    tilesets: { corridor: 'corridor-tileset', catwalk: 'corridor-catwalk' },
   },
 ];

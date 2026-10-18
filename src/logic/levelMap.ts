@@ -3,8 +3,8 @@
  * Plain TypeScript, no Phaser, so maps can be validated in unit tests.
  *
  * Map contract:
- * - orthogonal, finite, 16×16 tiles, exactly one embedded tileset
- * - tile layer "background"
+ * - orthogonal, finite, 16×16 tiles, one or more embedded tilesets with consecutive gids
+ * - tile layer "background", and optionally a "platforms" tile layer (catwalks, pit edges)
  * - object layer "collision": rectangles of type "solid" or "platform"
  * - object layer "spawns": one "player-start" point, one "exit" rectangle,
  *   "enemy" points with an `enemy` string property naming a known enemy type,
@@ -12,6 +12,7 @@
  */
 export const TILE_SIZE = 16;
 export const REQUIRED_TILE_LAYERS = ['background'] as const;
+export const OPTIONAL_TILE_LAYERS = ['platforms'] as const;
 export const COLLISION_TYPES = ['solid', 'platform'] as const;
 export type CollisionType = (typeof COLLISION_TYPES)[number];
 
@@ -102,36 +103,45 @@ export function validateLevelMap(raw: unknown, knownEnemies: readonly string[]):
   const widthPx = width * TILE_SIZE;
   const heightPx = height * TILE_SIZE;
 
-  // Tileset
+  // Tilesets: embedded, 16×16, gids running on from one to the next.
   const tilesets = raw['tilesets'];
   let maxGid = 0;
-  if (!Array.isArray(tilesets) || tilesets.length !== 1 || !isRecord(tilesets[0])) {
-    problems.push('map must embed exactly one tileset');
+  if (!Array.isArray(tilesets) || tilesets.length === 0) {
+    problems.push('map must embed at least one tileset');
   } else {
-    const ts = tilesets[0] as TiledTileset;
-    const ok =
-      ts.firstgid === 1 &&
-      ts.tilewidth === TILE_SIZE &&
-      ts.tileheight === TILE_SIZE &&
-      isPositiveInt(ts.tilecount) &&
-      isPositiveInt(ts.columns) &&
-      typeof ts.image === 'string' &&
-      ts.imagewidth === (ts.columns as number) * TILE_SIZE &&
-      isPositiveInt(ts.imageheight) &&
-      ts.tilecount === (ts.columns as number) * ((ts.imageheight as number) / TILE_SIZE);
-    if (ok) maxGid = ts.tilecount as number;
-    else
-      problems.push(
-        'tileset must be embedded, start at gid 1, use 16×16 tiles, and match its image size',
-      );
+    let nextGid = 1;
+    for (const [i, entry] of tilesets.entries()) {
+      const ts = (isRecord(entry) ? entry : {}) as TiledTileset;
+      const ok =
+        ts.firstgid === nextGid &&
+        ts.tilewidth === TILE_SIZE &&
+        ts.tileheight === TILE_SIZE &&
+        isPositiveInt(ts.tilecount) &&
+        isPositiveInt(ts.columns) &&
+        typeof ts.image === 'string' &&
+        ts.imagewidth === (ts.columns as number) * TILE_SIZE &&
+        isPositiveInt(ts.imageheight) &&
+        ts.tilecount === (ts.columns as number) * ((ts.imageheight as number) / TILE_SIZE);
+      if (!ok) {
+        problems.push(
+          `tileset ${i + 1} must be embedded, start at gid ${nextGid}, use 16×16 tiles, and match its image size`,
+        );
+        maxGid = 0;
+        break;
+      }
+      nextGid += ts.tilecount as number;
+      maxGid = nextGid - 1;
+    }
   }
 
   // Layers
   const layers = Array.isArray(raw['layers']) ? (raw['layers'] as TiledLayer[]) : [];
-  for (const name of REQUIRED_TILE_LAYERS) {
+  for (const name of [...REQUIRED_TILE_LAYERS, ...OPTIONAL_TILE_LAYERS]) {
     const layer = layers.find((l) => l.name === name && l.type === 'tilelayer');
     if (!layer) {
-      problems.push(`missing tile layer "${name}"`);
+      if ((REQUIRED_TILE_LAYERS as readonly string[]).includes(name)) {
+        problems.push(`missing tile layer "${name}"`);
+      }
       continue;
     }
     const data = layer.data;
