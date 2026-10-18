@@ -21,7 +21,7 @@ import re
 import sys
 from html.parser import HTMLParser
 
-ALLOWED_SUFFIXES = {".html", ".js", ".css", ".png", ".tmj", ".json", ".woff2", ".txt"}
+ALLOWED_SUFFIXES = {".html", ".js", ".css", ".png", ".tmj", ".json", ".ttf", ".woff2", ".txt"}
 
 # Risky code patterns, and how many times each may appear in the bundle (all inside Phaser).
 RISKY = {
