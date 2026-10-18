@@ -68,11 +68,16 @@ export interface PlayerSnapshot {
   dead: boolean;
   onPlatform: boolean;
   droppingThrough: boolean;
+  airJumpsLeft: number;
+  /** Highest feet y reached since the last ground jump (null before any), for tests. */
+  jumpPeakFeetY: number | null;
 }
 
 /** What happened to the player this frame. */
 export interface PlayerUpdate {
   shot: Shot | null;
+  /** He double-jumped this frame (where his feet were, for the effect). */
+  airJump: { x: number; y: number } | null;
   /** 'respawn' or 'game-over' once the respawn delay after a death has passed. */
   event: StepEvent;
 }
@@ -92,7 +97,7 @@ export interface Shot {
 export class Player {
   readonly sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
   private readonly flash: Phaser.GameObjects.Sprite;
-  private movement: MovementState = initialMovement();
+  private movement: MovementState = initialMovement(MOVEMENT.airJumps);
   private weapon: WeaponState = initialWeapon();
   private anim: MarineAnim | 'die' = 'idle';
   private crouching = false;
@@ -103,6 +108,9 @@ export class Player {
   /** Time left during which catwalks don't hold him (after down + jump). */
   private dropMs = 0;
   private onPlatform = false;
+  private airJumpAt: { x: number; y: number } | null = null;
+  /** Highest point (smallest feet y) since he last left the ground, for tests. */
+  private jumpPeakFeetY = Infinity;
   private health: HealthState = initialHealth(HEALTH);
 
   constructor(
@@ -131,17 +139,22 @@ export class Player {
   /** Moves the marine for this frame: health timers, movement, shooting, animation. */
   update(dtMs: number, input: ActionFrame, ground: { onPlatform: boolean }): PlayerUpdate {
     this.onPlatform = ground.onPlatform;
+    if (!this.sprite.body.blocked.down) {
+      this.jumpPeakFeetY = Math.min(this.jumpPeakFeetY, this.sprite.body.bottom);
+    }
     this.dropMs = Math.max(0, this.dropMs - dtMs);
     const step = stepHealth(this.health, dtMs, HEALTH);
     this.health = step.state;
     this.sprite.setVisible(visibleWhileInvulnerable(this.health.invulnerableMs, HEALTH.blinkMs));
     if (this.health.deadMs !== null) {
       this.sprite.body.setVelocityX(0);
-      return { shot: null, event: step.event };
+      return { shot: null, airJump: null, event: step.event };
     }
     // Right after a hit the knockback plays out and controls are ignored.
-    if (this.health.stunMs > 0) return { shot: null, event: step.event };
-    return { shot: this.control(dtMs, input), event: step.event };
+    if (this.health.stunMs > 0) return { shot: null, airJump: null, event: step.event };
+    this.airJumpAt = null;
+    const shot = this.control(dtMs, input);
+    return { shot, airJump: this.airJumpAt, event: step.event };
   }
 
   /** Takes a hit from something at sourceX: loses health, is knocked away, or dies. */
@@ -165,7 +178,7 @@ export class Player {
 
   /** Puts the marine back at a respawn point (feet at y), standing and facing right. */
   respawn(x: number, feetY: number): void {
-    this.movement = initialMovement();
+    this.movement = initialMovement(MOVEMENT.airJumps);
     this.weapon = initialWeapon();
     this.crouching = false;
     this.aim = 'forward';
@@ -226,6 +239,12 @@ export class Player {
     body.setVelocityX(result.vx);
     if (result.vy !== null) body.setVelocityY(result.vy);
     if (result.dropped) this.dropMs = PLATFORMS.dropThroughMs;
+    if (result.jumped && !result.airJumped) this.jumpPeakFeetY = body.bottom;
+    if (result.airJumped) {
+      this.airJumpAt = { x: body.center.x, y: body.bottom };
+      // Start the jump frames over so the second jump reads as a new leap.
+      this.sprite.play(animKey(ANIM_SHEETS.jump));
+    }
 
     // Jumping out of a crouch, or dropping through a catwalk, stands the marine up.
     const crouching = stance.crouching && !result.jumped && !result.dropped;
@@ -293,6 +312,8 @@ export class Player {
       dead: this.dead,
       onPlatform: this.onPlatform,
       droppingThrough: this.droppingThrough,
+      airJumpsLeft: this.movement.airJumpsLeft,
+      jumpPeakFeetY: Number.isFinite(this.jumpPeakFeetY) ? Math.round(this.jumpPeakFeetY) : null,
     };
   }
 

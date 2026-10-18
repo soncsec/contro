@@ -1,6 +1,7 @@
 /**
- * Player movement rules: running, jumping, coyote time, jump buffering and short hops.
- * Pure functions; the scene applies the result to the physics body and Phaser does gravity.
+ * Player movement rules: running, jumping, coyote time, jump buffering, short hops and the
+ * double jump. Pure functions; the scene applies the result to the physics body and Phaser
+ * does gravity.
  */
 export interface MovementTuning {
   runSpeed: number;
@@ -9,6 +10,9 @@ export interface MovementTuning {
   jumpBufferMs: number;
   jumpCutFactor: number;
   maxStepMs: number;
+  /** Jumps allowed in mid-air before landing again (double jump), and their launch speed. */
+  airJumps: number;
+  airJumpSpeed: number;
 }
 
 export interface MovementInput {
@@ -39,6 +43,8 @@ export interface MovementState {
   jumpHeld: boolean;
   /** True from take-off until landing, so coyote time can't give a second jump. */
   jumping: boolean;
+  /** Mid-air jumps left before landing (double jump). */
+  airJumpsLeft: number;
 }
 
 export interface MovementResult {
@@ -47,16 +53,19 @@ export interface MovementResult {
   /** New vertical speed, or null to leave it to gravity. */
   vy: number | null;
   jumped: boolean;
+  /** This jump was a mid-air (double) jump. */
+  airJumped: boolean;
   /** Down + jump on a catwalk: drop through it instead of jumping (as in Contra). */
   dropped: boolean;
 }
 
-export const initialMovement = (): MovementState => ({
+export const initialMovement = (airJumps = 1): MovementState => ({
   facing: 'right',
   airMs: 0,
   bufferedJumpMs: null,
   jumpHeld: false,
   jumping: false,
+  airJumpsLeft: airJumps,
 });
 
 export function stepMovement(
@@ -72,6 +81,8 @@ export function stepMovement(
 
   const airMs = body.onFloor ? 0 : prev.airMs + dt;
   const jumping = prev.jumping && !(body.onFloor && body.vy >= 0);
+  const landed = body.onFloor && body.vy >= 0;
+  const airJumpsLeft = landed ? t.airJumps : prev.airJumpsLeft;
 
   let bufferedJumpMs: number | null = input.jumpPressed
     ? 0
@@ -83,10 +94,11 @@ export function stepMovement(
   // Down + jump while crouched on a catwalk drops through it instead of jumping.
   if (input.jumpPressed && input.crouch && input.onPlatform && body.onFloor) {
     return {
-      state: { facing, airMs, bufferedJumpMs: null, jumpHeld: input.jump, jumping },
+      state: { facing, airMs, bufferedJumpMs: null, jumpHeld: input.jump, jumping, airJumpsLeft },
       vx,
       vy: null,
       jumped: false,
+      airJumped: false,
       dropped: true,
     };
   }
@@ -94,10 +106,37 @@ export function stepMovement(
   const canJump = !jumping && (body.onFloor || airMs <= t.coyoteMs);
   if (bufferedJumpMs !== null && canJump) {
     return {
-      state: { facing, airMs, bufferedJumpMs: null, jumpHeld: input.jump, jumping: true },
+      state: {
+        facing,
+        airMs,
+        bufferedJumpMs: null,
+        jumpHeld: input.jump,
+        jumping: true,
+        airJumpsLeft,
+      },
       vx,
       vy: -t.jumpSpeed,
       jumped: true,
+      airJumped: false,
+      dropped: false,
+    };
+  }
+
+  // Double jump: a new press in mid-air (past coyote time) uses an air jump if one is left.
+  if (input.jumpPressed && !body.onFloor && airJumpsLeft > 0) {
+    return {
+      state: {
+        facing,
+        airMs,
+        bufferedJumpMs: null,
+        jumpHeld: input.jump,
+        jumping: true,
+        airJumpsLeft: airJumpsLeft - 1,
+      },
+      vx,
+      vy: -t.airJumpSpeed,
+      jumped: true,
+      airJumped: true,
       dropped: false,
     };
   }
@@ -107,10 +146,11 @@ export function stepMovement(
   const vy = releasedNow && jumping && body.vy < 0 ? body.vy * t.jumpCutFactor : null;
 
   return {
-    state: { facing, airMs, bufferedJumpMs, jumpHeld: input.jump, jumping },
+    state: { facing, airMs, bufferedJumpMs, jumpHeld: input.jump, jumping, airJumpsLeft },
     vx,
     vy,
     jumped: false,
+    airJumped: false,
     dropped: false,
   };
 }

@@ -7,6 +7,7 @@ import {
   HEALTH,
   PLATFORMS,
   PLAYER_BODY,
+  AIR_JUMP_RING_SQUASH,
   CHEAT_EXTRA_LIVES,
   LEVEL_BANNER,
   SCORING,
@@ -79,6 +80,7 @@ export interface LevelSnapshot {
   /** Current level and section shown in the HUD, e.g. "1-2". */
   label: string;
   bannerVisible: boolean;
+  airJumps: number;
 }
 
 const DEFAULT_LEVEL = 'corridor-test';
@@ -100,6 +102,8 @@ export class LevelScene extends Phaser.Scene {
   private enemies!: Enemies;
   private enemyShots!: EnemyShots;
   private elapsedMs = 0;
+  /** Double jumps made in this room (for tests). */
+  private airJumps = 0;
   /** Set once the player reaches the exit; input is ignored while the scene fades out. */
   private exiting = false;
   private gameOver = false;
@@ -127,6 +131,7 @@ export class LevelScene extends Phaser.Scene {
     // Thresholds already passed before this room don't award again.
     this.score.livesAwarded = SCORING.extraLifeAt.filter((t) => this.score.score >= t).length;
     this.elapsedMs = 0;
+    this.airJumps = 0;
     this.exiting = false;
     this.gameOver = false;
     this.reachedX = 0;
@@ -277,10 +282,14 @@ export class LevelScene extends Phaser.Scene {
       { left: body.left, right: body.right, bottom: body.bottom },
       this.layout.colliders,
     );
-    const { shot, event } = this.player.update(deltaMs, this.exiting ? NO_INPUT : input, {
+    const { shot, airJump, event } = this.player.update(deltaMs, this.exiting ? NO_INPUT : input, {
       onPlatform: ground === 'platform',
     });
     if (shot) this.bullets.fire(shot);
+    if (airJump) {
+      this.airJumps++;
+      this.effects.play('air-jump-ring', airJump.x, airJump.y, false, 4, AIR_JUMP_RING_SQUASH);
+    }
     if (!this.player.dead) this.reachedX = Math.max(this.reachedX, this.player.snapshot().x);
     if (event === 'respawn') {
       const at = this.respawnAt();
@@ -464,6 +473,7 @@ export class LevelScene extends Phaser.Scene {
       cheats: this.cheats,
       label: this.label,
       bannerVisible: this.bannerVisible,
+      airJumps: this.airJumps,
     };
   }
 }
