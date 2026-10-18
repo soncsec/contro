@@ -12,86 +12,67 @@ async function openSection(page: Page, key: string): Promise<void> {
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
 }
 
-const openYard = (page: Page) => openSection(page, 'steelworks-1');
+const SKYLINE = ['industrial-sky', 'industrial-far', 'industrial-mid', 'industrial-near'];
 
-test('the steelworks yard loads with its skyline, and the marine stands on the steel', async ({
-  page,
-}) => {
-  const watched = watchPage(page);
-  await openYard(page);
-  const s = await level(page);
-  expect(s.scenery).toEqual([
-    'industrial-sky',
-    'industrial-far',
-    'industrial-mid',
-    'industrial-near',
-  ]);
-  // In the e2e build the training corridor is level 1, so the steelworks is level 2 here.
-  expect(s.label).toBe('2-1');
-  expect(s.player.feetY).toBe(136);
-  expect(s.widthPx).toBe(180 * 16);
-  expect(s.enemies.filter((e) => e.type === 'alien-walker')).toHaveLength(12);
-  expect(s.enemies.filter((e) => e.type === 'alien-flyer')).toHaveLength(4);
-  expect(watched.errors).toEqual([]);
-  expect(watched.foreignRequests).toEqual([]);
-});
+/**
+ * Level 1's sections in play order. In the e2e build the training corridor is level 1, so the
+ * steelworks is level 2 here. Indoor sections have no skyline: their wall is part of the map.
+ */
+const SECTIONS = [
+  { key: 'steelworks-1', name: 'the yard', tiles: 180, walkers: 12, flyers: 4, outdoor: true },
+  { key: 'steelworks-2', name: 'the interior', tiles: 170, walkers: 16, flyers: 5, outdoor: false },
+  {
+    key: 'steelworks-3',
+    name: 'the rust factory',
+    tiles: 160,
+    walkers: 18,
+    flyers: 5,
+    outdoor: false,
+  },
+  { key: 'steelworks-4', name: 'the gantries', tiles: 170, walkers: 20, flyers: 6, outdoor: true },
+] as const;
 
-test('the yard leads straight into the steelworks interior, with no card', async ({ page }) => {
-  await openYard(page);
-  const exit = await walkThroughExit(page);
-  expect(exit.scene).toBe('Level');
-  await expect.poll(async () => (await level(page)).level).toBe('steelworks-2');
-  expect((await level(page)).label).toBe('2-2');
-});
+SECTIONS.forEach((section, i) => {
+  const label = `2-${i + 1}`;
+  const next = SECTIONS[i + 1];
 
-test('the interior loads indoors, with no skyline, and the marine stands on the steel', async ({
-  page,
-}) => {
-  const watched = watchPage(page);
-  await openSection(page, 'steelworks-2');
-  const s = await level(page);
-  expect(s.scenery).toEqual([]); // the piped wall is part of the map
-  expect(s.label).toBe('2-2');
-  expect(s.player.feetY).toBe(136);
-  expect(s.widthPx).toBe(170 * 16);
-  expect(s.enemies.filter((e) => e.type === 'alien-walker')).toHaveLength(16);
-  expect(s.enemies.filter((e) => e.type === 'alien-flyer')).toHaveLength(5);
-  expect(watched.errors).toEqual([]);
-  expect(watched.foreignRequests).toEqual([]);
-});
-
-test('the interior leads straight into the rust factory, with no card', async ({ page }) => {
-  await openSection(page, 'steelworks-2');
-  const exit = await walkThroughExit(page);
-  expect(exit.scene).toBe('Level');
-  await expect.poll(async () => (await level(page)).level).toBe('steelworks-3');
-  expect((await level(page)).label).toBe('2-3');
-});
-
-test('the rust factory loads indoors, and the marine stands on its floor', async ({ page }) => {
-  const watched = watchPage(page);
-  await openSection(page, 'steelworks-3');
-  const s = await level(page);
-  expect(s.scenery).toEqual([]);
-  expect(s.label).toBe('2-3');
-  expect(s.player.feetY).toBe(136);
-  expect(s.widthPx).toBe(160 * 16);
-  expect(s.enemies.filter((e) => e.type === 'alien-walker')).toHaveLength(18);
-  expect(s.enemies.filter((e) => e.type === 'alien-flyer')).toHaveLength(5);
-  expect(watched.errors).toEqual([]);
-  expect(watched.foreignRequests).toEqual([]);
-});
-
-test('the rust factory ends with the level-end card, then the campaign starts again', async ({
-  page,
-}) => {
-  await openSection(page, 'steelworks-3');
-  const exit = await walkThroughExit(page);
-  expect(exit.scene).toBe('Dialogue');
-  // The last section so far: after its card the campaign starts again from the beginning.
-  expect(await page.evaluate(() => window.__contro?.dialogue())).toMatchObject({
-    card: 'level-1-end',
-    nextLevel: 'corridor-test',
+  test(`${label} ${section.name} loads, and the marine stands on the steel`, async ({ page }) => {
+    const watched = watchPage(page);
+    await openSection(page, section.key);
+    const s = await level(page);
+    expect(s.scenery).toEqual(section.outdoor ? SKYLINE : []);
+    expect(s.label).toBe(label);
+    expect(s.player.feetY).toBe(136);
+    expect(s.widthPx).toBe(section.tiles * 16);
+    expect(s.enemies.filter((e) => e.type === 'alien-walker')).toHaveLength(section.walkers);
+    expect(s.enemies.filter((e) => e.type === 'alien-flyer')).toHaveLength(section.flyers);
+    expect(watched.errors).toEqual([]);
+    expect(watched.foreignRequests).toEqual([]);
   });
-  expect(await sceneKey(page)).toBe('Dialogue');
+
+  if (next) {
+    test(`${label} ${section.name} leads straight into ${next.name}, with no card`, async ({
+      page,
+    }) => {
+      await openSection(page, section.key);
+      const exit = await walkThroughExit(page);
+      expect(exit.scene).toBe('Level');
+      await expect.poll(async () => (await level(page)).level).toBe(next.key);
+      expect((await level(page)).label).toBe(`2-${i + 2}`);
+    });
+  } else {
+    test(`${label} ${section.name} ends the level with its card, then the campaign starts again`, async ({
+      page,
+    }) => {
+      await openSection(page, section.key);
+      const exit = await walkThroughExit(page);
+      expect(exit.scene).toBe('Dialogue');
+      // The last section so far: after its card the campaign starts again from the beginning.
+      expect(await page.evaluate(() => window.__contro?.dialogue())).toMatchObject({
+        card: 'level-1-end',
+        nextLevel: 'corridor-test',
+      });
+      expect(await sceneKey(page)).toBe('Dialogue');
+    });
+  }
 });

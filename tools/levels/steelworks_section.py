@@ -99,6 +99,23 @@ LAYOUTS = {
         "start": 3,
         "exit": 155,
     },
+    # 1-4: back outside, along the gantries between the furnace halls. A run of narrow pits
+    # (each a running jump), ledges up to 4 tiles high, walkways over the gaps, the most
+    # enemies yet, and flyers over every pit.
+    "gantries": {
+        "width": 170,
+        "floor": [(0, 24), (27, 40), (43, 52), (55, 70), (73, 96), (99, 120), (123, 140),
+                  (143, 170)],
+        "blocks": [(8, 12, 6), (32, 36, 6), (60, 64, 5), (64, 68, 7), (80, 88, 4),
+                   (104, 110, 6), (130, 136, 5), (150, 154, 6), (154, 158, 4)],
+        "walkways": [(14, 8, 5), (44, 7, 4), (90, 9, 5), (112, 8, 4), (138, 6, 5)],
+        "walkers": [10, 20, "21g", 34, 47, 58, 62, 66, 78, 84, 93, 106, 116, "117g", 128, 133,
+                    140, 148, 156, 164],
+        "flyers": [(26, 44), (50, 36), (72, 40), (100, 34), (122, 44), (146, 38)],
+        "checkpoints": [56, 100, 145],
+        "start": 3,
+        "exit": 165,
+    },
 }
 
 
