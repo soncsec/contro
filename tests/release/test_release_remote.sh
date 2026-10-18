@@ -76,7 +76,10 @@ run activate contro "$B" >/dev/null
 if [[ "$(live)" == "$B" ]]; then ok "switch to release B"; else bad "live is $(live)"; fi
 expect_ok "rollback" run rollback contro
 if [[ "$(live)" == "$A" ]]; then ok "rollback returns to release A"; else bad "live is $(live)"; fi
-if run status contro | grep -q "^\* $A (live)"; then ok "status marks the live release"; else bad "status: $(run status contro)"; fi
+# Capture first: with pipefail, `grep -q` can exit at the first match and the writer then dies
+# of SIGPIPE, failing the pipeline about 1 time in 300 (seen in Extrat and the portal).
+status_out="$(run status contro)"
+if grep -q "^\* $A (live)" <<<"$status_out"; then ok "status marks the live release"; else bad "status: $status_out"; fi
 if compgen -G "$T/web/.*switch*" >/dev/null; then bad "leftover temporary link"; else ok "no temporary links left behind"; fi
 teardown
 
