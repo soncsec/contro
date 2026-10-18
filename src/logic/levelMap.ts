@@ -9,6 +9,9 @@
  * - object layer "spawns": one "player-start" point, one "exit" rectangle,
  *   "enemy" points with an `enemy` string property naming a known enemy type,
  *   and any number of "checkpoint" points (respawn places)
+ * - optional image layers (Tiled "imagelayer"), drawn behind everything in map order as
+ *   parallax scenery: the layer name is the image's asset key, `offsety` places it, and
+ *   `parallaxx` (0–1, default 1) is how fast it scrolls with the camera; repeated sideways
  */
 export const TILE_SIZE = 16;
 export const REQUIRED_TILE_LAYERS = ['background'] as const;
@@ -27,12 +30,23 @@ export interface LevelLayout {
   widthPx: number;
   heightPx: number;
   background: string | null;
+  /** Parallax scenery from image layers, back to front. */
+  parallax: ParallaxLayer[];
   colliders: (Rect & { type: CollisionType })[];
   playerStart: { x: number; y: number };
   /** Respawn points, in map order. */
   checkpoints: { x: number; y: number }[];
   enemies: { x: number; y: number; enemy: string }[];
   exit: Rect;
+}
+
+export interface ParallaxLayer {
+  /** Asset key of the image (the image layer's name). */
+  key: string;
+  /** Top of the image, in map pixels. */
+  y: number;
+  /** 0 stays put, 1 moves with the map. */
+  factor: number;
 }
 
 // Minimal shape of the Tiled JSON fields we read. Everything is checked before use.
@@ -56,6 +70,9 @@ interface TiledLayer {
   height?: unknown;
   data?: unknown;
   objects?: unknown;
+  offsetx?: unknown;
+  offsety?: unknown;
+  parallaxx?: unknown;
 }
 interface TiledTileset {
   firstgid?: unknown;
@@ -154,6 +171,20 @@ export function validateLevelMap(raw: unknown, knownEnemies: readonly string[]):
     }
   }
 
+  layers.forEach((l, i) => {
+    if (l.type !== 'imagelayer') return;
+    const where = `image layer ${i + 1}`;
+    if (typeof l.name !== 'string' || l.name === '') problems.push(`${where}: needs a name`);
+    if (l.offsetx !== undefined && l.offsetx !== 0) problems.push(`${where}: offsetx must be 0`);
+    if (l.offsety !== undefined && !isNum(l.offsety)) problems.push(`${where}: bad offsety`);
+    if (
+      l.parallaxx !== undefined &&
+      !(isNum(l.parallaxx) && l.parallaxx >= 0 && l.parallaxx <= 1)
+    ) {
+      problems.push(`${where}: parallaxx must be between 0 and 1`);
+    }
+  });
+
   const inside = (o: TiledObject): boolean =>
     isNum(o.x) &&
     isNum(o.y) &&
@@ -234,6 +265,13 @@ export function readLevelLayout(raw: unknown, knownEnemies: readonly string[]): 
     widthPx: (map['width'] as number) * TILE_SIZE,
     heightPx: (map['height'] as number) * TILE_SIZE,
     background: typeof background === 'string' ? background : null,
+    parallax: layers
+      .filter((l) => l.type === 'imagelayer')
+      .map((l) => ({
+        key: l.name as string,
+        y: isNum(l.offsety) ? l.offsety : 0,
+        factor: isNum(l.parallaxx) ? l.parallaxx : 1,
+      })),
     colliders: collision.map((o) => ({ ...rect(o), type: o.type as CollisionType })),
     playerStart: { x: start.x as number, y: start.y as number },
     checkpoints: spawns

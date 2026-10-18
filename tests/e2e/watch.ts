@@ -54,9 +54,7 @@ export interface ExitResult {
  */
 export async function walkThroughExit(page: Page): Promise<ExitResult> {
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
-  const { widthPx, level: from } = await level(page);
-  // Both test rooms end with the EXIT door 9 tiles into the last 21-tile stretch.
-  const exitX = widthPx - 12 * 16;
+  const { exitX, level: from } = await level(page);
   await page.evaluate((x) => window.__contro?.teleportPlayer(x), exitX - 20);
   return page.evaluate(async (fromLevel) => {
     const right = { code: 'ArrowRight', key: 'ArrowRight' };

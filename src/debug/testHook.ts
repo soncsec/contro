@@ -33,6 +33,8 @@ export interface TestHook {
   hurtPlayer(damage: number): void;
   /** Moves the player to x (level pixels). Throws if no level is running. */
   teleportPlayer(x: number): void;
+  /** Leaves whatever is showing and starts a fresh run in the named map. */
+  startLevel(key: string): void;
 }
 
 declare global {
@@ -49,6 +51,12 @@ export function installTestHook(game: Phaser.Game): void {
       : null;
 
   window.__contro = {
+    startLevel: (key) => {
+      for (const scene of game.scene.getScenes(false)) {
+        if (scene.scene.key !== 'Level' && scene.scene.isActive()) scene.scene.stop();
+      }
+      game.scene.start('Level', { level: key });
+    },
     scene: () => game.scene.getScenes(true)[0]?.scene.key ?? null,
     previewGroup: () =>
       game.scene.isActive('AssetPreview')

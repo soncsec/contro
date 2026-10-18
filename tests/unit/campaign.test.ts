@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { ASSETS, LEVELS } from '../../src/assets/manifest';
-import { CAMPAIGN, CAMPAIGN_LEVELS } from '../../src/data/campaign';
+import {
+  CAMPAIGN,
+  CAMPAIGN_LEVELS,
+  STORY_LEVELS,
+  TEST_CAMPAIGN_LEVELS,
+  TRAINING_LEVEL,
+} from '../../src/data/campaign';
 import { DIALOGUE, SPEAKERS } from '../../src/data/dialogue';
 import { DIALOGUE_CARD } from '../../src/config/tuning';
 import {
@@ -17,12 +23,34 @@ const levelKeys = LEVELS.map((l) => l.key);
 const cardIds = Object.keys(DIALOGUE);
 
 describe('campaign data', () => {
-  it('only uses known maps and cards, with levels numbered in order', () => {
-    expect(validateCampaign(CAMPAIGN_LEVELS, levelKeys, cardIds)).toEqual([]);
+  const storyMaps = LEVELS.filter((l) => !l.testOnly).map((l) => l.key);
+  const testMaps = LEVELS.filter((l) => l.testOnly).map((l) => l.key);
+
+  it.each([
+    ['story', STORY_LEVELS],
+    ['e2e', TEST_CAMPAIGN_LEVELS],
+  ] as const)(
+    'the %s campaign uses known maps and cards, levels numbered in order',
+    (_n, levels) => {
+      expect(validateCampaign(levels, levelKeys, cardIds)).toEqual([]);
+    },
+  );
+
+  it('players get every story map and no test map', () => {
+    expect(STORY_LEVELS.flatMap((l) => l.sections).sort()).toEqual([...storyMaps].sort());
   });
 
-  it('plays every map in the manifest', () => {
-    expect(CAMPAIGN.map((s) => s.level).sort()).toEqual([...levelKeys].sort());
+  it('the e2e build plays the training corridor first, then the story renumbered', () => {
+    expect(TEST_CAMPAIGN_LEVELS[0]).toBe(TRAINING_LEVEL);
+    expect([...TRAINING_LEVEL.sections].sort()).toEqual([...testMaps].sort());
+    expect(TEST_CAMPAIGN_LEVELS.slice(1).map((l) => [l.stage, l.name])).toEqual(
+      STORY_LEVELS.map((l) => [l.stage + 1, l.name]),
+    );
+  });
+
+  it('unit tests (not e2e) see the story campaign', () => {
+    expect(CAMPAIGN_LEVELS).toBe(STORY_LEVELS);
+    expect(CAMPAIGN[0]?.level).toBe('steelworks-1');
   });
 
   it('shows a card only after the last section of each level', () => {
@@ -128,7 +156,7 @@ describe('levelLabel and stepFor', () => {
   });
 
   it('finds the step for a map, and rejects an unknown one', () => {
-    expect(stepFor(CAMPAIGN, 'corridor-test-2')).toMatchObject({ stage: 1, section: 2 });
+    expect(stepFor(CAMPAIGN, 'steelworks-1')).toMatchObject({ stage: 1, section: 1 });
     expect(() => stepFor(CAMPAIGN, 'nowhere')).toThrow(/not in the campaign/);
   });
 });
