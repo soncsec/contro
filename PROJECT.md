@@ -37,6 +37,7 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 | Weapons | Default rifle plus **2–3 weapon pickups** (e.g. spread, rapid, laser), introduced from Level 2 (owner approved 2026-10-17). Exact rules decided in M4 |
 | Hazards | Pits and one-way platforms. No slopes in v1 |
 | Double jump | **One extra jump in mid-air** (owner request 2026-10-17, roadmap M2.8). Restored on landing; also usable after walking off a ledge. Not in classic Contra; added for the platforming |
+| Multi-level ground | Some side-scrolling stretches have **ground at several heights**, like Contra: raised ledges, upper and lower paths, and drops between them, each with enemies (owner request 2026-10-17). Planned into the level maps from M3 (roadmap M3.1, M4.3, M5.2) |
 | Story | **Minimal text**: one or two lines with a speaker portrait on the card between levels, plus intro and ending cards (owner decision 2026-10-17). Text lives in a data file |
 | Audio | **CC0 sound effects plus one music loop per level** (owner decision 2026-10-17). Each source needs owner approval and is listed in `CREDITS.md` |
 | Saving | Furthest level reached, best score, and volume settings in localStorage, safe if storage is unavailable |

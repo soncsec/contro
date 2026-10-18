@@ -80,7 +80,7 @@
 
 **Demonstrable result:** Level 1 is playable from title screen to the tank boss's defeat, with sound and music.
 
-- [ ] M3.1 Industrial art: choose the tileset, assemble parallax; full level map
+- [ ] M3.1 Industrial art: choose the tileset, assemble parallax; full level map, including at least one **multi-level ground** stretch (upper and lower paths, Contra-style)
 - [ ] M3.2 Boss framework: arena lock, health bar, phases, attack patterns, defeat (data-driven)
 - [ ] M3.3 Tank boss
 - [ ] M3.4 HUD, title screen with portal link, game over and continue
@@ -96,7 +96,7 @@
 
 - [ ] M4.1 Weapon pickups (2–3 types, rules decided here) with unit tests
 - [ ] M4.2 Bipedal walker enemy
-- [ ] M4.3 Level 2 map with props
+- [ ] M4.3 Level 2 map with props, including **multi-level ground**
 - [ ] M4.4 Mech boss
 - [ ] M4.5 Level 2 music
 
@@ -107,7 +107,7 @@
 **Demonstrable result:** the full game is playable to the ending.
 
 - [ ] M5.1 Alien enemies for Level 3
-- [ ] M5.2 Level 3 map
+- [ ] M5.2 Level 3 map, including **multi-level ground** (the alien tileset's ledges)
 - [ ] M5.3 Alien boss (Gothicvania art, recolored)
 - [ ] M5.4 Ending and credits screens
 - [ ] M5.5 Level 3 music
