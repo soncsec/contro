@@ -11,12 +11,15 @@ Layouts are in LAYOUTS below. A layout gives the width in tiles and lists, in 16
              ("Ng" puts one on the ground under a walkway)
   flyers     (column, y px) alien flyers
   checkpoints, start, exit: columns
+  indoor     True for a section inside the steelworks: the piped wall fills the space above the
+             ground instead of the open sky and skyline
 
 This makes the first version of a map. After that the .tmj is the source of truth: edit it in
 Tiled or by hand, and `npm test` validates it (ARCHITECTURE.md ADR-C01).
 
 Tileset: tools/art/steelworks.py (22 columns). Rows 8–10 are the floor; the plate's top edge is
 a tile edge and feet stand FEET_IN px into it. Row 11 is the walkway deck, rows 12–13 its legs.
+Rows 15–22 are the wall with pipes, for indoor sections.
 """
 import json
 import pathlib
@@ -31,7 +34,8 @@ DECK_ROW, LEG_TOP_ROW, LEG_ROW = 11, 12, 13
 DECK_LEFT, DECK_MID, DECK_RIGHT = 3, 10, 17
 LEG_COLS = (15, 16)  # deck tiles above legs, and the legs themselves
 PIT_ROW, PIT_SHAFT, PIT_LEFT, PIT_RIGHT = 14, 0, 1, 2
-TILESET_ROWS = 15
+PIPED_WALL_ROW = 15  # rows 15–22: the wall with pipes
+TILESET_ROWS = 23
 DECK_LEFT_INSET = 11  # the deck starts 11 px into the left end tile
 DECK_HEIGHT = 6  # collider thickness of a one-way deck
 
@@ -57,6 +61,22 @@ LAYOUTS = {
         "checkpoints": [50, 102, 144],
         "start": 3,
         "exit": 175,
+    },
+    # 1-2: inside the steelworks. A staircase up and down, a raised mezzanine with the
+    # highest step in the level, two walkway tiers over pits, more walkers on the ground
+    # under the walkways, and flyers lower under the roof.
+    "interior": {
+        "width": 170,
+        "indoor": True,
+        "floor": [(0, 36), (39, 64), (67, 110), (113, 140), (142, 170)],
+        "blocks": [(14, 18, 7), (18, 22, 6), (22, 26, 5), (48, 56, 5), (78, 82, 6), (82, 90, 3),
+                   (90, 94, 6), (120, 128, 6), (150, 154, 7), (154, 158, 6)],
+        "walkways": [(28, 9, 5), (58, 10, 5), (96, 12, 4), (130, 9, 5)],
+        "walkers": [10, 24, 32, "33g", 45, 52, 62, 75, 86, 100, "104g", 116, 125, 134, 147, 162],
+        "flyers": [(40, 40), (70, 36), (108, 30), (138, 40), (158, 44)],
+        "checkpoints": [46, 95, 144],
+        "start": 3,
+        "exit": 165,
     },
 }
 
@@ -91,7 +111,13 @@ def build(layout: dict) -> dict:
                 edge = PIT_RIGHT
             for row in range(FLOOR_ROW, HEIGHT):
                 put(background, x, row, gid(PIT_ROW, edge if edge is not None else PIT_SHAFT))
+            if layout.get("indoor"):
+                for row in range(FLOOR_ROW):
+                    put(background, x, row, gid(PIPED_WALL_ROW + row, x % COLUMNS))
             continue
+        if layout.get("indoor"):
+            for row in range(top[x]):
+                put(background, x, row, gid(PIPED_WALL_ROW + row, x % COLUMNS))
         put(background, x, top[x], gid(8, x % COLUMNS))  # plate
         for row in range(top[x] + 1, HEIGHT):
             put(background, x, row, gid(9 if row == top[x] + 1 else 10, x % COLUMNS))
@@ -160,7 +186,7 @@ def build(layout: dict) -> dict:
     spawns.append(obj("exit", ex * TILE, surface(ex) - 64, 4 * TILE, 64))
 
     image_layers = []
-    for i, (key, image, h, below, factor) in enumerate(PARALLAX):
+    for i, (key, image, h, below, factor) in enumerate([] if layout.get("indoor") else PARALLAX):
         offsety = 0 if below is None else GROUND_Y + below - h
         image_layers.append({"id": 10 + i, "name": key, "type": "imagelayer", "image": image,
                              "offsetx": 0, "offsety": offsety, "parallaxx": factor, "parallaxy": 1,

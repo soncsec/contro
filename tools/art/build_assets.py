@@ -127,8 +127,8 @@ def build() -> list[tuple[str, str, str]]:
             dest.write_bytes(source.read_bytes())
             rows.append((out, src, "unchanged"))
         elif how == "steelworks":
-            png.write(str(dest), steelworks.build(str(source / "bulkhead-walls-back.png"), str(source / "bulkhead-walls-platform.png")))
-            rows.append((out, f"{src}/bulkhead-walls-back.png, bulkhead-walls-platform.png", "*derived*: ceiling cropped off, wall and floor stacked with the scaffold walkway, pixels unchanged; plus pit tiles *drawn by Claude* in the floor's colours (`tools/art/steelworks.py`)"))
+            png.write(str(dest), steelworks.build(str(source / "bulkhead-walls-back.png"), str(source / "bulkhead-walls-platform.png"), str(source / "cols.png"), str(source / "bulkhead-walls-pipes.png")))
+            rows.append((out, f"{src}/bulkhead-walls-back.png, bulkhead-walls-platform.png, cols.png, bulkhead-walls-pipes.png", "*derived*: ceiling cropped off, wall and floor stacked with the scaffold walkway and a copy of the wall with the columns and pipes layered on, pixels unchanged; plus pit tiles *drawn by Claude* in the floor's colours (`tools/art/steelworks.py`)"))
         elif how == "draw:catwalk":
             png.write(str(dest), catwalk.build(str(source)))
             rows.append((out, src, "*drawn by Claude* (`tools/art/catwalk.py`): catwalk and pit tiles in this tileset's colours, pit edges reuse its floor pixels"))

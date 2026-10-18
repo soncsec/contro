@@ -4655,10 +4655,10 @@
    "name": "steelworks",
    "image": "steelworks/tileset.png",
    "imagewidth": 352,
-   "imageheight": 240,
+   "imageheight": 368,
    "tilewidth": 16,
    "tileheight": 16,
-   "tilecount": 330,
+   "tilecount": 506,
    "columns": 22,
    "margin": 0,
    "spacing": 0

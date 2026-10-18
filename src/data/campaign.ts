@@ -11,7 +11,7 @@ export const STORY_LEVELS: readonly CampaignLevel<DialogueId>[] = [
     stage: 1,
     name: 'THE STEELWORKS',
     // Built one section at a time (M3.1, owner approved 2026-10-18).
-    sections: ['steelworks-1'],
+    sections: ['steelworks-1', 'steelworks-2'],
     introCard: 'level-1-intro',
     endCard: 'level-1-end',
   },
