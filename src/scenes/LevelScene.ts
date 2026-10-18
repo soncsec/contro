@@ -36,6 +36,8 @@ import { SaveStore } from '../systems/SaveStore';
 export interface RunState {
   score: number;
   lives: number;
+  /** Health carried in from the previous room (full health if missing). */
+  hp?: number;
   /** Cheats switched on in this run (they carry from room to room). */
   cheats?: CheatState;
 }
@@ -173,7 +175,13 @@ export class LevelScene extends Phaser.Scene {
     this.physics.world.setBoundsCollision(true, true, false, false);
 
     const start = this.layout.playerStart;
-    this.player = new Player(this, start.x, start.y, this.runAtStart?.lives ?? HEALTH.lives);
+    this.player = new Player(
+      this,
+      start.x,
+      start.y,
+      this.runAtStart?.lives ?? HEALTH.lives,
+      this.runAtStart?.hp ?? HEALTH.maxHp,
+    );
     this.player.invincible = this.cheats.invincible;
     this.physics.add.collider(this.player.sprite, solids);
     // Down + jump drops through a catwalk for a moment.
@@ -362,9 +370,10 @@ export class LevelScene extends Phaser.Scene {
     }
   }
 
-  /** The score and lives to carry into the next room. */
+  /** The score, lives, health and cheats to carry into the next room. */
   run(): RunState {
-    return { score: this.score.score, lives: this.player.snapshot().lives, cheats: this.cheats };
+    const p = this.player.snapshot();
+    return { score: this.score.score, lives: p.lives, hp: p.hp, cheats: this.cheats };
   }
 
   /** Room skip (cheat): leave through the exit as soon as the game resumes. */

@@ -77,6 +77,8 @@
 - [x] M2.10 Fullscreen key (owner request 2026-10-17): F toggles fullscreen; whole-number scaling recalculated for the new size
 - [x] M2.11 Cheat codes (owner request 2026-10-17): entered on the pause screen; Konami code +5 lives, invincibility, invisibility, room skip (all weapons after M4); a HUD marker while any cheat is on; cheating stops the best score from being saved; code matching unit tested. Built: Konami code (keys or d-pad) +5 lives; typed IRON invincibility, GHOUL invisibility, THRU room skip (letters chosen so they never clash with game keys)
 - [x] M2.12 Basic gun fires one shot per press (owner request 2026-10-17, issue #21; after M2.10 and M2.11): holding fire (keys or gamepad) fires once; each new press fires again, at most every 90 ms. Holding fire for 2 s fires exactly one shot (e2e); rule tests in `src/logic/weapon.ts`
+- [x] M2.13 Health carries between sections and levels (owner request 2026-10-18): the run state carries hp like score and lives; Restart room restores the hp the section was entered with; respawns still start at full health; e2e covered
+- [ ] M2.14 Show the current level (owner request 2026-10-18): HUD label `level-section` (e.g. `1-2`) and a banner with the level's number and name when it starts; names and numbers are campaign data
 
 **Acceptance criteria:** the owner signs off on feel; logic coverage at least 80%; works with keyboard and a gamepad in both browsers.
 
@@ -84,7 +86,8 @@
 
 **Demonstrable result:** Level 1 is playable from title screen to the tank boss's defeat, with sound and music.
 
-- [ ] M3.1 Industrial art: choose the tileset, assemble parallax; full level map
+- [ ] M3.0 Level structure (ADR-C10, proposed): a level is a sequence of sections (maps) played back to back with a checkpoint at each; dialogue cards only between levels; campaign data lists levels → sections; validation tests
+- [ ] M3.1 Industrial art: choose the tileset, assemble parallax; Level 1 as **at least 5 varied sections, 10–15 minutes**, including at least one **multi-level ground** stretch (upper and lower paths, Contra-style) and one outdoor stretch (industrial parallax)
 - [ ] M3.2 Boss framework: arena lock, health bar, phases, attack patterns, defeat (data-driven)
 - [ ] M3.3 Tank boss
 - [ ] M3.4 HUD, title screen with portal link, game over and continue
@@ -100,7 +103,7 @@
 
 - [ ] M4.1 Weapon pickups (2–3 types, rules decided here) with unit tests. One is the **machine gun** (issue #21): auto-fires while fire is held, at its own rate in `tuning.ts`
 - [ ] M4.2 Bipedal walker enemy
-- [ ] M4.3 Level 2 map with props
+- [ ] M4.3 Level 2: **at least 5 varied sections, 10–15 minutes**, with props, **multi-level ground**, and a change of scenery (e.g. the Scifi lab or Synth City art)
 - [ ] M4.4 Mech boss
 - [ ] M4.5 Level 2 music
 
@@ -111,7 +114,7 @@
 **Demonstrable result:** the full game is playable to the ending.
 
 - [ ] M5.1 Alien enemies for Level 3
-- [ ] M5.2 Level 3 map
+- [ ] M5.2 Level 3: **at least 5 varied sections, 10–15 minutes**, including **multi-level ground** (the alien tileset's ledges) and a change of scenery (e.g. the another-world art)
 - [ ] M5.3 Alien boss (Gothicvania art, recolored)
 - [ ] M5.4 Ending and credits screens
 - [ ] M5.5 Level 3 music

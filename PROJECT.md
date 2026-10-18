@@ -27,7 +27,10 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 
 | Area | Requirement |
 |---|---|
-| Levels | **3 levels, each ending in a boss** (owner decision 2026-10-17): 1 Industrial, 2 Cyberpunk Corridor, 3 Alien Hive. Built as side-scrolling tile maps. About 4–6 minutes per level |
+| Levels | **3 levels, each ending in a boss** (owner decision 2026-10-17): 1 Industrial, 2 Cyberpunk Corridor, 3 Alien Hive. **Each level is a lot longer and more varied** (owner request 2026-10-18): about **10–15 minutes**, built from **at least 5 sections** (separate maps played back to back, with a checkpoint at each), each with its own scenery and set piece: e.g. multi-level ground, catwalk climbs, pit runs, an outdoor or rooftop stretch, a gauntlet of mixed enemies, a mini-boss. Dialogue cards only between levels |
+| Multi-level ground | Some side-scrolling stretches have **ground at several heights**, like Contra: raised ledges, upper and lower paths, and drops between them, each with enemies (owner request 2026-10-17) |
+| Level display | The screen shows the **current level and section** (e.g. `1-3`) in the HUD, and a banner with the level's number and name when a level starts (owner request 2026-10-18) |
+| Health between sections | **Health carries over** from section to section and level to level, like score and lives (owner request 2026-10-18). A respawn after losing a life still starts with full health |
 | Player | The Warped space marine: idle, run, jump, crouch, shoot, die |
 | Aiming | Forward (standing, running, jumping), crouched forward, and **diagonal up**. The diagonal frame is derived from the existing art by Claude. Aim poses are data in the asset manifest so better art can replace them later without code changes (owner decision 2026-10-17) |
 | Controls | Keyboard and **gamepad** (standard mapping). Default keys: arrows or WASD to move, jump, fire, aim-up modifier, pause. Final key layout settled in M1/M2 play-tests |
