@@ -36,6 +36,7 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 | Bosses | Level 1: **tank**. Level 2: **mech**. Level 3: an alien boss using **Gothicvania boss art (dragon or demon), recolored** to fit (owner approved 2026-10-17). Each with a health bar, phases and attack patterns |
 | Weapons | Default rifle plus **2–3 weapon pickups** (e.g. spread, rapid, laser), introduced from Level 2 (owner approved 2026-10-17). Exact rules decided in M4 |
 | Hazards | Pits and one-way platforms. No slopes in v1 |
+| Double jump | **One extra jump in mid-air** (owner request 2026-10-17, roadmap M2.8). Restored on landing; also usable after walking off a ledge. Not in classic Contra; added for the platforming |
 | Story | **Minimal text**: one or two lines with a speaker portrait on the card between levels, plus intro and ending cards (owner decision 2026-10-17). Text lives in a data file |
 | Audio | **CC0 sound effects plus one music loop per level** (owner decision 2026-10-17). Each source needs owner approval and is listed in `CREDITS.md` |
 | Saving | Furthest level reached, best score, and volume settings in localStorage, safe if storage is unavailable |
