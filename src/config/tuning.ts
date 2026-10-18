@@ -207,3 +207,11 @@ export const TITLE = {
   /** The game's name, at four times the font's native size. */
   logoSize: '32px',
 } as const;
+
+/** Phone touch controls (M3.11). Sizes are in the page's CSS (src/style.css). */
+export const TOUCH = {
+  /** The stick counts as pushed past this share of its radius. */
+  stickDeadzone: 0.3,
+  /** The knob follows the thumb up to this share of the stick's radius. */
+  knobTravel: 0.55,
+} as const;

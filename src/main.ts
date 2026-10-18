@@ -3,6 +3,7 @@ import './style.css';
 import { BACKGROUND_COLOR, FONT, GAME_HEIGHT, GAME_WIDTH } from './config/tuning';
 import { integerZoom } from './logic/scaling';
 import { installFullscreenKey } from './systems/Fullscreen';
+import { TouchControls } from './systems/TouchControls';
 import { AssetPreviewScene } from './scenes/AssetPreviewScene';
 import { DialogueScene } from './scenes/DialogueScene';
 import { LevelScene } from './scenes/LevelScene';
@@ -38,7 +39,17 @@ export const game = new Phaser.Game({
 });
 
 const container = document.getElementById('game');
-if (container) installFullscreenKey(container);
+if (container) {
+  installFullscreenKey(container);
+  // On touch screens: the on-screen controls (M3.11), and landscape only (owner, 2026-10-18).
+  // In portrait the page shows "turn your phone sideways" (src/style.css) and the game waits.
+  if (TouchControls.install(container)) {
+    const portrait = window.matchMedia('(orientation: portrait)');
+    const follow = (): void => (portrait.matches ? game.pause() : game.resume());
+    portrait.addEventListener('change', follow);
+    follow();
+  }
+}
 
 window.addEventListener('resize', () => {
   const zoom = zoomForWindow();
