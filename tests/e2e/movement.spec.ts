@@ -102,12 +102,22 @@ test('tapping jump gives a clearly lower hop than holding it', async ({ page }) 
   await expect.poll(async () => (await player(page)).onFloor).toBe(true);
 
   const hopSampling = highestFeetY(page, 1000);
+  // Let go in the very frame the jump starts, from inside the page. Waiting outside it (even
+  // polling fast) can take several frames on a busy machine, which is a held jump, not a tap.
+  const releaseOnTakeOff = page.evaluate(async () => {
+    for (let i = 0; i < 600; i++) {
+      if ((window.__contro?.level()?.player.vy ?? 0) < 0) {
+        window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space', key: ' ' }));
+        return true;
+      }
+      await new Promise((r) => requestAnimationFrame(r));
+    }
+    return false;
+  });
   await page.keyboard.down('Space');
-  // Let go as soon as the jump has started. A fixed 60 ms wait could last several frames when
-  // the machine is busy, which is a held jump, not a tap.
-  await expect.poll(async () => (await player(page)).vy, { intervals: [5] }).toBeLessThan(0);
-  await page.keyboard.up('Space');
+  expect(await releaseOnTakeOff).toBe(true);
   const hop = 160 - (await hopSampling);
+  await page.keyboard.up('Space');
   await expect.poll(async () => (await player(page)).onFloor).toBe(true);
 
   expect(hop).toBeGreaterThan(5);

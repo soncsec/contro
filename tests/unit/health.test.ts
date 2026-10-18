@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HEALTH } from '../../src/config/tuning';
 import {
+  fallDeath,
   initialHealth,
   respawnPoint,
   stepHealth,
@@ -137,5 +138,22 @@ describe('respawnPoint', () => {
 
   it('works with no checkpoints', () => {
     expect(respawnPoint(start, [], 1000)).toBe(start);
+  });
+});
+
+describe('fallDeath', () => {
+  it('kills at once, even while invulnerable', () => {
+    const hurt = takeHit(fresh(), 1, HEALTH).state;
+    expect(hurt.invulnerableMs).toBeGreaterThan(0);
+    expect(fallDeath(hurt)).toMatchObject({ hp: 0, deadMs: 0, invulnerableMs: 0, lives: 3 });
+  });
+
+  it('leaves an already dead marine alone', () => {
+    const dead = takeHit({ ...fresh(), hp: 1 }, 1, HEALTH).state;
+    expect(fallDeath({ ...dead, deadMs: 500 })).toEqual({ ...dead, deadMs: 500 });
+  });
+
+  it('then respawns like any death', () => {
+    expect(stepHealth(fallDeath(fresh()), 1200, HEALTH).event).toBe('respawn');
   });
 });

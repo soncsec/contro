@@ -140,6 +140,51 @@ describe('jumping', () => {
   });
 });
 
+describe('dropping through a catwalk', () => {
+  const downJump: MovementInput = { ...jump, crouch: true, onPlatform: true };
+
+  it('down + jump on a catwalk drops instead of jumping', () => {
+    const r = stepMovement(initialMovement(), downJump, ground, FRAME, MOVEMENT);
+    expect(r.dropped).toBe(true);
+    expect(r.jumped).toBe(false);
+    expect(r.vy).toBeNull();
+  });
+
+  it('down + jump on solid ground is a normal jump', () => {
+    const r = stepMovement(
+      initialMovement(),
+      { ...downJump, onPlatform: false },
+      ground,
+      FRAME,
+      MOVEMENT,
+    );
+    expect(r.jumped).toBe(true);
+    expect(r.dropped).toBe(false);
+  });
+
+  it('jump without down on a catwalk is a normal jump', () => {
+    const r = stepMovement(
+      initialMovement(),
+      { ...jump, onPlatform: true },
+      ground,
+      FRAME,
+      MOVEMENT,
+    );
+    expect(r.jumped).toBe(true);
+  });
+
+  it('holding down + jump does not keep dropping: it needs a new press', () => {
+    const r = stepMovement(
+      initialMovement(),
+      { ...downJump, jumpPressed: false },
+      ground,
+      FRAME,
+      MOVEMENT,
+    );
+    expect(r.dropped).toBe(false);
+  });
+});
+
 describe('crouching', () => {
   it('stops the marine but lets him turn', () => {
     const r = stepMovement(

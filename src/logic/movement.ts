@@ -20,6 +20,8 @@ export interface MovementInput {
   jumpPressed: boolean;
   /** Crouching: the marine stays put but can still turn (default false). */
   crouch?: boolean;
+  /** Standing on a one-way platform (a catwalk) rather than solid ground (default false). */
+  onPlatform?: boolean;
 }
 
 export interface BodyState {
@@ -45,6 +47,8 @@ export interface MovementResult {
   /** New vertical speed, or null to leave it to gravity. */
   vy: number | null;
   jumped: boolean;
+  /** Down + jump on a catwalk: drop through it instead of jumping (as in Contra). */
+  dropped: boolean;
 }
 
 export const initialMovement = (): MovementState => ({
@@ -76,6 +80,17 @@ export function stepMovement(
       : prev.bufferedJumpMs + dt;
   if (bufferedJumpMs !== null && bufferedJumpMs > t.jumpBufferMs) bufferedJumpMs = null;
 
+  // Down + jump while crouched on a catwalk drops through it instead of jumping.
+  if (input.jumpPressed && input.crouch && input.onPlatform && body.onFloor) {
+    return {
+      state: { facing, airMs, bufferedJumpMs: null, jumpHeld: input.jump, jumping },
+      vx,
+      vy: null,
+      jumped: false,
+      dropped: true,
+    };
+  }
+
   const canJump = !jumping && (body.onFloor || airMs <= t.coyoteMs);
   if (bufferedJumpMs !== null && canJump) {
     return {
@@ -83,6 +98,7 @@ export function stepMovement(
       vx,
       vy: -t.jumpSpeed,
       jumped: true,
+      dropped: false,
     };
   }
 
@@ -95,5 +111,6 @@ export function stepMovement(
     vx,
     vy,
     jumped: false,
+    dropped: false,
   };
 }

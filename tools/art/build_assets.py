@@ -14,6 +14,7 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import aim  # noqa: E402
+import catwalk  # noqa: E402
 import png  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
@@ -35,6 +36,7 @@ PORTRAITS = "Warped/Misc/Warped Portraits Files/portraits with bg"
 #                          and pack them; the new barrel tips go to the generated muzzle file
 #   how = "aimbare:<glob>" the same, with any muzzle flash removed
 #   how = "rot45:<glob>:WxH" rotate each frame 45° up onto a W×H canvas (bullets, flashes)
+#   how = "draw:catwalk"   new tiles drawn by tools/art/catwalk.py in the colours of the source
 ASSETS = [
     ("assets/player/marine-idle.png", f"{MARINE}/Idle Gun/sprites", "pack:idle-gun*.png"),
     ("assets/player/marine-run.png", f"{MARINE}/Run with Gun/sprites", "pack:run-with-gun*.png"),
@@ -63,6 +65,7 @@ ASSETS = [
     ("assets/portraits/hive.png", f"{PORTRAITS}/base4.png", "copy"),
     ("assets/levels/corridor/back.png", "Warped/Environments/cyberpunk-corridor-files/PNG/back.png", "copy"),
     ("assets/levels/corridor/foreground.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor-foreground.png", "copy"),
+    ("assets/levels/corridor/catwalk.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "draw:catwalk"),
     ("assets/levels/corridor/tileset.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "copy"),
 ]
 
@@ -114,6 +117,9 @@ def build() -> list[tuple[str, str, str]]:
         if how == "copy":
             dest.write_bytes(source.read_bytes())
             rows.append((out, src, "unchanged"))
+        elif how == "draw:catwalk":
+            png.write(str(dest), catwalk.build(str(source)))
+            rows.append((out, src, "*drawn by Claude* (`tools/art/catwalk.py`): catwalk and pit tiles in this tileset's colours, pit edges reuse its floor pixels"))
         else:
             kind, pattern = how.split(":", 1)
             size = None

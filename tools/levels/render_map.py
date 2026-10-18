@@ -37,14 +37,21 @@ def main() -> None:
         for y in range(min(len(bg), len(canvas))):
             for x in range(len(canvas[0])):
                 canvas[y][x] = bg[y][x % len(bg[0])]
-    ts = m["tilesets"][0]
-    sheet = png.read(str(path.parent / ts["image"]))
+    sheets = [(ts, png.read(str(path.parent / ts["image"]))) for ts in m["tilesets"]]
+
+    def tile_source(gid: int):
+        for ts, sheet in reversed(sheets):
+            if gid >= ts["firstgid"]:
+                return ts, sheet
+        raise ValueError(f"gid {gid} has no tileset")
+
     for layer in m["layers"]:
         if layer["type"] != "tilelayer":
             continue
         for i, gid in enumerate(layer["data"]):
             if gid == 0:
                 continue
+            ts, sheet = tile_source(gid)
             t = gid - ts["firstgid"]
             sx, sy = (t % ts["columns"]) * tw, (t // ts["columns"]) * th
             dx, dy = (i % w) * tw, (i // w) * th

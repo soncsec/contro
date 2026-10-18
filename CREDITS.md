@@ -36,6 +36,7 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/portraits/hive.png` | `Warped/Misc/Warped Portraits Files/portraits with bg/base4.png` | unchanged |
 | `assets/levels/corridor/back.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/back.png` | unchanged |
 | `assets/levels/corridor/foreground.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor-foreground.png` | unchanged |
+| `assets/levels/corridor/catwalk.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png` | *drawn by Claude* (`tools/art/catwalk.py`): catwalk and pit tiles in this tileset's colours, pit edges reuse its floor pixels |
 | `assets/levels/corridor/tileset.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png` | unchanged |
 <!-- assets:end -->
 
