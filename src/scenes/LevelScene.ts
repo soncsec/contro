@@ -9,6 +9,7 @@ import {
   PLAYER_BODY,
   AIR_JUMP_RING_SQUASH,
   CHEAT_EXTRA_LIVES,
+  LEVEL_BANNER,
   SCORING,
   GRAVITY_Y,
   PARALLAX_BACK_FACTOR,
@@ -22,7 +23,7 @@ import { Enemies, type EnemySnapshot } from '../entities/Enemies';
 import { EnemyShots } from '../entities/EnemyShots';
 import { Hud } from '../entities/Hud';
 import { Player, type PlayerSnapshot } from '../entities/Player';
-import { afterExit } from '../logic/campaign';
+import { afterExit, levelLabel, stepFor } from '../logic/campaign';
 import { standingOn } from '../logic/ground';
 import { respawnPoint } from '../logic/health';
 import { addPoints, newRun, type ScoreState } from '../logic/score';
@@ -76,6 +77,9 @@ export interface LevelSnapshot {
   gameOver: boolean;
   score: { score: number; best: number };
   cheats: CheatState;
+  /** Current level and section shown in the HUD, e.g. "1-2". */
+  label: string;
+  bannerVisible: boolean;
   airJumps: number;
 }
 
@@ -105,6 +109,9 @@ export class LevelScene extends Phaser.Scene {
   private gameOver = false;
   private reachedX = 0;
   private hud!: Hud;
+  /** Current level and section, e.g. "1-2". */
+  private label = '';
+  private bannerVisible = false;
   private score: ScoreState = newRun(0);
   private cheats: CheatState = NO_CHEATS;
   /** The run as it was when this room started (for Restart room). */
@@ -241,7 +248,10 @@ export class LevelScene extends Phaser.Scene {
       if (o.active) this.effects.play('hit', o.x, o.y);
       this.enemyShots.remove(o);
     });
-    this.hud = new Hud(this);
+    const step = stepFor(CAMPAIGN, this.levelKey);
+    this.label = levelLabel(step);
+    this.hud = new Hud(this, this.label);
+    this.showLevelBanner(this.label, step.name);
 
     // Reaching the exit shows this room's card, then the next room.
     const { exit } = this.layout;
@@ -307,6 +317,46 @@ export class LevelScene extends Phaser.Scene {
 
   private respawnAt(): { x: number; y: number } {
     return respawnPoint(this.layout.playerStart, this.layout.checkpoints, this.reachedX);
+  }
+
+  /** "LEVEL 1-2" and the level's name across the middle of the screen, then fade out. */
+  private showLevelBanner(label: string, name: string): void {
+    const y = GAME_HEIGHT / 2 - 12;
+    const title = this.add
+      .text(GAME_WIDTH / 2, y, `LEVEL ${label}`, {
+        fontFamily: 'monospace',
+        fontSize: '16px',
+        color: '#ffd166',
+      })
+      .setOrigin(0.5);
+    const sub = this.add
+      .text(GAME_WIDTH / 2, y + 18, name, {
+        fontFamily: 'monospace',
+        fontSize: '8px',
+        color: '#4fe3c1',
+      })
+      .setOrigin(0.5);
+    // A dark band behind the text keeps it readable over any scenery.
+    const band = this.add
+      .rectangle(0, y - 14, GAME_WIDTH, 40, 0x07060d, 0.85)
+      .setOrigin(0)
+      .setScrollFactor(0)
+      .setDepth(99);
+    const banner = [band, title, sub];
+    title.setScrollFactor(0).setDepth(100);
+    sub.setScrollFactor(0).setDepth(100);
+    this.bannerVisible = true;
+    this.time.delayedCall(LEVEL_BANNER.showMs, () => {
+      this.tweens.add({
+        targets: banner,
+        alpha: 0,
+        duration: LEVEL_BANNER.fadeMs,
+        onComplete: () => {
+          for (const t of banner) t.destroy();
+          this.bannerVisible = false;
+        },
+      });
+    });
   }
 
   /** Out of lives: show GAME OVER, then restart this level with full lives. */
@@ -421,6 +471,8 @@ export class LevelScene extends Phaser.Scene {
       gameOver: this.gameOver,
       score: { score: this.score.score, best: this.score.best },
       cheats: this.cheats,
+      label: this.label,
+      bannerVisible: this.bannerVisible,
       airJumps: this.airJumps,
     };
   }

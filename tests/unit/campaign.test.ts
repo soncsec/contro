@@ -3,7 +3,13 @@ import { ASSETS, LEVELS } from '../../src/assets/manifest';
 import { CAMPAIGN } from '../../src/data/campaign';
 import { DIALOGUE, SPEAKERS } from '../../src/data/dialogue';
 import { DIALOGUE_CARD } from '../../src/config/tuning';
-import { afterExit, validateCampaign, validateCardText } from '../../src/logic/campaign';
+import {
+  afterExit,
+  levelLabel,
+  stepFor,
+  validateCampaign,
+  validateCardText,
+} from '../../src/logic/campaign';
 
 const levelKeys = LEVELS.map((l) => l.key);
 const cardIds = Object.keys(DIALOGUE);
@@ -33,8 +39,8 @@ describe('dialogue data', () => {
 
 describe('afterExit', () => {
   const steps = [
-    { level: 'a', exitCard: 'card-a' },
-    { level: 'b', exitCard: 'card-b' },
+    { level: 'a', exitCard: 'card-a', stage: 1, section: 1, name: 'ONE' },
+    { level: 'b', exitCard: 'card-b', stage: 1, section: 2, name: 'ONE' },
   ];
 
   it("shows the level's card and moves to the next level", () => {
@@ -51,19 +57,52 @@ describe('afterExit', () => {
 });
 
 describe('validateCampaign', () => {
+  const step = (level: string, stage: number, section: number, name = 'ONE') => ({
+    level,
+    exitCard: 'c',
+    stage,
+    section,
+    name,
+  });
+
   it('reports unknown levels and cards, repeats, and an empty campaign', () => {
     expect(validateCampaign([], ['a'], ['c'])).toEqual(['campaign is empty']);
     expect(
       validateCampaign(
-        [
-          { level: 'a', exitCard: 'c' },
-          { level: 'x', exitCard: 'y' },
-          { level: 'a', exitCard: 'c' },
-        ],
+        [step('a', 1, 1), { ...step('x', 1, 2), exitCard: 'y' }, step('a', 1, 3)],
         ['a'],
         ['c'],
       ),
     ).toEqual(['unknown level "x"', 'unknown card "y"', 'level "a" is listed twice']);
+  });
+
+  it('accepts levels numbered from 1 with sections from 1 in order', () => {
+    const ok = [step('a', 1, 1), step('b', 1, 2), step('c', 2, 1, 'TWO'), step('d', 2, 2, 'TWO')];
+    expect(validateCampaign(ok, ['a', 'b', 'c', 'd'], ['c'])).toEqual([]);
+  });
+
+  it('reports numbering gaps, out-of-order sections and mixed level names', () => {
+    expect(validateCampaign([step('a', 1, 2)], ['a'], ['c'])).toEqual(['"a" is 1-2, expected 1-1']);
+    expect(validateCampaign([step('a', 1, 1), step('b', 3, 1)], ['a', 'b'], ['c'])).toEqual([
+      '"b" is 3-1, expected 2-1',
+    ]);
+    expect(
+      validateCampaign([step('a', 1, 1), step('b', 1, 2, 'OTHER')], ['a', 'b'], ['c']),
+    ).toEqual(['level 1 has more than one name']);
+    expect(validateCampaign([step('a', 1, 1, ' ')], ['a'], ['c'])).toEqual([
+      '"a" has no level name',
+    ]);
+  });
+});
+
+describe('levelLabel and stepFor', () => {
+  it('labels a section like 1-2', () => {
+    expect(levelLabel({ stage: 1, section: 2 })).toBe('1-2');
+  });
+
+  it('finds the step for a map, and rejects an unknown one', () => {
+    expect(stepFor(CAMPAIGN, 'corridor-test-2')).toMatchObject({ stage: 1, section: 2 });
+    expect(() => stepFor(CAMPAIGN, 'nowhere')).toThrow(/not in the campaign/);
   });
 });
 
