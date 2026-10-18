@@ -40,6 +40,9 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 | Story | **Minimal text**: one or two lines with a speaker portrait on the card between levels, plus intro and ending cards (owner decision 2026-10-17). Text lives in a data file |
 | Audio | **CC0 sound effects plus one music loop per level** (owner decision 2026-10-17). Each source needs owner approval and is listed in `CREDITS.md` |
 | Saving | Furthest level reached, best score, and volume settings in localStorage, safe if storage is unavailable |
+| Scoring | **Points for each enemy destroyed** (walker 100, flyer 200, bosses more), shown in the HUD; best score saved. **Extra life at 20,000 and 50,000 points**, as in Contra. The score carries from room to room and resets on game over (owner request 2026-10-17, roadmap M2.9) |
+| Fullscreen | **F toggles fullscreen** (owner request 2026-10-17, roadmap M2.10) |
+| Cheat codes | Entered on the pause screen (owner request 2026-10-17, roadmap M2.11): **Konami code** (up up down down left right left right fire jump) for +5 lives, **invincibility** (hits and shots do nothing), **invisibility** (enemies don't aim or dive at you), **room skip**, and **all weapons** once pickups exist (M4). A cheat shows a marker on the HUD and stops the best score from being saved |
 | Screens | Title (with a link back to the portal), level intro card, game, pause, game over, continue, ending, credits |
 | Display | 320×176 game area at native pixel size, scaled by whole numbers with sharp pixels (confirmed in M1.2) |
 
