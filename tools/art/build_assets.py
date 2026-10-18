@@ -60,6 +60,9 @@ ASSETS = [
     ("assets/effects/enemy-death.png", "Explosions and Magic/EnemyDeath/spritesheet.png", "copy"),
     ("assets/effects/air-jump-ring.png", "Explosions and Magic/Grotto-escape-2-FX/spritesheets/slash-circular.png", "copy"),
     ("assets/effects/hit.png", "Explosions and Magic/Hit/hit.png", "copy"),
+    # Level 1 boss (M3.3): the tank, and the big explosion it goes up in
+    ("assets/enemies/tank.png", "Warped/Characters/tank-unit/Spritesheet.png", "copy"),
+    ("assets/effects/ground-explosion.png", "Explosions and Magic/Ground Explosion/spritesheet/explosion-animation.png", "copy"),
     ("assets/enemies/alien-flyer.png", "Warped/Characters/alien-flying-enemy/spritesheet.png", "copy"),
     ("assets/effects/enemy-shot.png", "Gothicvania/Misc/EnemyProjectile/spritesheet.png", "copy"),
     ("assets/enemies/alien-walker-idle.png", "Warped/Characters/alien-walking-enemy/Spritesheets/alien-enemy-idle.png", "copy"),

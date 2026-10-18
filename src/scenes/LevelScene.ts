@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { LEVELS } from '../assets/manifest';
 import {
   AIR_JUMP_RING_SQUASH,
+  BOSS_FIGHT,
   CHEAT_EXTRA_LIVES,
   DIALOGUE_CARD,
   FONT,
@@ -16,14 +17,17 @@ import {
   RIFLE_DAMAGE,
   SCORING,
 } from '../config/tuning';
+import { BOSSES, BOSS_TYPES } from '../data/bosses';
 import { CAMPAIGN } from '../data/campaign';
 import { ENEMIES, ENEMY_TYPES } from '../data/enemies';
+import { Boss, type BossSnapshot } from '../entities/Boss';
 import { Bullets } from '../entities/Bullets';
 import { Effects } from '../entities/Effects';
 import { Enemies, type EnemySnapshot } from '../entities/Enemies';
 import { EnemyShots } from '../entities/EnemyShots';
 import { Hud } from '../entities/Hud';
 import { Player, type PlayerSnapshot } from '../entities/Player';
+import { arenaLocked } from '../logic/boss';
 import { afterExit, levelLabel, stepFor } from '../logic/campaign';
 import { standingOn } from '../logic/ground';
 import { respawnPoint } from '../logic/health';
@@ -86,6 +90,8 @@ export interface LevelSnapshot {
   /** Left edge of the exit, in level pixels. */
   exitX: number;
   airJumps: number;
+  /** The boss fight, if this section has one (M3.2). */
+  boss: (BossSnapshot & { arenaLocked: boolean; defeated: boolean }) | null;
 }
 
 /** The first section of the campaign, when no section is named. */
@@ -125,6 +131,15 @@ export class LevelScene extends Phaser.Scene {
   private back: Phaser.GameObjects.TileSprite | null = null;
   /** Parallax scenery from the map's image layers, with how fast each scrolls. */
   private scenery: { sprite: Phaser.GameObjects.TileSprite; factor: number }[] = [];
+  /** Boss fight (M3.2): the boss, the wall that closes the arena behind the marine, state. */
+  private boss: Boss | null = null;
+  private arenaWall: Phaser.GameObjects.Zone | null = null;
+  private arenaIsLocked = false;
+  private bossDefeated = false;
+  /** Set once the boss's explosion has settled: the level ends as soon as he is alive. */
+  private levelWon = false;
+  /** Mortar landing markers, reused. */
+  private markers: Phaser.GameObjects.Rectangle[] = [];
 
   constructor() {
     super('Level');
@@ -143,12 +158,15 @@ export class LevelScene extends Phaser.Scene {
     this.exiting = false;
     this.gameOver = false;
     this.reachedX = 0;
+    this.arenaIsLocked = false;
+    this.bossDefeated = false;
+    this.levelWon = false;
   }
 
   create(): void {
     const level = LEVELS.find((l) => l.key === this.levelKey);
     if (!level) throw new Error(`unknown level ${this.levelKey}`);
-    this.layout = readLevelLayout(this.cache.tilemap.get(level.key)?.data, ENEMY_TYPES);
+    this.layout = readLevelLayout(this.cache.tilemap.get(level.key)?.data, ENEMY_TYPES, BOSS_TYPES);
     const { widthPx, heightPx } = this.layout;
 
     // Far background: fixed to the camera, scrolled slowly for depth.
@@ -262,9 +280,11 @@ export class LevelScene extends Phaser.Scene {
     });
     this.physics.add.overlap(this.enemyShots.group, solids, (orb) => {
       const o = orb as Orb;
-      if (o.active) this.effects.play('hit', o.x, o.y);
+      // A lobbed mortar shell bursts bigger where it lands.
+      if (o.active) this.effects.play(this.enemyShots.lobbed(o) ? 'enemy-death' : 'hit', o.x, o.y);
       this.enemyShots.remove(o);
     });
+    this.createBoss();
     const step = stepFor(CAMPAIGN, this.levelKey);
     this.label = levelLabel(step);
     this.hud = new Hud(this, this.label);
@@ -279,7 +299,10 @@ export class LevelScene extends Phaser.Scene {
       exit.height,
     );
     this.physics.add.existing(exitZone, true);
-    this.physics.add.overlap(this.player.sprite, exitZone, () => this.reachExit());
+    // A boss section's exit opens only once the boss is destroyed.
+    this.physics.add.overlap(this.player.sprite, exitZone, () => {
+      if (!this.boss || this.bossDefeated) this.reachExit();
+    });
 
     this.cameras.main.setBounds(0, 0, widthPx, heightPx);
     this.cameras.main.startFollow(this.player.sprite, true);
@@ -309,6 +332,8 @@ export class LevelScene extends Phaser.Scene {
     }
     if (!this.player.dead) this.reachedX = Math.max(this.reachedX, this.player.snapshot().x);
     if (event === 'respawn') {
+      // Dying in the boss fight starts it again from the checkpoint before the arena.
+      if (this.arenaIsLocked && !this.bossDefeated) this.unlockArena();
       const at = this.respawnAt();
       this.player.respawn(at.x, at.y);
     } else if (event === 'game-over') {
@@ -328,10 +353,108 @@ export class LevelScene extends Phaser.Scene {
     const target =
       p0.dead || this.cheats.invisible ? null : { x: p0.x, y: p0.feetY - PLAYER_BODY.height / 2 };
     for (const shot of this.enemies.update(deltaMs, target)) this.enemyShots.fire(shot);
+    this.updateBoss(deltaMs, target);
     this.enemyShots.update();
     const scrollX = this.cameras.main.scrollX;
     if (this.back) this.back.tilePositionX = scrollX * PARALLAX_BACK_FACTOR;
     for (const { sprite, factor } of this.scenery) sprite.tilePositionX = scrollX * factor;
+  }
+
+  /** The section's boss, if its map has one (M3.2): hits, touches, and the arena's wall. */
+  private createBoss(): void {
+    this.boss = null;
+    this.arenaWall = null;
+    this.markers = [];
+    const spawn = this.layout.boss;
+    if (!spawn) return;
+    const boss = (this.boss = new Boss(this, spawn, spawn.arena));
+    type Bullet = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+    this.physics.add.overlap(boss.sprite, this.bullets.group, (_boss, bullet) => {
+      const tip = this.bullets.absorb(bullet as Bullet);
+      if (!tip) return;
+      this.effects.play('hit', tip.x, tip.y, tip.direction < 0);
+      this.damageBoss(RIFLE_DAMAGE);
+    });
+    this.physics.add.overlap(this.player.sprite, boss.sprite, () => {
+      if (boss.dangerous) this.player.hurt(BOSSES[boss.type].contactDamage, boss.sprite.x);
+    });
+    // Closes behind the marine when the fight starts, so he can't leave the arena.
+    const { arena } = spawn;
+    const wall = (this.arenaWall = this.add.zone(arena.x - 8, arena.height / 2, 16, arena.height));
+    this.physics.add.existing(wall, true);
+    (wall.body as Phaser.Physics.Arcade.StaticBody).enable = false;
+    this.physics.add.collider(this.player.sprite, wall);
+  }
+
+  private damageBoss(amount: number): void {
+    if (!this.boss) return;
+    if (this.boss.damage(amount).destroyed) this.addScore(BOSSES[this.boss.type].points);
+  }
+
+  private updateBoss(deltaMs: number, target: { x: number; y: number } | null): void {
+    const boss = this.boss;
+    const spawn = this.layout.boss;
+    if (!boss || !spawn) return;
+    const p = this.player.snapshot();
+    if (!this.arenaIsLocked && !this.bossDefeated && !p.dead && arenaLocked(p.x, spawn.arena)) {
+      this.lockArena();
+    }
+    const stats = BOSSES[boss.type];
+    const r = boss.update(deltaMs, target);
+    for (const shot of r.shots) this.enemyShots.fire(shot);
+    for (const at of r.landings) this.markLanding(at, stats.mortar.flightMs);
+    for (const e of r.explosions) this.effects.play(stats.explosions.effect, e.x, e.y, false, 6);
+    const s = boss.snapshot();
+    if (this.arenaIsLocked && !this.bossDefeated) this.hud.boss(stats.name, s.hp / s.maxHp);
+    if (r.finished) {
+      this.bossDefeated = true;
+      this.hud.boss(null);
+      this.time.delayedCall(BOSS_FIGHT.finishDelayMs, () => (this.levelWon = true));
+    }
+    // The level ends once the explosion has settled (after a respawn, if a shell got him).
+    if (this.levelWon && !this.player.dead) this.reachExit();
+  }
+
+  /** The fight starts: the camera stays on the arena, its wall closes, the boss rolls in. */
+  private lockArena(): void {
+    const spawn = this.layout.boss;
+    if (!spawn || !this.boss) return;
+    this.arenaIsLocked = true;
+    const { arena } = spawn;
+    this.cameras.main.setBounds(arena.x, 0, arena.width, this.layout.heightPx);
+    if (this.arenaWall) (this.arenaWall.body as Phaser.Physics.Arcade.StaticBody).enable = true;
+    this.boss.start();
+  }
+
+  /** The marine died in the fight: open the arena and send the boss back to wait. */
+  private unlockArena(): void {
+    this.arenaIsLocked = false;
+    this.cameras.main.setBounds(0, 0, this.layout.widthPx, this.layout.heightPx);
+    if (this.arenaWall) (this.arenaWall.body as Phaser.Physics.Arcade.StaticBody).enable = false;
+    this.boss?.reset();
+    this.hud.boss(null);
+    for (const m of this.markers) m.setVisible(false);
+  }
+
+  /** A blinking mark on the floor where a mortar shell will land. */
+  private markLanding(at: { x: number; y: number }, flightMs: number): void {
+    let marker = this.markers.find((m) => !m.visible);
+    if (!marker) {
+      marker = this.add.rectangle(0, 0, 12, 3, 0xff4f4f).setOrigin(0.5, 1).setDepth(2);
+      this.markers.push(marker);
+    }
+    const m = marker;
+    this.tweens.killTweensOf(m);
+    m.setPosition(at.x, at.y).setVisible(true).setAlpha(1);
+    const blink = BOSS_FIGHT.markerBlinkMs;
+    this.tweens.add({
+      targets: m,
+      alpha: 0.2,
+      duration: blink,
+      yoyo: true,
+      repeat: Math.max(0, Math.floor(flightMs / (2 * blink)) - 1),
+      onComplete: () => m.setVisible(false),
+    });
   }
 
   private respawnAt(): { x: number; y: number } {
@@ -461,6 +584,11 @@ export class LevelScene extends Phaser.Scene {
     this.player.hurt(damage, p.x + (p.facing === 'left' ? -1 : 1));
   }
 
+  /** Test hook: hurt the boss as if hit by bullets. */
+  hurtBoss(damage: number): void {
+    this.damageBoss(damage);
+  }
+
   /** Test hook: move the player (feet stay on the same line). */
   teleportPlayer(x: number): void {
     this.player.teleport(x);
@@ -497,6 +625,11 @@ export class LevelScene extends Phaser.Scene {
       scenery: this.scenery.map((l) => l.sprite.texture.key),
       exitX: this.layout.exit.x,
       airJumps: this.airJumps,
+      boss: this.boss && {
+        ...this.boss.snapshot(),
+        arenaLocked: this.arenaIsLocked,
+        defeated: this.bossDefeated,
+      },
     };
   }
 }

@@ -208,6 +208,16 @@ export const TITLE = {
   logoSize: '32px',
 } as const;
 
+/** Boss fights (M3.2). Each boss's own numbers are data in src/data/bosses.ts. */
+export const BOSS_FIGHT = {
+  /** Seed for the boss's random choices (where mortar shells land, explosion spots). */
+  rngSeed: 1803,
+  /** After the boss's last explosion, the level ends this much later. */
+  finishDelayMs: 1500,
+  /** Mortar landing markers blink at this rate. */
+  markerBlinkMs: 120,
+} as const;
+
 /** Phone touch controls (M3.11). Sizes are in the page's CSS (src/style.css). */
 export const TOUCH = {
   /** The stick counts as pushed past this share of its radius. */

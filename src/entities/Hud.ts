@@ -14,6 +14,8 @@ const COLORS = {
 } as const;
 const LINE = 9;
 const DEPTH = 100;
+/** The boss's health bar, on the HUD's second line between CHEAT and the best score. */
+const BOSS_BAR = { x: 112, y: 16, width: 112, height: 5, fill: 0xff4f4f, back: 0x2a1418 } as const;
 
 /** Health pips and lives top-left, score and best score top-right, fixed to the screen. */
 export class Hud {
@@ -22,6 +24,9 @@ export class Hud {
   private readonly score: Phaser.GameObjects.Text;
   private readonly best: Phaser.GameObjects.Text;
   private readonly cheat: Phaser.GameObjects.Text;
+  private readonly bossName: Phaser.GameObjects.Text;
+  private readonly bossBack: Phaser.GameObjects.Rectangle;
+  private readonly bossFill: Phaser.GameObjects.Rectangle;
 
   /** `label` is the current level and section, e.g. "1-2", shown top centre (M2.14). */
   constructor(scene: Phaser.Scene, label: string) {
@@ -71,6 +76,35 @@ export class Hud {
       .setScrollFactor(0)
       .setDepth(DEPTH)
       .setVisible(false);
+    // Boss fights (M3.2): its name and a health bar, shown while the fight is on.
+    this.bossName = scene.add
+      .text(BOSS_BAR.x - 4, BOSS_BAR.y - 2, '', { ...style, color: COLORS.cheat })
+      .setOrigin(1, 0)
+      .setScrollFactor(0)
+      .setDepth(DEPTH)
+      .setVisible(false);
+    this.bossBack = scene.add
+      .rectangle(BOSS_BAR.x, BOSS_BAR.y, BOSS_BAR.width, BOSS_BAR.height, BOSS_BAR.back)
+      .setOrigin(0)
+      .setStrokeStyle(1, COLORS.border)
+      .setScrollFactor(0)
+      .setDepth(DEPTH)
+      .setVisible(false);
+    this.bossFill = scene.add
+      .rectangle(BOSS_BAR.x, BOSS_BAR.y, BOSS_BAR.width, BOSS_BAR.height, BOSS_BAR.fill)
+      .setOrigin(0)
+      .setScrollFactor(0)
+      .setDepth(DEPTH)
+      .setVisible(false);
+  }
+
+  /** Shows the boss's name and health (share of full health, 0–1); null hides them. */
+  boss(name: string | null, share = 1): void {
+    const on = name !== null;
+    this.bossName.setVisible(on).setText(name ?? '');
+    this.bossBack.setVisible(on);
+    this.bossFill.setVisible(on && share > 0);
+    this.bossFill.width = Math.round(BOSS_BAR.width * Math.max(0, Math.min(1, share)));
   }
 
   update(hp: number, lives: number, score: number, best: number, cheated: boolean): void {

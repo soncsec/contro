@@ -11,7 +11,7 @@
  "tilewidth": 16,
  "tileheight": 16,
  "nextlayerid": 20,
- "nextobjectid": 68,
+ "nextobjectid": 67,
  "layers": [
   {
    "id": 1,
@@ -4808,44 +4808,6 @@
      "id": 55,
      "name": "",
      "type": "enemy",
-     "x": 2528,
-     "y": 136,
-     "width": 0,
-     "height": 0,
-     "rotation": 0,
-     "visible": true,
-     "point": true,
-     "properties": [
-      {
-       "name": "enemy",
-       "type": "string",
-       "value": "alien-walker"
-      }
-     ]
-    },
-    {
-     "id": 56,
-     "name": "",
-     "type": "enemy",
-     "x": 2624,
-     "y": 136,
-     "width": 0,
-     "height": 0,
-     "rotation": 0,
-     "visible": true,
-     "point": true,
-     "properties": [
-      {
-       "name": "enemy",
-       "type": "string",
-       "value": "alien-walker"
-      }
-     ]
-    },
-    {
-     "id": 57,
-     "name": "",
-     "type": "enemy",
      "x": 480,
      "y": 40,
      "width": 0,
@@ -4862,7 +4824,7 @@
      ]
     },
     {
-     "id": 58,
+     "id": 56,
      "name": "",
      "type": "enemy",
      "x": 960,
@@ -4881,7 +4843,7 @@
      ]
     },
     {
-     "id": 59,
+     "id": 57,
      "name": "",
      "type": "enemy",
      "x": 1376,
@@ -4900,7 +4862,7 @@
      ]
     },
     {
-     "id": 60,
+     "id": 58,
      "name": "",
      "type": "enemy",
      "x": 1600,
@@ -4919,7 +4881,7 @@
      ]
     },
     {
-     "id": 61,
+     "id": 59,
      "name": "",
      "type": "enemy",
      "x": 1984,
@@ -4938,7 +4900,7 @@
      ]
     },
     {
-     "id": 62,
+     "id": 60,
      "name": "",
      "type": "enemy",
      "x": 2400,
@@ -4957,26 +4919,7 @@
      ]
     },
     {
-     "id": 63,
-     "name": "",
-     "type": "enemy",
-     "x": 2560,
-     "y": 30,
-     "width": 0,
-     "height": 0,
-     "rotation": 0,
-     "visible": true,
-     "point": true,
-     "properties": [
-      {
-       "name": "enemy",
-       "type": "string",
-       "value": "alien-flyer"
-      }
-     ]
-    },
-    {
-     "id": 64,
+     "id": 61,
      "name": "",
      "type": "checkpoint",
      "x": 848,
@@ -4988,7 +4931,7 @@
      "point": true
     },
     {
-     "id": 65,
+     "id": 62,
      "name": "",
      "type": "checkpoint",
      "x": 1632,
@@ -5000,7 +4943,7 @@
      "point": true
     },
     {
-     "id": 66,
+     "id": 63,
      "name": "",
      "type": "checkpoint",
      "x": 2272,
@@ -5012,13 +4955,43 @@
      "point": true
     },
     {
-     "id": 67,
+     "id": 64,
      "name": "",
      "type": "exit",
      "x": 2800,
      "y": 72,
      "width": 64,
      "height": 64,
+     "rotation": 0,
+     "visible": true
+    },
+    {
+     "id": 65,
+     "name": "",
+     "type": "boss",
+     "x": 2816,
+     "y": 136,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "boss",
+       "type": "string",
+       "value": "tank"
+      }
+     ]
+    },
+    {
+     "id": 66,
+     "name": "",
+     "type": "arena",
+     "x": 2560,
+     "y": 0,
+     "width": 320,
+     "height": 176,
      "rotation": 0,
      "visible": true
     }

@@ -34,8 +34,8 @@ const SECTIONS = [
     key: 'steelworks-5',
     name: 'the furnace hall',
     tiles: 180,
-    walkers: 26,
-    flyers: 7,
+    walkers: 24,
+    flyers: 6,
     outdoor: false,
   },
 ] as const;
