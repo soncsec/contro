@@ -161,4 +161,9 @@ export const LEVELS: readonly LevelAsset[] = [
     path: 'assets/levels/steelworks-4.tmj',
     tilesets: { steelworks: 'steelworks-tileset' },
   },
+  {
+    key: 'steelworks-5',
+    path: 'assets/levels/steelworks-5.tmj',
+    tilesets: { rust: 'rust-tileset' },
+  },
 ];

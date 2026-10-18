@@ -116,6 +116,24 @@ LAYOUTS = {
         "start": 3,
         "exit": 165,
     },
+    # 1-5: the furnace hall, the last section, in rust. An upper route of ledges and walkways
+    # that link up over a lower path with pits, then a long flat floor at the end: the arena
+    # where the Level 1 boss will wait (M3.2–M3.3). Until then, a last rush of walkers.
+    "furnace": {
+        "width": 180,
+        "tileset": "rust",
+        "indoor": True,
+        "floor": [(0, 30), (33, 50), (53, 76), (79, 96), (99, 118), (121, 140), (142, 180)],
+        "blocks": [(12, 16, 6), (16, 20, 4), (20, 24, 6), (40, 46, 5), (62, 66, 6), (66, 70, 4),
+                   (86, 92, 6), (104, 108, 5), (108, 112, 3), (112, 116, 6), (128, 134, 5)],
+        "walkways": [(26, 10, 5), (54, 7, 5), (72, 12, 4), (94, 8, 5), (118, 9, 4)],
+        "walkers": [8, 14, 18, 28, "29g", 38, 44, 56, "57g", 64, 68, 74, 82, "83g", 90, 97, 106,
+                    110, 120, "124g", 131, 137, 146, 152, 158, 164],
+        "flyers": [(30, 40), (60, 36), (86, 30), (100, 40), (124, 34), (150, 40), (160, 30)],
+        "checkpoints": [53, 102, 142],
+        "start": 3,
+        "exit": 175,
+    },
 }
 
 

@@ -30,6 +30,14 @@ const SECTIONS = [
     outdoor: false,
   },
   { key: 'steelworks-4', name: 'the gantries', tiles: 170, walkers: 20, flyers: 6, outdoor: true },
+  {
+    key: 'steelworks-5',
+    name: 'the furnace hall',
+    tiles: 180,
+    walkers: 26,
+    flyers: 7,
+    outdoor: false,
+  },
 ] as const;
 
 SECTIONS.forEach((section, i) => {
