@@ -77,3 +77,10 @@ describe('weaponForFrame (M3.4: holding the on-screen FIRE auto-fires)', () => {
     });
   });
 });
+
+describe('weaponForFrame with an automatic weapon (M4.1)', () => {
+  it('keeps the machine gun at its own rate on a touch screen', () => {
+    const mg = { autoFire: true, autoIntervalMs: 100, tapMinMs: 90 };
+    expect(weaponForFrame(mg, true, 160)).toBe(mg);
+  });
+});

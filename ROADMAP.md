@@ -112,7 +112,7 @@
 
 **Demonstrable result:** Levels 1–2 playable back to back.
 
-- [ ] M4.1 Weapon pickups (2–3 types, rules decided here) with unit tests. One is the **machine gun** (issue #21): auto-fires while fire is held, at its own rate in `tuning.ts`
+- [x] M4.1 Weapon pickups with unit tests. Owner decisions 2026-10-19: **two pickups, the machine gun and the spread, dropped by a blimp** the marine shoots (one shot brings it down), as in Contra's pods. The **machine gun** (issue #21) auto-fires while fire is held (every 100 ms); the **spread** fires three bullets 15° apart. A pickup replaces the rifle until the marine loses a life, carries between sections and shows after the lives in the HUD; each weapon has its own bullet limit. Art drawn by Claude and approved after four mockups: the **blimp** (`tools/art/blimp.py`: dark gunmetal hull, bronze ribs following its curve, engines, braced fins; right- and left-facing sheets so its number always reads 07) flies across in a slow wave once a map's `blimp` point is in view; its **letter** (`tools/art/letters.py`: a coloured, outlined, textured M or S) pops up, lands and is collected by walking into it. Placed in Level 1 so it can be played now (owner, 2026-10-19): a machine-gun blimp in 1-3, a spread blimp in 1-5 before the tank
 - [ ] M4.2 Bipedal walker enemy
 - [ ] M4.3 Level 2: **at least 5 varied sections, about 5–8 minutes including the boss**, with props, **multi-level ground**, and a change of scenery (e.g. the Scifi lab or Synth City art)
 - [ ] M4.4 Mech boss

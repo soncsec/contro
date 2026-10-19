@@ -14,7 +14,9 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import aim  # noqa: E402
+import blimp  # noqa: E402
 import catwalk  # noqa: E402
+import letters  # noqa: E402
 import rust  # noqa: E402
 import steelworks  # noqa: E402
 import png  # noqa: E402
@@ -74,6 +76,11 @@ ASSETS = [
     ("assets/portraits/hive.png", f"{PORTRAITS}/base4.png", "copy"),
     ("assets/levels/corridor/back.png", "Warped/Environments/cyberpunk-corridor-files/PNG/back.png", "copy"),
     ("assets/levels/corridor/foreground.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor-foreground.png", "copy"),
+    # M4.1 weapon pickups: the blimp that carries them and the letters it drops (drawn by Claude)
+    ("assets/enemies/blimp.png", "", "draw:blimp"),
+    ("assets/enemies/blimp-left.png", "", "draw:blimp-left"),
+    ("assets/effects/pickup-machine-gun.png", "", "draw:letter-M"),
+    ("assets/effects/pickup-spread.png", "", "draw:letter-S"),
     ("assets/levels/corridor/catwalk.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "draw:catwalk"),
     ("assets/levels/corridor/tileset.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "copy"),
     # Level 1 Industrial (owner chose option B, teal steelworks, 2026-10-18)
@@ -140,6 +147,13 @@ def build() -> list[tuple[str, str, str]]:
         elif how == "rust":
             png.write(str(dest), rust.build(str(source / "v2/PNG/bg-wall-with-supports.png"), str(source / "v2/PNG/floor.png"), str(source / "v1/layers/bulkhead-walls-platform.png")))
             rows.append((out, f"{src}/v2/PNG/bg-wall-with-supports.png, v2/PNG/floor.png, v1/layers/bulkhead-walls-platform.png", "*derived*: v2 wall (ceiling cropped off) and floor, pixels unchanged; the v1 scaffold walkway recoloured with v2 colours; under-floor panels and pit tiles *drawn by Claude* in the v2 colours (`tools/art/rust.py`)"))
+        elif how in ("draw:blimp", "draw:blimp-left"):
+            png.write(str(dest), blimp.build(left_facing=how.endswith("left")))
+            rows.append((out, "—", "*drawn by Claude* (`tools/art/blimp.py`): the weapon blimp, 2 frames (owner approved the design 2026-10-19)"))
+        elif how.startswith("draw:letter-"):
+            letter = how.split("-", 1)[1]
+            png.write(str(dest), letters.build(letter))
+            rows.append((out, "—", f"*drawn by Claude* (`tools/art/letters.py`): the {letter} pickup, in the style of Press Start 2P (owner approved 2026-10-19)"))
         elif how == "draw:catwalk":
             png.write(str(dest), catwalk.build(str(source)))
             rows.append((out, src, "*drawn by Claude* (`tools/art/catwalk.py`): catwalk and pit tiles in this tileset's colours, pit edges reuse its floor pixels"))
