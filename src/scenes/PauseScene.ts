@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { FONT, GAME_HEIGHT, GAME_WIDTH } from '../config/tuning';
 import { ACTION_CHEATS, CheatMatcher, WORD_CHEATS, type CheatId } from '../logic/cheats';
 import { stepMenu } from '../logic/menu';
+import { GameSound } from '../systems/GameSound';
 import { PlayerInput } from '../systems/PlayerInput';
 import type { LevelScene } from './LevelScene';
 
@@ -9,7 +10,7 @@ export interface PauseSceneData {
   level: string;
 }
 
-export const PAUSE_OPTIONS = ['RESUME', 'RESTART ROOM'] as const;
+export const PAUSE_OPTIONS = ['RESUME', 'RESTART ROOM', 'SOUND'] as const;
 export type PauseOption = (typeof PAUSE_OPTIONS)[number];
 
 const TEXT = { fontFamily: FONT.family, fontSize: FONT.size } as const;
@@ -22,7 +23,7 @@ const COLORS = {
   selected: '#e6eef7',
   cheat: '#ff4fd8',
 };
-const PANEL = { width: 120, height: 78 } as const;
+const PANEL = { width: 120, height: 92 } as const;
 const DIM_ALPHA = 0.6;
 const LINE = 14;
 
@@ -58,7 +59,7 @@ export class PauseScene extends Phaser.Scene {
     this.add
       .rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, PANEL.width, PANEL.height, COLORS.panel)
       .setStrokeStyle(1, COLORS.border);
-    const top = GAME_HEIGHT / 2 - LINE * 1.5;
+    const top = GAME_HEIGHT / 2 - LINE * 2;
     this.add.text(GAME_WIDTH / 2, top, 'PAUSED', { ...TEXT, color: COLORS.title }).setOrigin(0.5);
     PAUSE_OPTIONS.forEach((label, i) => {
       this.items.push(
@@ -66,7 +67,7 @@ export class PauseScene extends Phaser.Scene {
       );
     });
     this.message = this.add
-      .text(GAME_WIDTH / 2, top + LINE * 3.6, '', { ...TEXT, color: COLORS.cheat })
+      .text(GAME_WIDTH / 2, top + LINE * 4.6, '', { ...TEXT, color: COLORS.cheat })
       .setOrigin(0.5);
 
     this.controls = new PlayerInput(this);
@@ -102,6 +103,7 @@ export class PauseScene extends Phaser.Scene {
     const step = stepMenu(this.index, PAUSE_OPTIONS.length, menuInput);
     if (step.index !== this.index) {
       this.index = step.index;
+      GameSound.play('sfx-blip');
       this.render();
     }
     if (step.back) this.resume();
@@ -129,6 +131,13 @@ export class PauseScene extends Phaser.Scene {
 
   private choose(option: PauseOption): void {
     if (option === 'RESUME') return this.resume();
+    if (option === 'SOUND') {
+      // Sound on or off, remembered for next time (M3.6).
+      GameSound.setOn(!GameSound.on);
+      GameSound.play('sfx-select');
+      this.render();
+      return;
+    }
     this.scene.stop();
     // Restart with the score and lives this room was entered with.
     const level = this.scene.get('Level') as LevelScene;
@@ -144,7 +153,9 @@ export class PauseScene extends Phaser.Scene {
   private render(): void {
     this.items.forEach((item, i) => {
       const on = i === this.index;
-      item.setText(`${on ? '> ' : '  '}${PAUSE_OPTIONS[i] ?? ''}${on ? ' <' : '  '}`);
+      const option = PAUSE_OPTIONS[i] ?? '';
+      const label = option === 'SOUND' ? `SOUND ${GameSound.on ? 'ON' : 'OFF'}` : option;
+      item.setText(`${on ? '> ' : '  '}${label}${on ? ' <' : '  '}`);
       item.setColor(on ? COLORS.selected : COLORS.option);
     });
   }

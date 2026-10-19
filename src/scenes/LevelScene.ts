@@ -35,6 +35,8 @@ import { BossFight, type BossFightSnapshot } from '../systems/BossFight';
 import { showGameOverText, showLevelBanner } from '../systems/LevelOverlays';
 import { PlayerInput } from '../systems/PlayerInput';
 import { RunnerSpawners } from '../systems/RunnerSpawners';
+import { GameSound } from '../systems/GameSound';
+import type { MusicKey } from '../assets/manifest';
 import { Blimps, type BlimpSnapshot, type PickupSnapshot } from '../entities/Blimps';
 import {
   BLIMP,
@@ -249,6 +251,8 @@ export class LevelScene extends Phaser.Scene {
       this.runAtStart?.weapon ?? 'rifle',
     );
     this.player.invincible = this.cheats.invincible;
+    this.player.onHurt = (result) =>
+      GameSound.play(result === 'died' ? 'sfx-player-die' : 'sfx-hurt');
     this.physics.add.collider(this.player.sprite, solids);
     // Down + jump drops through a catwalk for a moment.
     this.physics.add.collider(
@@ -272,6 +276,7 @@ export class LevelScene extends Phaser.Scene {
     this.bullets = new Bullets(this);
 
     this.enemies = new Enemies(this, this.layout.enemies, (type, x, y) => {
+      GameSound.play('sfx-enemy-die');
       this.effects.play(ENEMIES[type].deathEffect, x, y);
       this.addScore(ENEMIES[type].points);
     });
@@ -279,7 +284,10 @@ export class LevelScene extends Phaser.Scene {
     this.physics.add.overlap(this.bullets.group, this.enemies.group, (bullet, enemy) => {
       const tip = this.bullets.absorb(bullet as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody);
       if (!tip) return;
+      const before = this.enemies.alive;
       this.enemies.damage(enemy as Phaser.GameObjects.GameObject, RIFLE_DAMAGE);
+      // A hit that doesn't kill clanks; a kill plays the enemy's death sound instead.
+      if (this.enemies.alive === before) GameSound.play('sfx-enemy-hit');
       this.effects.play('hit', tip.x, tip.y, tip.direction < 0);
     });
 
@@ -289,7 +297,10 @@ export class LevelScene extends Phaser.Scene {
       if (damage > 0) this.player.hurt(damage, (enemy as Phaser.GameObjects.Sprite).x);
     });
     // Enemy shots hurt the marine; a lobbed mortar shell bursts bigger where it was aimed.
-    this.enemyShots = new EnemyShots(this, (x, y) => this.effects.play('enemy-death', x, y));
+    this.enemyShots = new EnemyShots(this, (x, y) => {
+      GameSound.play('sfx-blast');
+      this.effects.play('enemy-death', x, y);
+    });
     type Orb = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     this.physics.add.overlap(this.player.sprite, this.enemyShots.group, (_player, orb) => {
       const o = orb as Orb;
@@ -315,10 +326,14 @@ export class LevelScene extends Phaser.Scene {
       hud: this.hud,
       addScore: (points) => this.addScore(points),
       win: () => this.reachExit(),
+      levelMusic: step.music as MusicKey | null,
     });
     this.spawners = new RunnerSpawners(this.layout, this.enemies);
+    // The level's music; it keeps playing from one section to the next (M3.6).
+    GameSound.music(step.music as MusicKey | null);
     // Weapon blimps and the letters they drop (M4.1).
     this.blimps = new Blimps(this, this.layout.blimps, (x, y) => {
+      GameSound.play('sfx-blast');
       this.effects.play('enemy-death', x, y);
       this.addScore(BLIMP.points);
     });
@@ -332,7 +347,9 @@ export class LevelScene extends Phaser.Scene {
     this.physics.add.overlap(this.player.sprite, this.blimps.pickupGroup, (_player, pickup) => {
       if (this.player.dead) return;
       const weapon = this.blimps.collect(pickup as Phaser.GameObjects.GameObject);
-      if (weapon) this.player.weaponType = weapon;
+      if (!weapon) return;
+      this.player.weaponType = weapon;
+      GameSound.play('sfx-extra-life');
     });
 
     // Reaching the exit shows this room's card, then the next room.
@@ -370,7 +387,7 @@ export class LevelScene extends Phaser.Scene {
     const { shot, airJump, event } = this.player.update(deltaMs, this.exiting ? NO_INPUT : input, {
       onPlatform: ground === 'platform',
     });
-    if (shot) this.bullets.fire(shot);
+    if (shot && this.bullets.fire(shot)) GameSound.play('sfx-shot');
     if (airJump) {
       this.airJumps++;
       this.effects.play('air-jump-ring', airJump.x, airJump.y, false, 4, AIR_JUMP_RING_SQUASH);
@@ -399,7 +416,7 @@ export class LevelScene extends Phaser.Scene {
       p0.dead || this.cheats.invisible ? null : { x: p0.x, y: p0.feetY - PLAYER_BODY.height / 2 };
     const view = { left: this.cameras.main.scrollX, right: this.cameras.main.scrollX + GAME_WIDTH };
     for (const shot of this.enemies.update(deltaMs, target, view, this.layout.heightPx)) {
-      this.enemyShots.fire(shot);
+      if (this.enemyShots.fire(shot)) GameSound.play('sfx-enemy-shot');
     }
     this.spawners.update(deltaMs, view);
     this.blimps.update(deltaMs, view, this.layout.heightPx);
@@ -418,6 +435,7 @@ export class LevelScene extends Phaser.Scene {
   private showGameOver(): void {
     if (this.gameOver) return;
     this.gameOver = true;
+    GameSound.music(null);
     showGameOverText(this);
     this.time.delayedCall(HEALTH.gameOverMs, () => {
       this.cameras.main.fadeOut(DIALOGUE_CARD.fadeMs);
@@ -454,7 +472,10 @@ export class LevelScene extends Phaser.Scene {
     const best = this.cheats.used ? this.score.best : r.state.best;
     const newBest = best > this.score.best;
     this.score = { ...r.state, best };
-    if (r.extraLives > 0) this.player.addLives(r.extraLives);
+    if (r.extraLives > 0) {
+      this.player.addLives(r.extraLives);
+      GameSound.play('sfx-extra-life');
+    }
     if (newBest) SaveStore.update((save) => ({ ...save, bestScore: this.score.best }));
   }
 

@@ -7,7 +7,9 @@ import type { Effects } from '../entities/Effects';
 import type { EnemyShots } from '../entities/EnemyShots';
 import type { Hud } from '../entities/Hud';
 import type { Player } from '../entities/Player';
+import type { MusicKey } from '../assets/manifest';
 import { arenaLocked } from '../logic/boss';
+import { GameSound } from './GameSound';
 import type { LevelLayout } from '../logic/levelMap';
 
 /** What the boss fight needs from the level scene. */
@@ -22,6 +24,8 @@ export interface BossFightHost {
   addScore(points: number): void;
   /** The level is won: leave by the exit. */
   win(): void;
+  /** The level's music, back on if the marine dies in the fight (M3.6). */
+  levelMusic: MusicKey | null;
 }
 
 export type BossFightSnapshot = BossSnapshot & { arenaLocked: boolean; defeated: boolean };
@@ -85,14 +89,20 @@ export class BossFight {
     if (!this.locked && !this.defeated && !p.dead && arenaLocked(p.x, arena)) this.lock();
     const stats = BOSSES[this.boss.type];
     const r = this.boss.update(deltaMs, target);
-    for (const shot of r.shots) enemyShots.fire(shot);
+    for (const shot of r.shots) {
+      if (enemyShots.fire(shot)) GameSound.play(shot.gravity ? 'sfx-mortar' : 'sfx-cannon');
+    }
     for (const at of r.landings) this.markLanding(at, stats.mortar.flightMs);
-    for (const e of r.explosions) effects.play(stats.explosions.effect, e.x, e.y, false, 6);
+    for (const e of r.explosions) {
+      GameSound.play('sfx-boss-blast');
+      effects.play(stats.explosions.effect, e.x, e.y, false, 6);
+    }
     const s = this.boss.snapshot();
     if (this.locked && !this.defeated) hud.boss(stats.name, s.hp / s.maxHp);
     if (r.finished) {
       this.defeated = true;
       hud.boss(null);
+      GameSound.music(null);
       this.host.scene.time.delayedCall(BOSS_FIGHT.finishDelayMs, () => (this.won = true));
     }
     // The level ends once the explosion has settled (after a respawn, if a shell got him).
@@ -116,6 +126,7 @@ export class BossFight {
     scene.cameras.main.setBounds(arena.x, 0, arena.width, layout.heightPx);
     (this.wall.body as Phaser.Physics.Arcade.StaticBody).enable = true;
     this.boss.start();
+    GameSound.music('music-boss');
   }
 
   /** Open the arena and send the boss back to wait. */
@@ -126,6 +137,7 @@ export class BossFight {
     (this.wall.body as Phaser.Physics.Arcade.StaticBody).enable = false;
     this.boss.reset();
     hud.boss(null);
+    GameSound.music(this.host.levelMusic);
     for (const m of this.markers) m.setVisible(false);
   }
 

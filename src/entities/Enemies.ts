@@ -65,6 +65,11 @@ export class Enemies {
   readonly group: Phaser.Physics.Arcade.Group;
   private readonly records: EnemyRecord[] = [];
 
+  /** Enemies alive right now. */
+  get alive(): number {
+    return this.records.filter((r) => r.sprite.active).length;
+  }
+
   /** Runners sent in so far (for tests). */
   runnersSpawned = 0;
 

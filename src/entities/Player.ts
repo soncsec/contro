@@ -170,12 +170,16 @@ export class Player {
   }
 
   /** Takes a hit from something at sourceX: loses health, is knocked away, or dies. */
+  /** Called when a hit lands or the marine dies (the level plays a sound, M3.6). */
+  onHurt: (result: 'hurt' | 'died') => void = () => {};
+
   hurt(damage: number, sourceX: number): HitResult {
     // Invincible (cheat): hits do nothing. Pits still kill (see fall()).
     if (this.invincible) return 'ignored';
     const r = takeHit(this.health, damage, HEALTH);
     this.health = r.state;
     if (r.result === 'ignored') return r.result;
+    this.onHurt(r.result);
     this.flash.setVisible(false);
     if (r.result === 'died') {
       this.sprite.body.setVelocity(0, Math.min(this.sprite.body.velocity.y, 0));
@@ -223,6 +227,7 @@ export class Player {
   fall(): void {
     if (this.dead) return;
     this.health = fallDeath(this.health);
+    this.onHurt('died');
     this.flash.setVisible(false);
     this.sprite.body.stop();
     this.sprite.body.setAllowGravity(false);

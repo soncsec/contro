@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { BACKGROUND_COLOR, CONTINUE, FONT, GAME_WIDTH, HEALTH } from '../config/tuning';
 import { continueOptions, useContinue, type ContinueOption } from '../logic/continues';
-import { stepMenu } from '../logic/menu';
+import { stepMenu, shownFor } from '../logic/menu';
 import { formatScore } from '../logic/score';
+import { GameSound } from '../systems/GameSound';
 import { PlayerInput } from '../systems/PlayerInput';
 import type { LevelSceneData } from './LevelScene';
 
@@ -92,7 +93,7 @@ export class ContinueScene extends Phaser.Scene {
   }
 
   override update(_time: number, deltaMs: number): void {
-    this.shownMs += deltaMs;
+    this.shownMs = shownFor(this.shownMs, deltaMs);
     const { pressed } = this.controls.frame();
     if (this.leaving || this.shownMs < CONTINUE.inputDelayMs) return;
     if (this.options.length === 0) {
@@ -102,6 +103,7 @@ export class ContinueScene extends Phaser.Scene {
     const step = stepMenu(this.index, this.options.length, pressed);
     if (step.index !== this.index) {
       this.index = step.index;
+      GameSound.play('sfx-blip');
       this.highlight();
     }
     if (step.choose) this.leave(this.options[this.index] ?? 'QUIT');
@@ -118,6 +120,7 @@ export class ContinueScene extends Phaser.Scene {
 
   private leave(option: ContinueOption): void {
     this.leaving = true;
+    GameSound.play('sfx-select');
     this.cameras.main.fadeOut(CONTINUE.fadeMs);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       if (option === 'QUIT') {

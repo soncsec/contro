@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { ASSETS, LEVELS, animKey } from '../assets/manifest';
+import { ASSETS, LEVELS, SOUNDS, animKey } from '../assets/manifest';
+import { GameSound } from '../systems/GameSound';
 
 /** Loads every asset and level map in the manifest and registers each sheet's default animation. */
 export class PreloadScene extends Phaser.Scene {
@@ -18,6 +19,8 @@ export class PreloadScene extends Phaser.Scene {
         this.load.image(asset.key, asset.path);
       }
     }
+    // Each sound as OGG with an M4A copy; Phaser picks the one this browser can play (M3.6).
+    for (const s of SOUNDS) this.load.audio(s.key, [...s.paths]);
     // The training corridor test rooms are only part of the e2e build's campaign.
     const e2e = import.meta.env.MODE === 'e2e';
     for (const level of LEVELS) {
@@ -26,6 +29,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   create(): void {
+    GameSound.install(this.sound);
     for (const asset of ASSETS) {
       if (asset.kind !== 'sheet') continue;
       this.anims.create({

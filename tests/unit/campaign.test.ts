@@ -86,10 +86,42 @@ const steps = flattenCampaign(levels);
 describe('flattenCampaign', () => {
   it('lists every section in order with its level number and name', () => {
     expect(steps).toEqual([
-      { level: 'a', stage: 1, section: 1, name: 'ONE', exitCard: null, introCard: 'intro-1' },
-      { level: 'b', stage: 1, section: 2, name: 'ONE', exitCard: 'end-1', introCard: null },
-      { level: 'c', stage: 2, section: 1, name: 'TWO', exitCard: 'end-2', introCard: 'intro-2' },
-      { level: 'd', stage: 3, section: 1, name: 'THREE', exitCard: 'end-3', introCard: null },
+      {
+        level: 'a',
+        stage: 1,
+        section: 1,
+        name: 'ONE',
+        exitCard: null,
+        introCard: 'intro-1',
+        music: null,
+      },
+      {
+        level: 'b',
+        stage: 1,
+        section: 2,
+        name: 'ONE',
+        exitCard: 'end-1',
+        introCard: null,
+        music: null,
+      },
+      {
+        level: 'c',
+        stage: 2,
+        section: 1,
+        name: 'TWO',
+        exitCard: 'end-2',
+        introCard: 'intro-2',
+        music: null,
+      },
+      {
+        level: 'd',
+        stage: 3,
+        section: 1,
+        name: 'THREE',
+        exitCard: 'end-3',
+        introCard: null,
+        music: null,
+      },
     ]);
   });
 });

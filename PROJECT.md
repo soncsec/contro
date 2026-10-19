@@ -42,7 +42,7 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 | Hazards | Pits and one-way platforms. No slopes in v1. In corridor levels, platforms are **catwalks drawn by Claude** in the corridor's colours (owner chose option C of three mockups, 2026-10-17). Down + jump drops through a catwalk; falling into a pit costs a life. **Bullets and enemy shots pass through all terrain** (walls, floors and catwalks), as in Contra: a marine behind a wall can shoot up at an enemy, and cover protects nobody (owner request 2026-10-18, roadmap M3.12) |
 | Double jump | **One extra jump in mid-air** (owner request 2026-10-17, roadmap M2.8). Restored on landing; also usable after walking off a ledge. Not in classic Contra; added for the platforming |
 | Story | **Minimal text**: one or two lines with a speaker portrait on the card between levels, plus intro and ending cards (owner decision 2026-10-17). Text lives in a data file |
-| Audio | **CC0 sound effects plus one music loop per level** (owner decision 2026-10-17). Each source needs owner approval and is listed in `CREDITS.md` |
+| Audio | **CC0 sound effects plus one music loop per level** (owner decision 2026-10-17), and a boss music loop. Each source needs owner approval and is listed in `CREDITS.md`. Level 1 sources approved 2026-10-19 (Kenney effects, ansimuz music). OGG plus M4A copies so iPhones play it too. Sound can be turned off from the pause menu |
 | Saving | Furthest level reached, best score, and volume settings in localStorage, safe if storage is unavailable. **The title can start from any level already reached** (owner approved 2026-10-18, M3.5) |
 | Scoring | **Points for each enemy destroyed** (walker 100, flyer 200, bosses more), shown in the HUD; best score saved. **Extra life at 20,000 and 50,000 points**, as in Contra. The score carries from room to room and resets on game over (owner request 2026-10-17, roadmap M2.9) |
 | Fullscreen | **F toggles fullscreen** (owner request 2026-10-17, roadmap M2.10) |
@@ -92,4 +92,3 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 - Default key layout (M1/M2 play-test).
 - Phone touch controls: button layout (M3.11). **Landscape only** (owner decision 2026-10-18): held upright, the game asks the player to turn the phone.
 - Level 3 boss art: dragon or demon (M5).
-- Specific CC0 audio sources (M3; each needs approval).

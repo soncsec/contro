@@ -12,9 +12,11 @@ export interface SaveData {
    * such field and read as 1, so they keep their best score.
    */
   furthestLevel: number;
+  /** Sound on or off (M3.6, the pause menu's SOUND option). Older saves read as on. */
+  soundOn: boolean;
 }
 
-export const DEFAULT_SAVE: SaveData = { version: 1, bestScore: 0, furthestLevel: 1 };
+export const DEFAULT_SAVE: SaveData = { version: 1, bestScore: 0, furthestLevel: 1, soundOn: true };
 
 /** A whole number at least `min`, or `fallback` for anything else. */
 function wholeAtLeast(value: unknown, min: number, fallback: number): number {
@@ -38,6 +40,7 @@ export function parseSave(raw: string | null): SaveData {
     version: 1,
     bestScore: wholeAtLeast(d['bestScore'], 0, 0),
     furthestLevel: wholeAtLeast(d['furthestLevel'], 1, 1),
+    soundOn: d['soundOn'] !== false,
   };
 }
 

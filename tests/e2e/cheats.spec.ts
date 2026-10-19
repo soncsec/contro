@@ -148,6 +148,7 @@ test('a cheated run never sets a best score', async ({ page }) => {
     version: 1,
     bestScore: 300,
     furthestLevel: 1,
+    soundOn: true,
   });
 });
 

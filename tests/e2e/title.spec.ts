@@ -33,11 +33,33 @@ test('a press in the first moments is ignored, so a held key cannot skip the tit
   page,
 }) => {
   await page.goto('./');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Title');
-  // Fire at once, before the screen takes input.
-  await page.keyboard.press('Space');
-  await expect.poll(async () => (await title(page))?.ready).toBe(true);
+  // Press Space from inside the page on the first frame the title shows, while it says it
+  // isn't ready: waiting from outside the page can take longer than the delay on a busy
+  // machine, and then the press would rightly count.
+  const pressedEarly = await page.evaluate(async () => {
+    for (let i = 0; i < 1200; i++) {
+      await new Promise((r) => requestAnimationFrame(r));
+      const t = window.__contro?.title();
+      if (!t) continue;
+      if (t.ready) return false;
+      const key = { code: 'Space', key: ' ' };
+      window.dispatchEvent(new KeyboardEvent('keydown', key));
+      window.dispatchEvent(new KeyboardEvent('keyup', key));
+      return true;
+    }
+    return false;
+  });
+  expect(pressedEarly).toBe(true);
+  await expect.poll(async () => (await title(page))?.ready, { timeout: 15_000 }).toBe(true);
   expect(await sceneKey(page)).toBe('Title');
+  // The same in-page press does count once the title is ready (so the test can't pass by
+  // the event simply not reaching the game).
+  await page.evaluate(() => {
+    const key = { code: 'Space', key: ' ' };
+    window.dispatchEvent(new KeyboardEvent('keydown', key));
+    window.dispatchEvent(new KeyboardEvent('keyup', key));
+  });
+  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
 });
 
 test('up and down move through the menu, wrapping around', async ({ page }) => {

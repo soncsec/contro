@@ -18,6 +18,8 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 MAX_BYTES = 5 * 1024 * 1024
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+# Audio files ship only if their header proves the format: OGG starts "OggS", M4A has "ftyp" at 4.
+AUDIO_MAGIC = {".ogg": (0, b"OggS"), ".m4a": (4, b"ftyp")}
 FORBIDDEN = re.compile(r"(^|/)(legacy(/|$)|__MACOSX/|\.DS_Store$)")
 PRIVATE_IP = re.compile(
     r"\b(?:10(?:\.\d{1,3}){3}|192\.168(?:\.\d{1,3}){2}|172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2})\b"
@@ -46,7 +48,7 @@ def main() -> int:
     credits = credits_file.read_text() if credits_file.exists() else ""
     if not credits:
         errors.append("CREDITS.md is missing or empty")
-    credited = set(re.findall(r"`(assets/[^`]+\.png)`", credits))
+    credited = set(re.findall(r"`(assets/[^`]+\.(?:png|ogg|m4a))`", credits))
 
     assets_dir = ROOT / "public" / "assets"
     on_disk = set()
@@ -62,7 +64,12 @@ def main() -> int:
             except ValueError as e:
                 errors.append(f"level map is not valid JSON: {rel} ({e})")
             continue
-        if png.suffix != ".png":
+        if png.suffix in AUDIO_MAGIC:
+            # Audio (M3.6, ADR-C06): only real OGG or M4A files, checked by their header.
+            at, magic = AUDIO_MAGIC[png.suffix]
+            if png.read_bytes()[at : at + len(magic)] != magic:
+                errors.append(f"not a valid {png.suffix[1:].upper()}: {rel}")
+        elif png.suffix != ".png":
             errors.append(f"unexpected asset type: {rel}")
         elif png.read_bytes()[:8] != PNG_SIGNATURE:
             errors.append(f"not a valid PNG: {rel}")

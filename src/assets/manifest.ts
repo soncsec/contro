@@ -178,3 +178,41 @@ export const LEVELS: readonly LevelAsset[] = [
     tilesets: { rust: 'rust-tileset' },
   },
 ];
+
+/**
+ * Sound effects and music (M3.6; ARCHITECTURE.md ADR-C06). Each is an OGG file, plus an M4A
+ * copy for iPhone Safari; the browser picks the one it can play. Built from the owner-approved
+ * CC0 packs by tools/audio/build_audio.py and credited in CREDITS.md.
+ */
+export const SOUND_KEYS = [
+  'sfx-shot',
+  'sfx-enemy-hit',
+  'sfx-enemy-die',
+  'sfx-hurt',
+  'sfx-player-die',
+  'sfx-enemy-shot',
+  'sfx-cannon',
+  'sfx-mortar',
+  'sfx-blast',
+  'sfx-boss-blast',
+  'sfx-extra-life',
+  'sfx-blip',
+  'sfx-select',
+  'music-level-1',
+  'music-boss',
+] as const;
+export type SoundKey = (typeof SOUND_KEYS)[number];
+export type MusicKey = Extract<SoundKey, `music-${string}`>;
+
+export interface SoundAsset {
+  key: SoundKey;
+  /** Paths under public/, OGG first. */
+  paths: readonly string[];
+  music: boolean;
+}
+
+export const SOUNDS: readonly SoundAsset[] = SOUND_KEYS.map((key) => ({
+  key,
+  paths: [`assets/audio/${key}.ogg`, `assets/audio/${key}.m4a`],
+  music: key.startsWith('music-'),
+}));

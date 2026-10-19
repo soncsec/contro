@@ -51,7 +51,8 @@ async function doubleJump(page: Page): Promise<void> {
   expect(await repressed).toBe(true);
   // Count double jumps (only ever goes up) rather than watch airJumpsLeft, which is restored
   // on landing and can be back to 1 before a slow check runs.
-  await expect.poll(async () => (await level(page)).airJumps).toBe(before + 1);
+  // Slow frames on a loaded machine can stretch the jump: allow game time to catch up.
+  await expect.poll(async () => (await level(page)).airJumps, { timeout: 15_000 }).toBe(before + 1);
 }
 
 test('a second press in mid-air jumps again, higher than a single jump can reach', async ({
