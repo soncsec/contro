@@ -20,7 +20,9 @@ export class PreloadScene extends Phaser.Scene {
       }
     }
     // Each sound as OGG with an M4A copy; Phaser picks the one this browser can play (M3.6).
-    for (const s of SOUNDS) this.load.audio(s.key, [...s.paths]);
+    // Sound effects load now; the music loops (most of the audio's size) load in the
+    // background once the title is up, so the game starts sooner (owner approved 2026-10-19).
+    for (const s of SOUNDS) if (!s.music) this.load.audio(s.key, [...s.paths]);
     // The training corridor test rooms are only part of the e2e build's campaign.
     const e2e = import.meta.env.MODE === 'e2e';
     for (const level of LEVELS) {
