@@ -148,7 +148,7 @@ export class Boss {
         );
         const to = { x, y: this.feetY };
         const v = lobVelocity(from, to, stats.mortar.flightMs, GRAVITY_Y);
-        out.shots.push({ ...from, ...v, gravity: true });
+        out.shots.push({ ...from, ...v, gravity: true, burstAtY: to.y });
         out.landings.push(to);
       }
     }

@@ -56,7 +56,6 @@ ASSETS = [
     ("assets/effects/muzzle-flash.png", f"{MARINE}/Shoot/sprites", "flash:shoot*.png"),
     ("assets/effects/muzzle-flash-diag.png", f"{MARINE}/Shoot/sprites", "rot45flash:shoot*.png:24x24"),
     ("assets/effects/bullet-diag.png", f"{MARINE}/Misc", "rot45:bullet*.png:10x10"),
-    ("assets/effects/wall-impact.png", f"{MARINE}/Misc", "pack:wall-impact-blast*.png"),
     ("assets/effects/enemy-death.png", "Explosions and Magic/EnemyDeath/spritesheet.png", "copy"),
     ("assets/effects/air-jump-ring.png", "Explosions and Magic/Grotto-escape-2-FX/spritesheets/slash-circular.png", "copy"),
     ("assets/effects/hit.png", "Explosions and Magic/Hit/hit.png", "copy"),

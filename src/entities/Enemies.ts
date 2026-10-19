@@ -50,6 +50,8 @@ export interface EnemyShot {
   vy: number;
   /** Lobbed shells fall (the tank's mortar); others fly straight. */
   gravity?: boolean;
+  /** A lobbed shell bursts once it comes down to this height (its marked landing point). */
+  burstAtY?: number;
 }
 
 /**

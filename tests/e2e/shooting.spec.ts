@@ -6,7 +6,7 @@ async function openLevel(page: Page): Promise<void> {
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
 }
 
-test('a tap fires one bullet that flies off screen without an impact', async ({ page }) => {
+test('a tap fires one bullet that flies off screen', async ({ page }) => {
   const watched = watchPage(page);
   await openLevel(page);
   await page.keyboard.press('KeyX');
@@ -15,7 +15,7 @@ test('a tap fires one bullet that flies off screen without an impact', async ({ 
   // 0.95 s of game time; allow 1.5 s.
   const fired = await level(page);
   const later = await waitGameTime(page, fired.timeMs, 1500);
-  expect(later.bullets).toMatchObject({ fired: 1, active: 0, impacts: 0 });
+  expect(later.bullets).toMatchObject({ fired: 1, active: 0 });
   expect(watched.errors).toEqual([]);
 });
 
@@ -57,16 +57,21 @@ test('running while holding fire keeps the run animation and fires once', async 
   expect(snap.bullets.fired).toBe(1);
 });
 
-test('a bullet fired into the level wall makes an impact', async ({ page }) => {
+test('a bullet fired into the level wall passes through it and leaves (M3.12)', async ({
+  page,
+}) => {
   await openLevel(page);
-  // Face left at the start: the level's left edge is about 50 px away.
+  // Face left at the start: the level's left wall is about 50 px away.
   await page.keyboard.down('ArrowLeft');
   await page.waitForTimeout(50);
   await page.keyboard.up('ArrowLeft');
   await expect.poll(async () => (await level(page)).player.facing).toBe('left');
   await page.keyboard.press('KeyX');
-  await expect.poll(async () => (await level(page)).bullets.impacts).toBe(1);
-  expect((await level(page)).bullets.active).toBe(0);
+  await expect.poll(async () => (await level(page)).bullets.fired).toBe(1);
+  const fired = await level(page);
+  // Through the wall and out of the level: at 300 px/s that takes well under half a second.
+  const later = await waitGameTime(page, fired.timeMs, 600);
+  expect(later.bullets.active).toBe(0);
 });
 
 test('fast tapping never puts more than 8 bullets on screen', async ({ page }) => {
