@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import type { MusicKey, SoundKey } from '../assets/manifest';
+import { SOUNDS } from '../assets/manifest';
 import { SOUND } from '../config/tuning';
 import { SaveStore } from './SaveStore';
 
@@ -25,6 +26,14 @@ export const GameSound = {
   /** Call once the game exists. */
   install(sound: Phaser.Sound.BaseSoundManager): void {
     manager = sound;
+    // Music that finishes loading in the background starts at once if it is wanted.
+    sound.game.cache.audio.events.on('add', (_cache: unknown, key: string) => {
+      if (key === wanted && current?.key !== key) {
+        const k = wanted;
+        wanted = null;
+        GameSound.music(k);
+      }
+    });
     sound.mute = !SaveStore.load().soundOn;
     sound.once('unlocked', () => {
       const key = wanted;
@@ -41,6 +50,18 @@ export const GameSound = {
   setOn(on: boolean): void {
     SaveStore.update((save) => ({ ...save, soundOn: on }));
     if (manager) manager.mute = !on;
+  },
+
+  /**
+   * Starts loading any music loop not loaded yet, in the background on `scene`'s loader
+   * (M3.6). Called by the title and every level, so a loader cut short by a scene change is
+   * simply started again by the next scene.
+   */
+  loadMusic(scene: Phaser.Scene): void {
+    const missing = SOUNDS.filter((s) => s.music && !scene.cache.audio.exists(s.key));
+    if (missing.length === 0) return;
+    for (const s of missing) scene.load.audio(s.key, [...s.paths]);
+    scene.load.start();
   },
 
   /** Plays a sound effect. */

@@ -17,9 +17,10 @@ test('Level 1 plays its music, and firing makes a sound', async ({ page, browser
   const watched = watchPage(page);
   await openSection(page, 'steelworks-1');
   await expect.poll(async () => (await sound(page))?.music).toBe('music-level-1');
-  expect((await sound(page))?.loaded).toEqual(
-    expect.arrayContaining(['music-level-1', 'sfx-shot']),
-  );
+  // The music loads in the background after the title (M3.6), so wait for it.
+  await expect
+    .poll(async () => (await sound(page))?.loaded, { timeout: 30_000 })
+    .toEqual(expect.arrayContaining(['music-level-1', 'sfx-shot']));
   // Headless Firefox on the CI and dev machines has no audio device, so its audio never
   // unlocks there; Chromium checks the music really plays. (Desktop Firefox: checked by hand.)
   if (browserName === 'chromium') {

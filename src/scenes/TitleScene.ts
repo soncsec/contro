@@ -86,6 +86,7 @@ export class TitleScene extends Phaser.Scene {
 
     this.controls = new PlayerInput(this);
     GameSound.music(null);
+    GameSound.loadMusic(this);
     this.cameras.main.fadeIn(TITLE.fadeMs);
   }
 
