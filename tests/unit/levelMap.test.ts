@@ -101,6 +101,7 @@ describe('level maps in public/assets', () => {
       readJson(`${PUBLIC_DIR}/${level.path}`),
       ENEMY_TYPES,
       BOSS_TYPES,
+      PICKUP_WEAPONS,
     );
     for (const layer of layout.parallax) {
       expect(ASSETS.find((a) => a.key === layer.key)?.kind).toBe('image');
@@ -112,6 +113,7 @@ describe('level maps in public/assets', () => {
       readJson(`${PUBLIC_DIR}/${level.path}`),
       ENEMY_TYPES,
       BOSS_TYPES,
+      PICKUP_WEAPONS,
     );
     expect(layout.heightPx).toBe(176);
   });

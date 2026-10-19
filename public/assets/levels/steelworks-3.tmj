@@ -11,7 +11,7 @@
  "tilewidth": 16,
  "tileheight": 16,
  "nextlayerid": 20,
- "nextobjectid": 57,
+ "nextobjectid": 58,
  "layers": [
   {
    "id": 1,
@@ -4304,6 +4304,30 @@
     {
      "id": 50,
      "name": "",
+     "type": "blimp",
+     "x": 704,
+     "y": 48,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "weapon",
+       "type": "string",
+       "value": "machine-gun"
+      },
+      {
+       "name": "from",
+       "type": "string",
+       "value": "right"
+      }
+     ]
+    },
+    {
+     "id": 51,
+     "name": "",
      "type": "spawner",
      "x": 544,
      "y": 136,
@@ -4336,7 +4360,7 @@
      ]
     },
     {
-     "id": 51,
+     "id": 52,
      "name": "",
      "type": "spawner",
      "x": 1440,
@@ -4370,7 +4394,7 @@
      ]
     },
     {
-     "id": 52,
+     "id": 53,
      "name": "",
      "type": "spawner",
      "x": 2080,
@@ -4404,7 +4428,7 @@
      ]
     },
     {
-     "id": 53,
+     "id": 54,
      "name": "",
      "type": "checkpoint",
      "x": 544,
@@ -4416,7 +4440,7 @@
      "point": true
     },
     {
-     "id": 54,
+     "id": 55,
      "name": "",
      "type": "checkpoint",
      "x": 1280,
@@ -4428,7 +4452,7 @@
      "point": true
     },
     {
-     "id": 55,
+     "id": 56,
      "name": "",
      "type": "checkpoint",
      "x": 1856,
@@ -4440,7 +4464,7 @@
      "point": true
     },
     {
-     "id": 56,
+     "id": 57,
      "name": "",
      "type": "exit",
      "x": 2480,

@@ -92,3 +92,33 @@ test('the weapon carries into the next section, and losing a life loses it', asy
   await expect.poll(async () => (await level(page)).player.dead, { timeout: 15_000 }).toBe(false);
   expect((await level(page)).player.weapon).toBe('rifle');
 });
+
+test('Level 1 section 1-3 sends a machine-gun blimp once its point is in view', async ({
+  page,
+}) => {
+  await page.goto('./');
+  await expect.poll(() => page.evaluate(() => window.__contro?.title()?.ready)).toBe(true);
+  await page.evaluate(() => window.__contro?.startLevel('steelworks-3'));
+  await expect.poll(async () => (await level(page)).player.onFloor, { timeout: 15_000 }).toBe(true);
+  expect((await level(page)).blimps).toEqual([]);
+  // The blimp point is at column 44 (x 704): stand where it is on screen.
+  await page.evaluate(() => window.__contro?.teleportPlayer(600));
+  await expect
+    .poll(async () => (await level(page)).blimps.map((b) => b.weapon), { timeout: 15_000 })
+    .toEqual(['machine-gun']);
+});
+
+test('a blimp nobody shoots flies across and off the screen, and is gone', async ({ page }) => {
+  await openLevel(page);
+  const s = await level(page);
+  await page.evaluate((y) => window.__contro?.spawnBlimp('spread', y), s.player.feetY - 90);
+  await expect.poll(async () => (await level(page)).blimps.length).toBe(1);
+  const first = (await level(page)).blimps[0];
+  // It comes in from the right and heads left, across the whole screen.
+  await expect
+    .poll(async () => (await level(page)).blimps[0]?.x ?? -1, { timeout: 15_000 })
+    .toBeLessThan((first?.x ?? 0) - 40);
+  // ...then off the left edge, gone for good: no letter is left behind.
+  await expect.poll(async () => (await level(page)).blimps.length, { timeout: 60_000 }).toBe(0);
+  expect((await level(page)).pickups).toEqual([]);
+});

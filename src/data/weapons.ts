@@ -82,7 +82,8 @@ export const BLIMP = {
   frame: { width: 84, height: 40 },
   /** The hull, inside the frame (the gondola and fins don't count). */
   body: { width: 62, height: 24, offsetX: 14, offsetY: 3 },
-  hp: 3,
+  /** One shot brings it down (owner decision 2026-10-19). */
+  hp: 1,
   points: 500,
   pod: { speed: 36, amplitude: 6, periodMs: 3000 },
   /** It appears this far outside the view, and is gone once this far outside on the other side. */
