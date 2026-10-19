@@ -73,9 +73,19 @@ export const GameSound = {
     on: boolean;
     music: MusicKey | null;
     playing: MusicKey | null;
+    locked: boolean;
+    loaded: SoundKey[];
     recent: SoundKey[];
   } {
     const playing = current?.track.isPlaying ? current.key : null;
-    return { on: GameSound.on, music: wanted, playing, recent: [...recent] };
+    const keys = manager ? (manager.game.cache.audio.getKeys() as SoundKey[]) : [];
+    return {
+      on: GameSound.on,
+      music: wanted,
+      playing,
+      locked: manager?.locked ?? true,
+      loaded: keys,
+      recent: [...recent],
+    };
   },
 };

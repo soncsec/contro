@@ -13,13 +13,20 @@ async function openSection(page: Page, key: string): Promise<void> {
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
 }
 
-test('Level 1 plays its music, and firing makes a sound', async ({ page }) => {
+test('Level 1 plays its music, and firing makes a sound', async ({ page, browserName }) => {
   const watched = watchPage(page);
   await openSection(page, 'steelworks-1');
   await expect.poll(async () => (await sound(page))?.music).toBe('music-level-1');
-  await expect
-    .poll(async () => (await sound(page))?.playing, { timeout: 15_000 })
-    .toBe('music-level-1');
+  expect((await sound(page))?.loaded).toEqual(
+    expect.arrayContaining(['music-level-1', 'sfx-shot']),
+  );
+  // Headless Firefox on the CI and dev machines has no audio device, so its audio never
+  // unlocks there; Chromium checks the music really plays. (Desktop Firefox: checked by hand.)
+  if (browserName === 'chromium') {
+    await expect
+      .poll(async () => (await sound(page))?.playing, { timeout: 15_000 })
+      .toBe('music-level-1');
+  }
   await page.keyboard.press('KeyX');
   await expect.poll(async () => (await sound(page))?.recent).toContain('sfx-shot');
   expect(watched.errors).toEqual([]);
