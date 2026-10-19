@@ -133,6 +133,16 @@ test('a health blimp drops a red cross that restores full health (owner request)
     await waitGameTime(page, now.timeMs, 1600); // past the invulnerability
   }
   expect((await level(page)).player.hp).toBe(2);
+  // IRON (invincible) from here, so the training corridor's walkers can't hurt him on his way
+  // to the cross: the test is about the pickup, not dodging.
+  await page.keyboard.press('Escape');
+  await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBe('RESUME');
+  for (const k of ['KeyI', 'KeyR', 'KeyO', 'KeyN']) await page.keyboard.press(k);
+  await expect
+    .poll(() => page.evaluate(() => window.__contro?.cheatMessage() ?? null))
+    .toBe('INVINCIBLE ON');
+  await page.keyboard.press('Escape');
+  await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBeNull();
   await collect(page, 'health');
   const after = await level(page);
   expect(after.player.hp).toBe(4);
