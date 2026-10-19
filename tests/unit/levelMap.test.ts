@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { ASSETS, LEVELS } from '../../src/assets/manifest';
 import { BOSS_TYPES } from '../../src/data/bosses';
 import { ENEMY_TYPES } from '../../src/data/enemies';
+import { PICKUP_WEAPONS } from '../../src/data/weapons';
 import { readLevelLayout, validateLevelMap } from '../../src/logic/levelMap';
 
 const PUBLIC_DIR = `${process.cwd()}/public`;
@@ -73,7 +74,12 @@ const layer = (map: Record<string, unknown>, name: string): Layer =>
 describe('level maps in public/assets', () => {
   it.each(LEVELS)('$key is valid', (level) => {
     expect(
-      validateLevelMap(readJson(`${PUBLIC_DIR}/${level.path}`), ENEMY_TYPES, BOSS_TYPES),
+      validateLevelMap(
+        readJson(`${PUBLIC_DIR}/${level.path}`),
+        ENEMY_TYPES,
+        BOSS_TYPES,
+        PICKUP_WEAPONS,
+      ),
     ).toEqual([]);
   });
 
@@ -275,6 +281,7 @@ describe('readLevelLayout', () => {
       checkpoints: [{ x: 32, y: 160 }],
       enemies: [{ x: 40, y: 160, enemy: 'alien-walker' }],
       spawners: [],
+      blimps: [],
       exit: { x: 48, y: 96, width: 16, height: 64 },
       boss: null,
     });
@@ -366,6 +373,56 @@ describe('spawners (M3.14)', () => {
     expect(
       validateLevelMap(spawner({}, { point: false, width: 16, height: 16 }), ENEMY_TYPES),
     ).toEqual(['spawn 5: spawner must be a point']);
+  });
+});
+
+describe('blimps (M4.1)', () => {
+  const withBlimp = (props: Record<string, unknown>, extra: Record<string, unknown> = {}) => {
+    const map = sampleMap();
+    layer(map, 'spawns').objects?.push({
+      type: 'blimp',
+      point: true,
+      x: 32,
+      y: 40,
+      properties: Object.entries(props).map(([name, value]) => ({ name, value })),
+      ...extra,
+    });
+    return map;
+  };
+
+  it('reads a blimp and the weapon it carries', () => {
+    const map = withBlimp({ weapon: 'spread', from: 'left' });
+    expect(validateLevelMap(map, ENEMY_TYPES, BOSS_TYPES, PICKUP_WEAPONS)).toEqual([]);
+    expect(readLevelLayout(map, ENEMY_TYPES, BOSS_TYPES, PICKUP_WEAPONS).blimps).toEqual([
+      { x: 32, y: 40, weapon: 'spread', from: 'left' },
+    ]);
+  });
+
+  it('rejects an unknown weapon, a bad side, or a rectangle', () => {
+    expect(
+      validateLevelMap(
+        withBlimp({ weapon: 'rifle', from: 'right' }),
+        ENEMY_TYPES,
+        BOSS_TYPES,
+        PICKUP_WEAPONS,
+      ),
+    ).toEqual(['spawn 5: unknown weapon "rifle"']);
+    expect(
+      validateLevelMap(
+        withBlimp({ weapon: 'spread', from: 'up' }),
+        ENEMY_TYPES,
+        BOSS_TYPES,
+        PICKUP_WEAPONS,
+      ),
+    ).toEqual(['spawn 5: from must be "left" or "right"']);
+    expect(
+      validateLevelMap(
+        withBlimp({ weapon: 'spread', from: 'left' }, { point: false, width: 8, height: 8 }),
+        ENEMY_TYPES,
+        BOSS_TYPES,
+        PICKUP_WEAPONS,
+      ),
+    ).toEqual(['spawn 5: blimp must be a point']);
   });
 });
 

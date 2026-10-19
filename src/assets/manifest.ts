@@ -81,6 +81,10 @@ export const ASSETS: readonly Asset[] = [
   sheet('enemies', 'alien-walker-idle', 'alien-walker-idle.png', 48, 48, 4, 6, true),
   sheet('enemies', 'alien-walker-walk', 'alien-walker-walk.png', 57, 42, 6, 10, true),
   sheet('enemies', 'alien-flyer', 'alien-flyer.png', 83, 64, 8, 12, true),
+  // M4.1: the weapon blimp (drawn by Claude), propellers turning
+  sheet('enemies', 'blimp', 'blimp.png', 84, 40, 2, 12, true),
+  // The same, flying left (drawn mirrored, so its number still reads the right way round)
+  sheet('enemies', 'blimp-left', 'blimp-left.png', 84, 40, 2, 12, true),
   // Level 1 boss (M3.3): the tank's treads roll through 4 frames
   sheet('enemies', 'tank', 'tank.png', 128, 64, 4, 10, true),
 
@@ -90,6 +94,9 @@ export const ASSETS: readonly Asset[] = [
   sheet('effects', 'muzzle-flash-diag', 'muzzle-flash-diag.png', 24, 24, 2, 20, false),
   sheet('effects', 'bullet-diag', 'bullet-diag.png', 10, 10, 2, 12, true),
   sheet('effects', 'enemy-shot', 'enemy-shot.png', 16, 16, 2, 8, true),
+  // M4.1: weapon pickups, the letter itself (drawn by Claude)
+  image('effects', 'pickup-machine-gun', 'pickup-machine-gun.png', 20, 20),
+  image('effects', 'pickup-spread', 'pickup-spread.png', 20, 20),
   sheet('effects', 'enemy-death', 'enemy-death.png', 48, 48, 8, 14, false),
   sheet('effects', 'hit', 'hit.png', 31, 32, 3, 14, false),
   sheet('effects', 'ground-explosion', 'ground-explosion.png', 112, 128, 9, 14, false),

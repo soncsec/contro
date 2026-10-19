@@ -60,5 +60,8 @@ export function weaponForFrame<T extends WeaponTuning>(
   touchAutoFire: boolean,
   intervalMs: number,
 ): T {
-  return touchAutoFire ? { ...base, autoFire: true, autoIntervalMs: intervalMs } : base;
+  // A weapon that already fires on its own (the machine gun) keeps its own, faster rate.
+  return touchAutoFire && !base.autoFire
+    ? { ...base, autoFire: true, autoIntervalMs: intervalMs }
+    : base;
 }
