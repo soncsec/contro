@@ -39,6 +39,10 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/portraits/hive.png` | `Warped/Misc/Warped Portraits Files/portraits with bg/base4.png` | unchanged |
 | `assets/levels/corridor/back.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/back.png` | unchanged |
 | `assets/levels/corridor/foreground.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor-foreground.png` | unchanged |
+| `assets/enemies/blimp.png` | `—` | *drawn by Claude* (`tools/art/blimp.py`): the weapon blimp, 2 frames (owner approved the design 2026-10-19) |
+| `assets/enemies/blimp-left.png` | `—` | *drawn by Claude* (`tools/art/blimp.py`): the weapon blimp, 2 frames (owner approved the design 2026-10-19) |
+| `assets/effects/pickup-machine-gun.png` | `—` | *drawn by Claude* (`tools/art/letters.py`): the M pickup, in the style of Press Start 2P (owner approved 2026-10-19) |
+| `assets/effects/pickup-spread.png` | `—` | *drawn by Claude* (`tools/art/letters.py`): the S pickup, in the style of Press Start 2P (owner approved 2026-10-19) |
 | `assets/levels/corridor/catwalk.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png` | *drawn by Claude* (`tools/art/catwalk.py`): catwalk and pit tiles in this tileset's colours, pit edges reuse its floor pixels |
 | `assets/levels/corridor/tileset.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png` | unchanged |
 | `assets/levels/steelworks/tileset.png` | `Warped/Environments/bulkhead-walls/v1/layers/bulkhead-walls-back.png, bulkhead-walls-platform.png, cols.png, bulkhead-walls-pipes.png` | *derived*: ceiling cropped off, wall and floor stacked with the scaffold walkway and a copy of the wall with the columns and pipes layered on, pixels unchanged; plus pit tiles *drawn by Claude* in the floor's colours (`tools/art/steelworks.py`) |
@@ -60,18 +64,21 @@ Sound effects and music from CC0 packs, each approved by the owner (2026-10-19).
 <!-- audio:start -->
 | File | Source | Changes |
 |---|---|---|
-| `assets/audio/sfx-shot.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/laserSmall_000.ogg` by Kenney, CC0 | unchanged |
-| `assets/audio/sfx-enemy-hit.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/impactMetal_002.ogg` by Kenney, CC0 | unchanged |
-| `assets/audio/sfx-enemy-die.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/explosionCrunch_000.ogg` by Kenney, CC0 | unchanged |
-| `assets/audio/sfx-hurt.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/forceField_001.ogg` by Kenney, CC0 | unchanged |
-| `assets/audio/sfx-player-die.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/lowFrequency_explosion_001.ogg` by Kenney, CC0 | unchanged |
-| `assets/audio/sfx-enemy-shot.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/laserRetro_001.ogg` by Kenney, CC0 | unchanged |
-| `assets/audio/sfx-cannon.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/laserLarge_002.ogg` by Kenney, CC0 | unchanged |
-| `assets/audio/sfx-mortar.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/thrusterFire_001.ogg` by Kenney, CC0 | unchanged |
-| `assets/audio/sfx-blast.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/explosionCrunch_003.ogg` by Kenney, CC0 | unchanged |
-| `assets/audio/sfx-boss-blast.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/lowFrequency_explosion_000.ogg` by Kenney, CC0 | unchanged |
-| `assets/audio/music-level-1.ogg` | [cyber_runer_files.zip](https://opengameart.org/content/cyber-runner-music) `Cyber_runer_files/cyber_runner.ogg` by ansimuz (Luis Zuno), CC0 | unchanged |
-| `assets/audio/music-boss.ogg` | [boss_fight_2_files.zip](https://opengameart.org/content/boss-fight-2) `Boss Fight 2 Files/Boss Fight 2.ogg` by ansimuz (Luis Zuno), CC0 | unchanged |
+| `assets/audio/sfx-shot.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/laserSmall_000.ogg` by Kenney, CC0 | unchanged; AAC copy sfx-shot.m4a |
+| `assets/audio/sfx-enemy-hit.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/impactMetal_002.ogg` by Kenney, CC0 | unchanged; AAC copy sfx-enemy-hit.m4a |
+| `assets/audio/sfx-enemy-die.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/explosionCrunch_000.ogg` by Kenney, CC0 | unchanged; AAC copy sfx-enemy-die.m4a |
+| `assets/audio/sfx-hurt.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/forceField_001.ogg` by Kenney, CC0 | unchanged; AAC copy sfx-hurt.m4a |
+| `assets/audio/sfx-player-die.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/lowFrequency_explosion_001.ogg` by Kenney, CC0 | unchanged; AAC copy sfx-player-die.m4a |
+| `assets/audio/sfx-enemy-shot.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/laserRetro_001.ogg` by Kenney, CC0 | unchanged; AAC copy sfx-enemy-shot.m4a |
+| `assets/audio/sfx-cannon.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/laserLarge_002.ogg` by Kenney, CC0 | unchanged; AAC copy sfx-cannon.m4a |
+| `assets/audio/sfx-mortar.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/thrusterFire_001.ogg` by Kenney, CC0 | unchanged; AAC copy sfx-mortar.m4a |
+| `assets/audio/sfx-blast.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/explosionCrunch_003.ogg` by Kenney, CC0 | unchanged; AAC copy sfx-blast.m4a |
+| `assets/audio/sfx-boss-blast.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/lowFrequency_explosion_000.ogg` by Kenney, CC0 | unchanged; AAC copy sfx-boss-blast.m4a |
+| `assets/audio/sfx-extra-life.ogg` | [Digital_SFX_Set.zip](https://opengameart.org/content/63-digital-sound-effects-lasers-phasers-space-etc) `powerUp3.mp3` by Kenney, CC0 | re-encoded to OGG Vorbis (quality 5); AAC copy sfx-extra-life.m4a |
+| `assets/audio/sfx-blip.ogg` | [Digital_SFX_Set.zip](https://opengameart.org/content/63-digital-sound-effects-lasers-phasers-space-etc) `threeTone2.mp3` by Kenney, CC0 | re-encoded to OGG Vorbis (quality 5); AAC copy sfx-blip.m4a |
+| `assets/audio/sfx-select.ogg` | [Digital_SFX_Set.zip](https://opengameart.org/content/63-digital-sound-effects-lasers-phasers-space-etc) `phaserUp3.mp3` by Kenney, CC0 | re-encoded to OGG Vorbis (quality 5); AAC copy sfx-select.m4a |
+| `assets/audio/music-level-1.ogg` | [cyber_runer_files.zip](https://opengameart.org/content/cyber-runner-music) `Cyber_runer_files/cyber_runner.ogg` by ansimuz (Luis Zuno), CC0 | re-encoded to OGG Vorbis (quality 3); AAC copy music-level-1.m4a |
+| `assets/audio/music-boss.ogg` | [boss_fight_2_files.zip](https://opengameart.org/content/boss-fight-2) `Boss Fight 2 Files/Boss Fight 2.ogg` by ansimuz (Luis Zuno), CC0 | re-encoded to OGG Vorbis (quality 3); AAC copy music-boss.m4a |
 <!-- audio:end -->
 
 ## Libraries

@@ -10,6 +10,8 @@ Layouts are in LAYOUTS below. A layout gives the width in tiles and lists, in 16
   walkers    alien walkers by tile column; they stand on the walkway or ground there
              ("Ng" puts one on the ground under a walkway)
   flyers     (column, y px) alien flyers
+  blimps     (column, y px, weapon, "left"|"right"): a weapon blimp that flies in from that
+             edge of the screen once the column scrolls into view (M4.1)
   spawners   (column, count, every ms, "left"|"right"): runners sent in from that edge of the
              screen once the column scrolls into view (M3.14); the column must be ground
   checkpoints, start, exit: columns
@@ -101,6 +103,7 @@ LAYOUTS = {
                     132, 150],
         "flyers": [(30, 40), (58, 30), (84, 36), (112, 40), (140, 34)],
         "spawners": [(34, 2, 1200, "left"), (90, 4, 900, "right"), (130, 3, 1000, "right")],
+        "blimps": [(44, 48, "machine-gun", "right")],
         "checkpoints": [34, 80, 116],
         "start": 3,
         "exit": 155,
@@ -138,6 +141,7 @@ LAYOUTS = {
                     110, 120, "124g", 131, 137, 146, 152],
         "flyers": [(30, 40), (60, 36), (86, 30), (100, 40), (124, 34), (150, 40)],
         "spawners": [(40, 4, 900, "right"), (100, 4, 900, "right"), (130, 3, 1000, "left")],
+        "blimps": [(112, 48, "spread", "right")],
         # The last screen is the tank's arena (M3.3); the exit opens once it is destroyed.
         "boss": ("tank", 176),
         "checkpoints": [53, 102, 142],
@@ -249,6 +253,8 @@ def build(layout: dict) -> dict:
         spawns.append(obj("enemy", col * TILE, surface(col, ground), enemy="alien-walker"))
     for col, y in layout["flyers"]:
         spawns.append(obj("enemy", col * TILE, y, enemy="alien-flyer"))
+    for col, y, weapon, side in layout.get("blimps", []):
+        spawns.append(obj("blimp", col * TILE, y, weapon=weapon, **{"from": side}))
     for col, count, every, side in layout.get("spawners", []):
         spawns.append(obj("spawner", col * TILE, surface(col, True), enemy="alien-runner",
                           count=count, every=every, **{"from": side}))

@@ -37,6 +37,8 @@ import { PlayerInput } from '../systems/PlayerInput';
 import { RunnerSpawners } from '../systems/RunnerSpawners';
 import { GameSound } from '../systems/GameSound';
 import type { MusicKey } from '../assets/manifest';
+import { Blimps, type BlimpSnapshot, type PickupSnapshot } from '../entities/Blimps';
+import { BLIMP, PICKUP_WEAPONS, type PickupWeapon, type WeaponType } from '../data/weapons';
 import { SaveStore } from '../systems/SaveStore';
 
 /** What carries from room to room: the score and lives. */
@@ -49,6 +51,8 @@ export interface RunState {
   cheats?: CheatState;
   /** Continues left after game over (M3.4); a fresh run has CONTINUE.count. */
   continues?: number;
+  /** The weapon in hand (M4.1); the rifle if missing. */
+  weapon?: WeaponType;
 }
 
 export interface LevelSceneData {
@@ -78,6 +82,11 @@ export interface LevelSnapshot {
   enemies: EnemySnapshot[];
   /** Runners sent in from the screen's edge so far (M3.14). */
   runnersSpawned: number;
+  /** Weapon blimps in flight and letters on the ground (M4.1). */
+  blimps: BlimpSnapshot[];
+  pickups: PickupSnapshot[];
+  /** Bullets fired (a spread shot fires three). */
+  bulletsFired: number;
   enemyShots: { active: number; fired: number; landed: number };
   /** True once the player has reached the exit and the room is fading out. */
   exiting: boolean;
@@ -144,6 +153,8 @@ export class LevelScene extends Phaser.Scene {
   private bossFight: BossFight | null = null;
   /** Runners sent in from the screen's edge (M3.14). */
   private spawners!: RunnerSpawners;
+  /** Weapon blimps and their pickups (M4.1). */
+  private blimps!: Blimps;
 
   constructor() {
     super('Level');
@@ -168,7 +179,12 @@ export class LevelScene extends Phaser.Scene {
   create(): void {
     const level = LEVELS.find((l) => l.key === this.levelKey);
     if (!level) throw new Error(`unknown level ${this.levelKey}`);
-    this.layout = readLevelLayout(this.cache.tilemap.get(level.key)?.data, ENEMY_TYPES, BOSS_TYPES);
+    this.layout = readLevelLayout(
+      this.cache.tilemap.get(level.key)?.data,
+      ENEMY_TYPES,
+      BOSS_TYPES,
+      PICKUP_WEAPONS,
+    );
     const { widthPx, heightPx } = this.layout;
 
     // Far background: fixed to the camera, scrolled slowly for depth.
@@ -225,6 +241,7 @@ export class LevelScene extends Phaser.Scene {
       start.y,
       this.runAtStart?.lives ?? HEALTH.lives,
       this.runAtStart?.hp ?? HEALTH.maxHp,
+      this.runAtStart?.weapon ?? 'rifle',
     );
     this.player.invincible = this.cheats.invincible;
     this.player.onHurt = (result) =>
@@ -307,6 +324,26 @@ export class LevelScene extends Phaser.Scene {
     this.spawners = new RunnerSpawners(this.layout, this.enemies);
     // The level's music; it keeps playing from one section to the next (M3.6).
     GameSound.music(step.music as MusicKey | null);
+    // Weapon blimps and the letters they drop (M4.1).
+    this.blimps = new Blimps(this, this.layout.blimps, (x, y) => {
+      GameSound.play('sfx-blast');
+      this.effects.play('enemy-death', x, y);
+      this.addScore(BLIMP.points);
+    });
+    this.physics.add.overlap(this.bullets.group, this.blimps.blimpGroup, (bullet, blimp) => {
+      const tip = this.bullets.absorb(bullet as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody);
+      if (!tip) return;
+      this.blimps.damage(blimp as Phaser.GameObjects.GameObject, RIFLE_DAMAGE);
+      this.effects.play('hit', tip.x, tip.y, tip.direction < 0);
+    });
+    this.physics.add.collider(this.blimps.pickupGroup, solids);
+    this.physics.add.overlap(this.player.sprite, this.blimps.pickupGroup, (_player, pickup) => {
+      if (this.player.dead) return;
+      const weapon = this.blimps.collect(pickup as Phaser.GameObjects.GameObject);
+      if (!weapon) return;
+      this.player.weaponType = weapon;
+      GameSound.play('sfx-extra-life');
+    });
 
     // Reaching the exit shows this room's card, then the next room.
     const { exit } = this.layout;
@@ -363,7 +400,7 @@ export class LevelScene extends Phaser.Scene {
       this.player.fall();
     }
     const p = this.player.snapshot();
-    this.hud.update(p.hp, p.lives, this.score.score, this.score.best, this.cheats.used);
+    this.hud.update(p.hp, p.lives, this.score.score, this.score.best, this.cheats.used, p.weapon);
     this.bullets.update();
     const p0 = this.player.snapshot();
     // Enemies aim at the middle of the marine's body.
@@ -375,6 +412,7 @@ export class LevelScene extends Phaser.Scene {
       if (this.enemyShots.fire(shot)) GameSound.play('sfx-enemy-shot');
     }
     this.spawners.update(deltaMs, view);
+    this.blimps.update(deltaMs, view, this.layout.heightPx);
     this.bossFight?.update(deltaMs, target);
     this.enemyShots.update();
     const scrollX = this.cameras.main.scrollX;
@@ -461,6 +499,7 @@ export class LevelScene extends Phaser.Scene {
       hp: p.hp,
       cheats: this.cheats,
       continues: this.continues,
+      weapon: p.weapon,
     };
   }
 
@@ -481,6 +520,12 @@ export class LevelScene extends Phaser.Scene {
   /** Test hook: hurt the boss as if hit by bullets. */
   hurtBoss(damage: number): void {
     this.bossFight?.damage(damage);
+  }
+
+  /** Test hook: send a blimp carrying `weapon` across from the right edge of the view. */
+  spawnBlimp(weapon: PickupWeapon, y: number): void {
+    const left = this.cameras.main.scrollX;
+    this.blimps.launch(weapon, y, 'right', { left, right: left + GAME_WIDTH });
   }
 
   /** Test hook: move the player (feet stay on the same line). */
@@ -508,6 +553,8 @@ export class LevelScene extends Phaser.Scene {
       },
       enemies: this.enemies.snapshot(),
       runnersSpawned: this.enemies.runnersSpawned,
+      ...this.blimps.snapshot(),
+      bulletsFired: this.bullets.bulletsFired,
       enemyShots: {
         active: this.enemyShots.active,
         fired: this.enemyShots.fired,

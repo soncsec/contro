@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { animKey } from '../assets/manifest';
 import { WEAPON } from '../config/tuning';
+import { MAX_BULLETS, WEAPONS } from '../data/weapons';
+import { fanVelocities } from '../logic/pickups';
 import { shotVelocity } from '../logic/aim';
 import { bulletOutOfView } from '../logic/weapon';
 import type { Shot } from './Player';
@@ -14,8 +16,10 @@ type Bullet = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
  */
 export class Bullets {
   readonly group: Phaser.Physics.Arcade.Group;
-  /** Shots fired since the level started (for tests). */
+  /** Shots fired since the level started (for tests); a spread shot counts once. */
   fired = 0;
+  /** Bullets fired (a spread shot fires three). */
+  bulletsFired = 0;
   firedDiagonal = 0;
   /** Shots aimed 45° down (M3.13). */
   firedDown = 0;
@@ -25,7 +29,7 @@ export class Bullets {
   constructor(private readonly scene: Phaser.Scene) {
     this.group = scene.physics.add.group({
       defaultKey: 'bullet',
-      maxSize: WEAPON.maxBullets,
+      maxSize: MAX_BULLETS,
       allowGravity: false,
     });
     scene.physics.world.on(
@@ -37,10 +41,31 @@ export class Bullets {
     );
   }
 
-  /** Fires a bullet if the pool has one free. Returns false if all are in flight. */
+  /**
+   * Fires a shot: one bullet, or the weapon's fan (the spread, M4.1). Returns false if the
+   * weapon already has as many bullets on screen as it may.
+   */
   fire(shot: Shot): boolean {
+    const stats = WEAPONS[shot.weapon];
+    if (this.active + stats.bullets > stats.maxBullets) return false;
+    const base = shotVelocity(shot.direction, shot.aim, WEAPON.bulletSpeed);
+    const fan = fanVelocities(base, stats.bullets, stats.spreadDeg);
+    fan.forEach((v, i) => {
+      // Side bullets of a fan turn their sprite by the fan angle.
+      const turn = ((i - (fan.length - 1) / 2) * stats.spreadDeg * Math.PI) / 180;
+      this.fireOne(shot, v, shot.direction < 0 ? -turn : turn);
+    });
+    this.fired++;
+    if (shot.aim === 'diagonal') this.firedDiagonal++;
+    if (shot.aim === 'down') this.firedDown++;
+    this.lastShot = shot;
+    return true;
+  }
+
+  private fireOne(shot: Shot, v: { vx: number; vy: number }, turn: number): void {
     const bullet = this.group.get(shot.x, shot.y) as Bullet | null;
-    if (!bullet) return false;
+    if (!bullet) return;
+    this.bulletsFired++;
     const down = shot.aim === 'down';
     const diagonal = shot.aim !== 'forward';
     const key = diagonal ? 'bullet-diag' : 'bullet';
@@ -49,7 +74,8 @@ export class Bullets {
       .setActive(true)
       .setVisible(true)
       .setFlipX(shot.direction < 0)
-      .setFlipY(down);
+      .setFlipY(down)
+      .setRotation(turn);
     // The sprite's leading edge (or corner, when diagonal) starts at the barrel tip.
     const corner = diagonal ? (down ? 1 : -1) * (bullet.height / 2) : 0;
     bullet.setPosition(shot.x + (shot.direction * bullet.width) / 2, shot.y + corner);
@@ -59,16 +85,10 @@ export class Bullets {
     if (diagonal) bullet.body.setSize(6, 6, true);
     else bullet.body.setSize(bullet.width, bullet.height, true);
     bullet.body.setCollideWorldBounds(true, 0, 0, true);
-    const v = shotVelocity(shot.direction, shot.aim, WEAPON.bulletSpeed);
     bullet.body.setVelocity(v.vx, v.vy);
     bullet.setData('direction', shot.direction);
     bullet.setData('aim', shot.aim);
     bullet.play(animKey(key));
-    this.fired++;
-    if (shot.aim === 'diagonal') this.firedDiagonal++;
-    if (down) this.firedDown++;
-    this.lastShot = shot;
-    return true;
   }
 
   /**

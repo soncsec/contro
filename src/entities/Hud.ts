@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { FONT, GAME_WIDTH, HEALTH } from '../config/tuning';
+import { WEAPONS, type WeaponType } from '../data/weapons';
 import { formatScore } from '../logic/score';
 
 const PIP = { width: 6, height: 4, gap: 2 } as const;
@@ -21,6 +22,8 @@ const BOSS_BAR = { x: 112, y: 16, width: 112, height: 5, fill: 0xff4f4f, back: 0
 export class Hud {
   private readonly pips: Phaser.GameObjects.Rectangle[] = [];
   private readonly lives: Phaser.GameObjects.Text;
+  /** The pickup weapon in hand, as its letter after the lives (M4.1); empty for the rifle. */
+  private readonly weapon: Phaser.GameObjects.Text;
   private readonly score: Phaser.GameObjects.Text;
   private readonly best: Phaser.GameObjects.Text;
   private readonly cheat: Phaser.GameObjects.Text;
@@ -51,6 +54,10 @@ export class Hud {
         fontSize: FONT.size,
         color: COLORS.text,
       })
+      .setScrollFactor(0)
+      .setDepth(DEPTH);
+    this.weapon = scene.add
+      .text(0, ORIGIN.y - 3, '', { fontFamily: FONT.family, fontSize: FONT.size })
       .setScrollFactor(0)
       .setDepth(DEPTH);
     const right = GAME_WIDTH - ORIGIN.x;
@@ -107,10 +114,22 @@ export class Hud {
     this.bossFill.width = Math.round(BOSS_BAR.width * Math.max(0, Math.min(1, share)));
   }
 
-  update(hp: number, lives: number, score: number, best: number, cheated: boolean): void {
+  update(
+    hp: number,
+    lives: number,
+    score: number,
+    best: number,
+    cheated: boolean,
+    weapon: WeaponType = 'rifle',
+  ): void {
     this.cheat.setVisible(cheated);
     this.pips.forEach((pip, i) => pip.setFillStyle(i < hp ? COLORS.full : COLORS.empty));
     this.lives.setText(`x${lives}`);
+    const stats = WEAPONS[weapon];
+    this.weapon
+      .setText(stats.pickup ? stats.letter : '')
+      .setColor(stats.color)
+      .setX(this.lives.x + this.lives.width + 6);
     this.score.setText(formatScore(score));
     this.best.setText(`HI ${formatScore(best)}`);
   }

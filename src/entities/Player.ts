@@ -13,8 +13,8 @@ import {
   PLAYER_CROUCH_BODY,
   PLAYER_FRAME,
   TOUCH,
-  WEAPON,
 } from '../config/tuning';
+import { WEAPONS, type WeaponType } from '../data/weapons';
 import { marineAnim, stanceFor, type Aim, type MarineAnim } from '../logic/aim';
 import { bodyOffsetX, framePointToWorld, spriteYForFeet, type BodyBox } from '../logic/body';
 import { horizontalDirection, type ActionFrame } from '../logic/input';
@@ -30,6 +30,7 @@ import {
   type StepEvent,
 } from '../logic/health';
 import { weaponForFrame } from '../logic/touch';
+import { weaponAfterDeath } from '../logic/pickups';
 import { initialWeapon, stepWeapon, type WeaponState } from '../logic/weapon';
 
 const ANIM_SHEETS: Readonly<Record<MarineAnim, string>> = {
@@ -76,6 +77,8 @@ export interface PlayerSnapshot {
   airJumpsLeft: number;
   /** Highest feet y reached since the last ground jump (null before any), for tests. */
   jumpPeakFeetY: number | null;
+  /** The weapon in hand (M4.1). */
+  weapon: WeaponType;
 }
 
 /** What happened to the player this frame. */
@@ -93,6 +96,8 @@ export interface Shot {
   y: number;
   direction: -1 | 1;
   aim: Aim;
+  /** The weapon that fired it (M4.1). */
+  weapon: WeaponType;
 }
 
 /**
@@ -124,6 +129,8 @@ export class Player {
     feetY: number,
     lives: number = HEALTH.lives,
     hp: number = HEALTH.maxHp,
+    /** The weapon carried in from the previous section (M4.1). */
+    public weaponType: WeaponType = 'rifle',
   ) {
     // Health carries over from the previous room (M2.13), kept within 1..maxHp.
     this.health = { ...initialHealth(HEALTH), lives, hp: Math.min(HEALTH.maxHp, Math.max(1, hp)) };
@@ -189,6 +196,8 @@ export class Player {
   respawn(x: number, feetY: number): void {
     this.movement = initialMovement(MOVEMENT.airJumps);
     this.weapon = initialWeapon();
+    // Losing a life loses the pickup: back to the rifle (owner decision 2026-10-19).
+    this.weaponType = weaponAfterDeath();
     this.crouching = false;
     this.aim = 'forward';
     this.dropMs = 0;
@@ -264,7 +273,11 @@ export class Player {
     }
     this.aim = stance.aim;
 
-    const rules = weaponForFrame(WEAPON, input.autoFire === true, TOUCH.autoFireMs);
+    const rules = weaponForFrame(
+      WEAPONS[this.weaponType],
+      input.autoFire === true,
+      TOUCH.autoFireMs,
+    );
     const weapon = stepWeapon(this.weapon, held.fire, pressed.fire, dtMs, rules);
     this.weapon = weapon.state;
 
@@ -297,6 +310,7 @@ export class Player {
       y: muzzle.y,
       direction: this.movement.facing === 'left' ? -1 : 1,
       aim: this.aim,
+      weapon: this.weaponType,
     };
   }
 
@@ -325,6 +339,7 @@ export class Player {
       droppingThrough: this.droppingThrough,
       airJumpsLeft: this.movement.airJumpsLeft,
       jumpPeakFeetY: Number.isFinite(this.jumpPeakFeetY) ? Math.round(this.jumpPeakFeetY) : null,
+      weapon: this.weaponType,
     };
   }
 

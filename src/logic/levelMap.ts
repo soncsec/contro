@@ -12,6 +12,8 @@
  * - optionally "spawner" points (M3.14): enemies that run in from the edge of the screen once
  *   the point scrolls into view. Properties: `enemy` (a known enemy type), `count` and `every`
  *   (whole numbers: how many, and ms between them), and `from` ("left" or "right")
+ * - optionally "blimp" points (M4.1): a blimp that flies across the screen from the `from`
+ *   edge at the point's height once the point scrolls into view, carrying a `weapon` pickup
  * - optionally a boss fight (M3.2): one "boss" point with a `boss` string property naming a
  *   known boss type, and one "arena" rectangle exactly one screen wide, reaching the map's
  *   right edge, with the boss inside it. Each needs the other.
@@ -48,6 +50,8 @@ export interface LevelLayout {
   enemies: { x: number; y: number; enemy: string }[];
   /** Enemies that run in from the screen's edge (M3.14). */
   spawners: Spawner[];
+  /** Blimps carrying weapon pickups (M4.1). */
+  blimps: { x: number; y: number; weapon: string; from: 'left' | 'right' }[];
   exit: Rect;
   /** The boss and its arena, if this map ends in a boss fight. */
   boss: { x: number; y: number; type: string; arena: Rect } | null;
@@ -119,6 +123,7 @@ export function validateLevelMap(
   raw: unknown,
   knownEnemies: readonly string[],
   knownBosses: readonly string[] = [],
+  knownWeapons: readonly string[] = [],
 ): string[] {
   const problems: string[] = [];
   if (!isRecord(raw)) return ['map is not a JSON object'];
@@ -248,6 +253,16 @@ export function validateLevelMap(
         if (typeof enemy !== 'string' || !knownEnemies.includes(enemy)) {
           problems.push(`${where}: unknown enemy type ${JSON.stringify(enemy)}`);
         }
+      } else if (o.type === 'blimp') {
+        if (o.point !== true) problems.push(`${where}: blimp must be a point`);
+        const weapon = property(o, 'weapon');
+        if (typeof weapon !== 'string' || !knownWeapons.includes(weapon)) {
+          problems.push(`${where}: unknown weapon ${JSON.stringify(weapon)}`);
+        }
+        const from = property(o, 'from');
+        if (from !== 'left' && from !== 'right') {
+          problems.push(`${where}: from must be "left" or "right"`);
+        }
       } else if (o.type === 'spawner') {
         problems.push(...spawnerProblems(o, where, knownEnemies));
       } else if (o.type === 'checkpoint') {
@@ -311,8 +326,9 @@ export function readLevelLayout(
   raw: unknown,
   knownEnemies: readonly string[],
   knownBosses: readonly string[] = [],
+  knownWeapons: readonly string[] = [],
 ): LevelLayout {
-  const problems = validateLevelMap(raw, knownEnemies, knownBosses);
+  const problems = validateLevelMap(raw, knownEnemies, knownBosses, knownWeapons);
   if (problems.length > 0) throw new Error(`invalid level map: ${problems.join('; ')}`);
   const map = raw as Record<string, unknown>;
   const layers = map['layers'] as TiledLayer[];
@@ -356,6 +372,14 @@ export function readLevelLayout(
         enemy: property(o, 'enemy') as string,
         count: property(o, 'count') as number,
         everyMs: property(o, 'every') as number,
+        from: property(o, 'from') as 'left' | 'right',
+      })),
+    blimps: spawns
+      .filter((o) => o.type === 'blimp')
+      .map((o) => ({
+        x: o.x as number,
+        y: o.y as number,
+        weapon: property(o, 'weapon') as string,
         from: property(o, 'from') as 'left' | 'right',
       })),
     exit: rect(exit),
