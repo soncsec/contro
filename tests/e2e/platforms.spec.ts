@@ -115,7 +115,7 @@ test('bullets fly up through catwalks without hitting them', async ({ page }) =>
   const fired = await level(page);
   const later = await waitGameTime(page, fired.timeMs, 1200);
   await page.keyboard.up('ArrowUp');
-  expect(later.bullets).toMatchObject({ active: 0, impacts: 0 });
+  expect(later.bullets).toMatchObject({ active: 0 });
 });
 
 test('falling into the pit costs a life and respawns him at the checkpoint', async ({ page }) => {

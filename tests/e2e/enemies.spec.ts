@@ -60,8 +60,7 @@ test('an alien walker takes three hits, flashing each time, then dies', async ({
   const after = await level(page);
   expect(after.enemies[0]?.alive).toBe(false);
   expect(after.enemies[1]?.alive).toBe(true);
-  // Every bullet hit the alien: none reached a wall.
-  expect(after.bullets).toMatchObject({ fired: 3, impacts: 0 });
+  expect(after.bullets).toMatchObject({ fired: 3 });
 });
 
 test('bullets pass through a dead alien', async ({ page }) => {

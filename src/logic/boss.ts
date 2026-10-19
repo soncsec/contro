@@ -165,6 +165,14 @@ export function damageBoss(
 }
 
 /**
+ * True once a lobbed shell has come down to its landing height (M3.12: shots pass through
+ * terrain, so a shell bursts where it was aimed rather than where it hits a floor).
+ */
+export function shellLanded(y: number, vy: number, landY: number): boolean {
+  return vy >= 0 && y >= landY;
+}
+
+/**
  * Launch velocity for a lobbed shell to fly from `from` to `to` in `flightMs`, under
  * `gravity` (px/s², y down).
  */

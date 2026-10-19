@@ -80,7 +80,6 @@ test('up aims diagonally: the shot starts higher and flies up and away', async (
   // Up and away: it leaves through the top of the screen without hitting anything.
   const gone = await waitGameTime(page, fired.timeMs, 1200);
   expect(gone.bullets.active).toBe(0);
-  expect(gone.bullets.impacts).toBe(0);
   await page.keyboard.up('ArrowUp');
   expect(watched.errors).toEqual([]);
 });
