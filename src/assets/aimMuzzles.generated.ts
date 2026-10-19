@@ -3,5 +3,6 @@
 export const AIM_MUZZLES: Readonly<Record<string, readonly (readonly [number, number])[]>> = {
   'marine-aim-diag': [[48, 12], [47, 14], [47, 16], [47, 14]],
   'marine-run-diag': [[50, 17], [49, 18], [48, 17], [47, 18], [47, 17], [47, 19], [48, 20], [49, 18], [49, 18], [50, 17]],
+  'marine-run-down': [[55, 44], [55, 44], [54, 41], [53, 40], [53, 39], [52, 40], [54, 44], [55, 44], [55, 44], [55, 44]],
   'marine-shoot-diag': [[47, 15], [47, 14]],
 };

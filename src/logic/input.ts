@@ -3,6 +3,8 @@
  * Keys are KeyboardEvent.code values, so the layout works on any keyboard language.
  * Gamepad buttons join this in M2.3.
  */
+import { stickDirections } from './touch';
+
 export const ACTIONS = ['left', 'right', 'up', 'down', 'jump', 'fire', 'pause'] as const;
 export type Action = (typeof ACTIONS)[number];
 export type ActionState = Readonly<Record<Action, boolean>>;
@@ -131,12 +133,10 @@ export function actionsFromPad(pad: PadState, bindings: PadBindings): ActionStat
   for (const action of ACTIONS) {
     state[action] = bindings.buttons[action].some((i) => pad.buttons[i] === true);
   }
+  // The left stick reads as 8 equal 45° slices past the dead zone (as the touch stick does),
+  // so a slightly tilted push down still crouches instead of running and aiming down (M3.13).
   const [x = 0, y = 0] = pad.axes;
-  const dz = bindings.stickDeadzone;
-  if (x <= -dz) state.left = true;
-  if (x >= dz) state.right = true;
-  if (y <= -dz) state.up = true;
-  if (y >= dz) state.down = true;
+  for (const d of stickDirections(x, y, 1, bindings.stickDeadzone)) state[d] = true;
   return state;
 }
 

@@ -19,6 +19,7 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/player/marine-aim-diag.png` | `Warped/Characters/space-marine-lite/Sprites/Idle Gun/sprites/idle-gun1.png … idle-gun4.png` | *derived*: arms and rifle raised 45° in 4 frames (`tools/art/aim.py`) |
 | `assets/player/marine-shoot-diag.png` | `Warped/Characters/space-marine-lite/Sprites/Shoot/sprites/shoot1.png … shoot2.png` | *derived*: arms and rifle raised 45° in 2 frames (`tools/art/aim.py`) |
 | `assets/player/marine-run-diag.png` | `Warped/Characters/space-marine-lite/Sprites/Run with Gun/sprites/run-with-gun1.png … run-with-gun10.png` | *derived*: arms and rifle raised 45° in 10 frames (`tools/art/aim.py`) |
+| `assets/player/marine-run-down.png` | `Warped/Characters/space-marine-lite/Sprites/Run with Gun/sprites/run-with-gun1.png … run-with-gun10.png` | *derived*: arms and rifle lowered 45° in 10 frames (`tools/art/aim.py`) |
 | `assets/effects/bullet.png` | `Warped/Characters/space-marine-lite/Sprites/Misc/bullet1.png … bullet2.png` | 2 frames packed into a strip |
 | `assets/effects/muzzle-flash.png` | `Warped/Characters/space-marine-lite/Sprites/Shoot/sprites/shoot1.png … shoot2.png` | *derived*: muzzle flash cut out of 2 frames, packed into a strip |
 | `assets/effects/muzzle-flash-diag.png` | `Warped/Characters/space-marine-lite/Sprites/Shoot/sprites/shoot1.png … shoot2.png` | *derived*: 2 frames rotated 45° up (`tools/art/aim.py`) |

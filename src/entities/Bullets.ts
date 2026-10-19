@@ -17,6 +17,8 @@ export class Bullets {
   /** Shots fired and impacts made since the level started (for tests). */
   fired = 0;
   firedDiagonal = 0;
+  /** Shots aimed 45° down (M3.13). */
+  firedDown = 0;
   /** Where the most recent shot started (for tests). */
   lastShot: Shot | null = null;
   impacts = 0;
@@ -43,18 +45,18 @@ export class Bullets {
   fire(shot: Shot): boolean {
     const bullet = this.group.get(shot.x, shot.y) as Bullet | null;
     if (!bullet) return false;
-    const diagonal = shot.aim === 'diagonal';
+    const down = shot.aim === 'down';
+    const diagonal = shot.aim !== 'forward';
     const key = diagonal ? 'bullet-diag' : 'bullet';
     bullet
       .setTexture(key)
       .setActive(true)
       .setVisible(true)
-      .setFlipX(shot.direction < 0);
+      .setFlipX(shot.direction < 0)
+      .setFlipY(down);
     // The sprite's leading edge (or corner, when diagonal) starts at the barrel tip.
-    bullet.setPosition(
-      shot.x + (shot.direction * bullet.width) / 2,
-      diagonal ? shot.y - bullet.height / 2 : shot.y,
-    );
+    const corner = diagonal ? (down ? 1 : -1) * (bullet.height / 2) : 0;
+    bullet.setPosition(shot.x + (shot.direction * bullet.width) / 2, shot.y + corner);
     bullet.body.enable = true;
     bullet.body.reset(bullet.x, bullet.y);
     // Diagonal bullets get a small square box around the round in the middle of the sprite.
@@ -67,7 +69,8 @@ export class Bullets {
     bullet.setData('aim', shot.aim);
     bullet.play(animKey(key));
     this.fired++;
-    if (diagonal) this.firedDiagonal++;
+    if (shot.aim === 'diagonal') this.firedDiagonal++;
+    if (down) this.firedDown++;
     this.lastShot = shot;
     return true;
   }

@@ -38,8 +38,16 @@ describe('actionsFromPad (standard mapping)', () => {
     expect(act(pad([], [-0.9, 0]))).toMatchObject({ left: true, right: false });
     expect(act(pad([], [0.6, -0.7]))).toMatchObject({ right: true, up: true });
     expect(act(pad([], [0, 0.5])).down).toBe(true);
-    // Inside the dead zone: nothing.
-    expect(act(pad([], [0.49, -0.3]))).toEqual(NO_ACTIONS);
+    // Inside the (round) dead zone: nothing.
+    expect(act(pad([], [0.3, -0.3]))).toEqual(NO_ACTIONS);
+  });
+
+  it('reads the stick as 8 equal slices, so a slightly tilted down still crouches (M3.13)', () => {
+    // 20° off straight down: down only (with the old square dead zone this was down + right,
+    // which now runs and aims down).
+    expect(act(pad([], [0.34, 0.94]))).toMatchObject({ down: true, right: false, left: false });
+    // Halfway between down and right: both, which runs right aiming down.
+    expect(act(pad([], [0.7, 0.7]))).toMatchObject({ down: true, right: true });
   });
 
   it('copes with a pad that reports no axes', () => {

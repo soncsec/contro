@@ -69,6 +69,7 @@ export interface LevelSnapshot {
     active: number;
     fired: number;
     firedDiagonal: number;
+    firedDown: number;
     impacts: number;
     lastShot: { x: number; y: number; aim: string } | null;
   };
@@ -605,6 +606,7 @@ export class LevelScene extends Phaser.Scene {
         active: this.bullets.active,
         fired: this.bullets.fired,
         firedDiagonal: this.bullets.firedDiagonal,
+        firedDown: this.bullets.firedDown,
         impacts: this.bullets.impacts,
         lastShot: this.bullets.lastShot && {
           x: Math.round(this.bullets.lastShot.x),

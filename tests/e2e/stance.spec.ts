@@ -16,7 +16,7 @@ async function shoot(page: Page) {
   return shot;
 }
 
-test('down crouches: the marine stops, can still turn, and shoots lower', async ({ page }) => {
+test('down crouches: the marine stops and shoots lower', async ({ page }) => {
   const watched = watchPage(page);
   await openLevel(page);
   const standing = await shoot(page);
@@ -24,25 +24,45 @@ test('down crouches: the marine stops, can still turn, and shoots lower', async 
 
   await page.keyboard.down('ArrowDown');
   await expect.poll(async () => (await level(page)).player.anim).toBe('crouch');
-  // Holding right while crouched doesn't move him.
-  await page.keyboard.down('ArrowRight');
   const start = await level(page);
   const later = await waitGameTime(page, start.timeMs, 300);
   expect(later.player).toMatchObject({ crouching: true, vx: 0, feetY: 160 });
   expect(later.player.x).toBe(start.player.x);
-  await page.keyboard.up('ArrowRight');
 
   // The crouched barrel is 9 px lower.
-  await waitGameTime(page, later.timeMs, 120);
   const low = await shoot(page);
   expect(low.y - standing.y).toBe(9);
 
-  // He can turn while crouched.
-  await page.keyboard.down('ArrowLeft');
-  await expect.poll(async () => (await level(page)).player.facing).toBe('left');
-  await page.keyboard.up('ArrowLeft');
-  expect((await level(page)).player.x).toBe(start.player.x);
+  await page.keyboard.up('ArrowDown');
+  await expect.poll(async () => (await level(page)).player.crouching).toBe(false);
+  expect(watched.errors).toEqual([]);
+});
 
+test('down + right runs right aiming 45° down; letting go of right crouches again (M3.13)', async ({
+  page,
+}) => {
+  const watched = watchPage(page);
+  await openLevel(page);
+  const standing = await shoot(page);
+  await page.keyboard.down('ArrowDown');
+  await expect.poll(async () => (await level(page)).player.anim).toBe('crouch');
+
+  await page.keyboard.down('ArrowRight');
+  await expect.poll(async () => (await level(page)).player.anim).toBe('run-down');
+  expect((await level(page)).player).toMatchObject({ crouching: false, aim: 'down', vx: 90 });
+  const shot = await shoot(page);
+  expect(shot.aim).toBe('down');
+  // The lowered barrel is well below the standing one.
+  expect(shot.y).toBeGreaterThan(standing.y + 9);
+  const fired = await level(page);
+  expect(fired.bullets.firedDown).toBe(1);
+  // Down and away: it leaves the view without stopping on the floor (M3.12).
+  const gone = await waitGameTime(page, fired.timeMs, 1200);
+  expect(gone.bullets.active).toBe(0);
+
+  await page.keyboard.up('ArrowRight');
+  await expect.poll(async () => (await level(page)).player.anim).toBe('crouch');
+  expect((await level(page)).player.vx).toBe(0);
   await page.keyboard.up('ArrowDown');
   await expect.poll(async () => (await level(page)).player.crouching).toBe(false);
   expect(watched.errors).toEqual([]);
