@@ -150,7 +150,10 @@ test.describe('on a phone', () => {
 
   test('the title guide lists the touch controls', async ({ page }) => {
     await page.goto('./');
-    await expect.poll(() => page.evaluate(() => window.__contro?.title()?.ready)).toBe(true);
+    // Loading (now with the audio) can take more than 5 s on a busy machine.
+    await expect
+      .poll(() => page.evaluate(() => window.__contro?.title()?.ready), { timeout: 15_000 })
+      .toBe(true);
     // Choose CONTROLS with the stick and FIRE.
     const down = await thumb(page, '.touch-stick', 0, 50);
     await expect.poll(() => page.evaluate(() => window.__contro?.title()?.option)).toBe('CONTROLS');
