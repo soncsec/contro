@@ -164,6 +164,14 @@ export const HEALTH = {
   gameOverMs: 2500,
 } as const;
 
+/** Enemies that run in from the screen's edge (M3.14). */
+export const RUNNERS = {
+  /** They appear this far outside the view, so they run in rather than pop up. */
+  margin: 24,
+  /** Removed (no points) once this far outside the view, or this far below the map. */
+  farPx: 160,
+} as const;
+
 /** Continues after game over (M3.4): how many a run gets, and the screens around them. */
 export const CONTINUE = {
   /** Continues a run starts with (owner approved 3, 2026-10-18). */
