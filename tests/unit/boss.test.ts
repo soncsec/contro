@@ -9,6 +9,7 @@ import {
   stepBoss,
   type BossState,
   type BossTuning,
+  shellLanded,
 } from '../../src/logic/boss';
 
 const T: BossTuning = {
@@ -154,5 +155,21 @@ describe('arenaLocked', () => {
     const arena = { x: 1000, width: 320 };
     expect(arenaLocked(1159, arena)).toBe(false);
     expect(arenaLocked(1160, arena)).toBe(true);
+  });
+});
+
+describe('shellLanded (M3.12: shells burst at their mark, not on terrain)', () => {
+  it('is false while the shell is still rising or above its landing height', () => {
+    expect(shellLanded(100, -50, 140)).toBe(false);
+    expect(shellLanded(120, 80, 140)).toBe(false);
+  });
+
+  it('is true once it is falling at or below its landing height', () => {
+    expect(shellLanded(140, 80, 140)).toBe(true);
+    expect(shellLanded(143, 120, 140)).toBe(true);
+  });
+
+  it('does not burst a shell that passes its landing height on the way up', () => {
+    expect(shellLanded(150, -200, 140)).toBe(false);
   });
 });

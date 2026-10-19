@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { animKey } from '../assets/manifest';
 import { WEAPON } from '../config/tuning';
+import { shellLanded } from '../logic/boss';
 import { bulletOutOfView } from '../logic/weapon';
 import type { EnemyShot } from './Enemies';
 
@@ -11,12 +12,21 @@ const MAX_SHOTS = 12;
 /** The glowing core of the 16×16 orb sprite. */
 const CORE = 6;
 
-/** Enemy shots (slow glowing orbs), reused from a pool. They pass through nothing but walls. */
+/**
+ * Enemy shots (slow glowing orbs), reused from a pool. Like the marine's bullets they pass
+ * through walls, floors and catwalks (M3.12, as in Contra) and end when they leave the view.
+ * A lobbed shell instead bursts when it comes down to its marked landing point.
+ */
 export class EnemyShots {
   readonly group: Phaser.Physics.Arcade.Group;
   fired = 0;
+  /** Lobbed shells that have burst on landing since the level started (for tests). */
+  landed = 0;
 
-  constructor(private readonly scene: Phaser.Scene) {
+  constructor(
+    private readonly scene: Phaser.Scene,
+    private readonly onLand: (x: number, y: number) => void,
+  ) {
     this.group = scene.physics.add.group({
       defaultKey: 'enemy-shot',
       maxSize: MAX_SHOTS,
@@ -34,12 +44,13 @@ export class EnemyShots {
     orb.body.setAllowGravity(shot.gravity === true);
     orb.body.setVelocity(shot.vx, shot.vy);
     orb.setData('lobbed', shot.gravity === true);
+    orb.setData('burstAtY', shot.burstAtY ?? null);
     orb.play(animKey('enemy-shot'));
     this.fired++;
     return true;
   }
 
-  /** Removes an orb (it hit the marine or a wall). */
+  /** Removes an orb (it hit the marine, landed, or left the view). */
   remove(orb: Orb): void {
     if (!orb.active) return;
     orb.body.stop();
@@ -47,18 +58,20 @@ export class EnemyShots {
     this.group.killAndHide(orb);
   }
 
-  /** True for a lobbed shell (it bursts bigger where it lands). */
-  lobbed(orb: Orb): boolean {
-    return orb.getData('lobbed') === true;
-  }
-
-  /** Removes orbs that have left the camera view. */
+  /** Bursts shells that have reached their landing point; removes orbs that left the view. */
   update(): void {
     const view = this.scene.cameras.main.worldView;
     for (const child of this.group.getChildren()) {
       const orb = child as Orb;
-      if (orb.active && bulletOutOfView(orb.x, orb.y, view, WEAPON.offscreenMargin))
+      if (!orb.active) continue;
+      const landY = orb.getData('burstAtY') as number | null;
+      if (landY !== null && shellLanded(orb.y, orb.body.velocity.y, landY)) {
+        this.landed++;
+        this.onLand(orb.x, landY);
         this.remove(orb);
+      } else if (bulletOutOfView(orb.x, orb.y, view, WEAPON.offscreenMargin)) {
+        this.remove(orb);
+      }
     }
   }
 

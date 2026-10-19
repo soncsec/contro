@@ -70,11 +70,10 @@ export interface LevelSnapshot {
     fired: number;
     firedDiagonal: number;
     firedDown: number;
-    impacts: number;
     lastShot: { x: number; y: number; aim: string } | null;
   };
   enemies: EnemySnapshot[];
-  enemyShots: { active: number; fired: number };
+  enemyShots: { active: number; fired: number; landed: number };
   /** True once the player has reached the exit and the room is fading out. */
   exiting: boolean;
   /** Furthest x the player has reached, and where they would respawn now. */
@@ -245,13 +244,8 @@ export class LevelScene extends Phaser.Scene {
     });
 
     this.effects = new Effects(this);
-    this.bullets = new Bullets(this, (x, y, direction) => {
-      // The impact art is drawn for a wall on the right; its right edge goes on the hit point.
-      this.effects.play('wall-impact', x - direction * 8, y, direction < 0);
-    });
-    this.physics.add.overlap(this.bullets.group, solids, (bullet) => {
-      this.bullets.hit(bullet as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody);
-    });
+    // Bullets and enemy shots pass through terrain (M3.12): nothing here collides them with it.
+    this.bullets = new Bullets(this);
 
     this.enemies = new Enemies(this, this.layout.enemies, (type, x, y) => {
       this.effects.play(ENEMIES[type].deathEffect, x, y);
@@ -270,19 +264,13 @@ export class LevelScene extends Phaser.Scene {
       const damage = this.enemies.contactDamage(enemy as Phaser.GameObjects.GameObject);
       if (damage > 0) this.player.hurt(damage, (enemy as Phaser.GameObjects.Sprite).x);
     });
-    // Enemy shots hurt the marine and pop on walls and floors.
-    this.enemyShots = new EnemyShots(this);
+    // Enemy shots hurt the marine; a lobbed mortar shell bursts bigger where it was aimed.
+    this.enemyShots = new EnemyShots(this, (x, y) => this.effects.play('enemy-death', x, y));
     type Orb = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     this.physics.add.overlap(this.player.sprite, this.enemyShots.group, (_player, orb) => {
       const o = orb as Orb;
       if (!o.active || this.player.dead) return;
       if (this.player.hurt(1, o.x) !== 'ignored') this.effects.play('hit', o.x, o.y);
-      this.enemyShots.remove(o);
-    });
-    this.physics.add.overlap(this.enemyShots.group, solids, (orb) => {
-      const o = orb as Orb;
-      // A lobbed mortar shell bursts bigger where it lands.
-      if (o.active) this.effects.play(this.enemyShots.lobbed(o) ? 'enemy-death' : 'hit', o.x, o.y);
       this.enemyShots.remove(o);
     });
     this.createBoss();
@@ -607,7 +595,6 @@ export class LevelScene extends Phaser.Scene {
         fired: this.bullets.fired,
         firedDiagonal: this.bullets.firedDiagonal,
         firedDown: this.bullets.firedDown,
-        impacts: this.bullets.impacts,
         lastShot: this.bullets.lastShot && {
           x: Math.round(this.bullets.lastShot.x),
           y: Math.round(this.bullets.lastShot.y),
@@ -615,7 +602,11 @@ export class LevelScene extends Phaser.Scene {
         },
       },
       enemies: this.enemies.snapshot(),
-      enemyShots: { active: this.enemyShots.active, fired: this.enemyShots.fired },
+      enemyShots: {
+        active: this.enemyShots.active,
+        fired: this.enemyShots.fired,
+        landed: this.enemyShots.landed,
+      },
       exiting: this.exiting,
       reachedX: this.reachedX,
       respawnAt: this.respawnAt(),

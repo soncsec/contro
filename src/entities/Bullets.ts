@@ -9,24 +9,20 @@ type Bullet = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
 
 /**
  * The player's bullets, reused from a fixed pool (CLAUDE.md: pooled objects).
- * A bullet ends when it hits level collision or a level edge (with an impact
- * effect) or quietly when it leaves the camera view.
+ * Bullets pass through walls, floors and catwalks, as in Contra (M3.12, owner request):
+ * only enemies stop them. A bullet ends quietly when it leaves the camera view or the level.
  */
 export class Bullets {
   readonly group: Phaser.Physics.Arcade.Group;
-  /** Shots fired and impacts made since the level started (for tests). */
+  /** Shots fired since the level started (for tests). */
   fired = 0;
   firedDiagonal = 0;
   /** Shots aimed 45° down (M3.13). */
   firedDown = 0;
   /** Where the most recent shot started (for tests). */
   lastShot: Shot | null = null;
-  impacts = 0;
 
-  constructor(
-    private readonly scene: Phaser.Scene,
-    private readonly onImpact: (x: number, y: number, direction: -1 | 1) => void,
-  ) {
+  constructor(private readonly scene: Phaser.Scene) {
     this.group = scene.physics.add.group({
       defaultKey: 'bullet',
       maxSize: WEAPON.maxBullets,
@@ -36,7 +32,7 @@ export class Bullets {
       Phaser.Physics.Arcade.Events.WORLD_BOUNDS,
       (body: Phaser.Physics.Arcade.Body) => {
         const bullet = body.gameObject as Bullet;
-        if (this.group.contains(bullet)) this.hit(bullet);
+        if (this.group.contains(bullet)) this.release(bullet);
       },
     );
   }
@@ -75,17 +71,8 @@ export class Bullets {
     return true;
   }
 
-  /** Bullet hit level collision or an edge: show an impact and recycle it. */
-  hit(bullet: Bullet): void {
-    if (!bullet.active) return;
-    const direction = bullet.getData('direction') as -1 | 1;
-    this.impacts++;
-    this.onImpact(bullet.x + (direction * bullet.width) / 2, bullet.y, direction);
-    this.release(bullet);
-  }
-
   /**
-   * Bullet hit an enemy: recycle it with no wall impact.
+   * Bullet hit an enemy: recycle it.
    * Returns the bullet's leading edge (where the hit effect goes), or null if it was spent.
    */
   absorb(bullet: Bullet): { x: number; y: number; direction: -1 | 1 } | null {
