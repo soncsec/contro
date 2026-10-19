@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ACTIONS } from '../../src/logic/input';
-import { TOUCH_BINDINGS, knobOffset, stickDirections } from '../../src/logic/touch';
+import { TOUCH_BINDINGS, knobOffset, stickDirections, weaponForFrame } from '../../src/logic/touch';
 
 const R = 60; // stick radius in screen pixels
 const DZ = 0.3;
@@ -59,5 +59,21 @@ describe('TOUCH_BINDINGS', () => {
     const codes = ACTIONS.flatMap((a) => TOUCH_BINDINGS[a]);
     expect(codes).toHaveLength(ACTIONS.length);
     expect(new Set(codes).size).toBe(ACTIONS.length);
+  });
+});
+
+describe('weaponForFrame (M3.4: holding the on-screen FIRE auto-fires)', () => {
+  const rifle = { autoFire: false, autoIntervalMs: 160, tapMinMs: 90 };
+
+  it('keeps the one-shot rifle for keys and gamepad', () => {
+    expect(weaponForFrame(rifle, false, 120)).toBe(rifle);
+  });
+
+  it('auto-fires at the touch interval while the on-screen FIRE is held', () => {
+    expect(weaponForFrame(rifle, true, 120)).toEqual({
+      autoFire: true,
+      autoIntervalMs: 120,
+      tapMinMs: 90,
+    });
   });
 });

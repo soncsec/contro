@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { TOUCH } from '../../src/config/tuning';
 import { level, sceneKey, startGame, waitGameTime, watchPage } from './watch';
 
 /**
@@ -109,21 +110,32 @@ test.describe('on a phone', () => {
     await expect.poll(async () => (await player(page)).crouching).toBe(false);
   });
 
-  test('JUMP jumps and FIRE fires one shot per tap, while the stick is held', async ({ page }) => {
+  test('JUMP jumps and a FIRE tap fires at once, while the stick is held', async ({ page }) => {
     await openLevel(page);
     const run = await thumb(page, '.touch-stick', 50, 0);
     const jump = await thumb(page, '.touch-jump');
     await expect.poll(async () => (await player(page)).onFloor).toBe(false);
     await jump();
-    for (let i = 1; i <= 2; i++) {
-      const fire = await thumb(page, '.touch-fire');
-      await expect.poll(async () => (await level(page)).bullets.fired).toBe(i);
-      await fire();
-      const s = await level(page);
-      await waitGameTime(page, s.timeMs, 150); // the one-shot rifle needs a fresh press
-    }
-    expect((await level(page)).bullets.fired).toBe(2);
+    const fire = await thumb(page, '.touch-fire');
+    await expect.poll(async () => (await level(page)).bullets.fired).toBe(1);
+    await fire();
     await run();
+  });
+
+  test('holding FIRE keeps firing (M3.4); letting go stops it', async ({ page }) => {
+    await openLevel(page);
+    const fire = await thumb(page, '.touch-fire');
+    await expect.poll(async () => (await level(page)).bullets.fired).toBe(1);
+    const start = await level(page);
+    // One shot every TOUCH.autoFireMs of game time. The wait can overshoot a little, so
+    // compare with the game time that really passed.
+    const held = await waitGameTime(page, start.timeMs, 1000);
+    await fire();
+    const expected = Math.floor((held.timeMs - start.timeMs) / TOUCH.autoFireMs);
+    expect(Math.abs(held.bullets.fired - start.bullets.fired - expected)).toBeLessThanOrEqual(1);
+    const after = await level(page);
+    const later = await waitGameTime(page, after.timeMs, 500);
+    expect(later.bullets.fired).toBe(after.bullets.fired);
   });
 
   test('the pause button opens the pause menu, and again closes it', async ({ page }) => {
