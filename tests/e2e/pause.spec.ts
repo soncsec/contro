@@ -51,8 +51,12 @@ test('Restart room from the pause menu restarts the room', async ({ page }) => {
   await expect.poll(() => pauseMenu(page)).toBe('RESUME');
   await page.keyboard.press('ArrowDown');
   await expect.poll(() => pauseMenu(page)).toBe('RESTART ROOM');
+  await page.keyboard.press('ArrowDown');
+  await expect.poll(() => pauseMenu(page)).toBe('SOUND'); // M3.6
   await page.keyboard.press('ArrowDown'); // wraps around
   await expect.poll(() => pauseMenu(page)).toBe('RESUME');
+  await page.keyboard.press('ArrowUp'); // and back the other way
+  await expect.poll(() => pauseMenu(page)).toBe('SOUND');
   await page.keyboard.press('ArrowUp');
   await expect.poll(() => pauseMenu(page)).toBe('RESTART ROOM');
   await page.keyboard.press('Space');
