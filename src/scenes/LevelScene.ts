@@ -16,6 +16,7 @@ import {
   PLATFORMS,
   PLAYER_BODY,
   RIFLE_DAMAGE,
+  RUNNERS,
   SCORING,
 } from '../config/tuning';
 import { BOSSES, BOSS_TYPES } from '../data/bosses';
@@ -33,6 +34,7 @@ import { afterExit, levelLabel, stepFor } from '../logic/campaign';
 import { standingOn } from '../logic/ground';
 import { respawnPoint } from '../logic/health';
 import { reachLevel } from '../logic/save';
+import { groundAt, initialSpawner, stepSpawner, type SpawnerState } from '../logic/spawner';
 import { addPoints, newRun, type ScoreState } from '../logic/score';
 import { NO_CHEATS, applyCheat, type CheatId, type CheatState } from '../logic/cheats';
 import { NO_ACTIONS, type ActionFrame } from '../logic/input';
@@ -77,6 +79,8 @@ export interface LevelSnapshot {
     lastShot: { x: number; y: number; aim: string } | null;
   };
   enemies: EnemySnapshot[];
+  /** Runners sent in from the screen's edge so far (M3.14). */
+  runnersSpawned: number;
   enemyShots: { active: number; fired: number; landed: number };
   /** True once the player has reached the exit and the room is fading out. */
   exiting: boolean;
@@ -146,6 +150,8 @@ export class LevelScene extends Phaser.Scene {
   private bossDefeated = false;
   /** Set once the boss's explosion has settled: the level ends as soon as he is alive. */
   private levelWon = false;
+  /** Where each of the map's spawners has got to (M3.14). */
+  private spawnerStates: SpawnerState[] = [];
   /** Mortar landing markers, reused. */
   private markers: Phaser.GameObjects.Rectangle[] = [];
 
@@ -170,6 +176,7 @@ export class LevelScene extends Phaser.Scene {
     this.arenaIsLocked = false;
     this.bossDefeated = false;
     this.levelWon = false;
+    this.spawnerStates = [];
   }
 
   create(): void {
@@ -353,7 +360,23 @@ export class LevelScene extends Phaser.Scene {
     // Invisible (cheat): enemies can't see him to aim or dive.
     const target =
       p0.dead || this.cheats.invisible ? null : { x: p0.x, y: p0.feetY - PLAYER_BODY.height / 2 };
-    for (const shot of this.enemies.update(deltaMs, target)) this.enemyShots.fire(shot);
+    const view = { left: this.cameras.main.scrollX, right: this.cameras.main.scrollX + GAME_WIDTH };
+    for (const shot of this.enemies.update(deltaMs, target, view, this.layout.heightPx)) {
+      this.enemyShots.fire(shot);
+    }
+    // Spawners send runners in from the screen's edge once they scroll into view (M3.14).
+    this.layout.spawners.forEach((spawner, i) => {
+      const step = stepSpawner(
+        this.spawnerStates[i] ?? initialSpawner(),
+        spawner,
+        view,
+        deltaMs,
+        RUNNERS.margin,
+        (x) => groundAt(this.layout.colliders, x),
+      );
+      this.spawnerStates[i] = step.state;
+      if (step.spawn) this.enemies.spawn(step.spawn);
+    });
     this.updateBoss(deltaMs, target);
     this.enemyShots.update();
     const scrollX = this.cameras.main.scrollX;
@@ -627,6 +650,7 @@ export class LevelScene extends Phaser.Scene {
         },
       },
       enemies: this.enemies.snapshot(),
+      runnersSpawned: this.enemies.runnersSpawned,
       enemyShots: {
         active: this.enemyShots.active,
         fired: this.enemyShots.fired,

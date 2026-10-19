@@ -274,6 +274,7 @@ describe('readLevelLayout', () => {
       playerStart: { x: 8, y: 160 },
       checkpoints: [{ x: 32, y: 160 }],
       enemies: [{ x: 40, y: 160, enemy: 'alien-walker' }],
+      spawners: [],
       exit: { x: 48, y: 96, width: 16, height: 64 },
       boss: null,
     });
@@ -326,6 +327,45 @@ describe('image layers', () => {
     expect(withLayer({ name: 'a', parallaxx: 1.5 })).toEqual([
       'image layer 1: parallaxx must be between 0 and 1',
     ]);
+  });
+});
+
+describe('spawners (M3.14)', () => {
+  const spawner = (props: Record<string, unknown> = {}, extra: Record<string, unknown> = {}) => {
+    const map = sampleMap();
+    const all = { enemy: 'alien-walker', count: 3, every: 900, from: 'right', ...props };
+    layer(map, 'spawns').objects?.push({
+      type: 'spawner',
+      point: true,
+      x: 32,
+      y: 160,
+      properties: Object.entries(all).map(([name, value]) => ({ name, value })),
+      ...extra,
+    });
+    return map;
+  };
+
+  it('reads a spawner', () => {
+    expect(validateLevelMap(spawner(), ENEMY_TYPES)).toEqual([]);
+    expect(readLevelLayout(spawner(), ENEMY_TYPES).spawners).toEqual([
+      { x: 32, y: 160, enemy: 'alien-walker', count: 3, everyMs: 900, from: 'right' },
+    ]);
+  });
+
+  it('rejects a bad enemy, count, interval or side, or a rectangle', () => {
+    expect(validateLevelMap(spawner({ enemy: 'dragon' }), ENEMY_TYPES)).toEqual([
+      'spawn 5: unknown enemy type "dragon"',
+    ]);
+    expect(validateLevelMap(spawner({ count: 0, every: 1.5 }), ENEMY_TYPES)).toEqual([
+      'spawn 5: count must be a whole number',
+      'spawn 5: every must be a whole number of ms',
+    ]);
+    expect(validateLevelMap(spawner({ from: 'up' }), ENEMY_TYPES)).toEqual([
+      'spawn 5: from must be "left" or "right"',
+    ]);
+    expect(
+      validateLevelMap(spawner({}, { point: false, width: 16, height: 16 }), ENEMY_TYPES),
+    ).toEqual(['spawn 5: spawner must be a point']);
   });
 });
 

@@ -5,12 +5,19 @@ import type { FlyerTuning } from '../logic/flyer';
  * Enemy types that level maps may place, and their stats (ARCHITECTURE.md ADR-C03).
  * tests/unit/enemies.test.ts checks every entry against the asset manifest.
  */
-export const ENEMY_TYPES = ['alien-walker', 'alien-flyer'] as const;
+export const ENEMY_TYPES = ['alien-walker', 'alien-flyer', 'alien-runner'] as const;
 export type EnemyType = (typeof ENEMY_TYPES)[number];
 
 export interface EnemyStats {
-  /** Walkers patrol on the floor; flyers hover, shoot and dive (src/logic/flyer.ts). */
-  movement: 'walker' | 'flyer';
+  /**
+   * Walkers patrol on the floor; flyers hover, shoot and dive (src/logic/flyer.ts); runners
+   * run in from the edge of the screen and keep going (src/logic/spawner.ts, M3.14).
+   */
+  movement: 'walker' | 'flyer' | 'runner';
+  /** Colour multiplied over the art, so one sheet can make a variant (M3.14). */
+  tint?: number;
+  /** Speeds up the walk animation, for an enemy faster than the art was drawn for. */
+  animTimeScale?: number;
   /** Sprite sheet (asset key) for walking; its default animation is played. */
   walkSheet: string;
   frame: { width: number; height: number };
@@ -81,5 +88,22 @@ export const ENEMIES: Readonly<Record<EnemyType, EnemyStats>> = {
       fireCooldownMs: 2600,
       shotSpeed: 80,
     },
+  },
+  // M3.14: the walker's art, tinted red, running in from the screen's edge. Fragile and fast.
+  'alien-runner': {
+    movement: 'runner',
+    walkSheet: 'alien-walker-walk',
+    frame: { width: 57, height: 42 },
+    body: { width: 28, height: 29, offsetX: 14, offsetY: 9 },
+    facesLeftInArt: true,
+    hp: 1,
+    speed: 75,
+    patrolRange: 0,
+    turnPauseMs: 0,
+    deathEffect: 'enemy-death',
+    contactDamage: 1,
+    points: 50,
+    tint: 0xff8a7a,
+    animTimeScale: 2.5,
   },
 };

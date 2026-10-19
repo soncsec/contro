@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
 import { animKey } from '../assets/manifest';
-import { HIT_FLASH_MS } from '../config/tuning';
+import { HIT_FLASH_MS, RUNNERS } from '../config/tuning';
 import { ENEMIES, type EnemyType } from '../data/enemies';
 import { bodyOffsetX, spriteYForFeet } from '../logic/body';
 import { applyDamage, initialPatrol, stepPatrol, type PatrolState } from '../logic/enemy';
+import { runnerGone, stepRunner, type SpawnOrder } from '../logic/spawner';
 import {
   initialFlyer,
   stepFlyer,
@@ -28,6 +29,8 @@ interface EnemyRecord {
   /** Facing as drawn: -1 left, 1 right. */
   direction: -1 | 1;
   flashMs: number;
+  /** Sent in from the screen's edge by a spawner (M3.14); reused once dead or gone. */
+  runner: boolean;
 }
 
 export interface EnemySnapshot {
@@ -62,6 +65,9 @@ export class Enemies {
   readonly group: Phaser.Physics.Arcade.Group;
   private readonly records: EnemyRecord[] = [];
 
+  /** Runners sent in so far (for tests). */
+  runnersSpawned = 0;
+
   constructor(
     scene: Phaser.Scene,
     spawns: readonly { x: number; y: number; enemy: string }[],
@@ -91,19 +97,70 @@ export class Enemies {
           flying && stats.flyer ? initialFlyer(stats.flyer, flyers++ * FLYER_STAGGER_MS) : null,
         direction: -1,
         flashMs: 0,
+        runner: false,
       };
       this.face(record);
+      this.paint(record);
       sprite.setData('record', record);
       this.records.push(record);
     }
   }
 
-  /** Moves every enemy for this frame. Returns the shots fired this frame. */
-  update(dtMs: number, player: Point | null): EnemyShot[] {
+  /**
+   * Sends an enemy in from the screen's edge (M3.14), reusing a runner of the same type that
+   * died or ran off (CLAUDE.md: pooled objects).
+   */
+  spawn(order: SpawnOrder): void {
+    const type = order.enemy as EnemyType;
+    const stats = ENEMIES[type];
+    const y = spriteYForFeet(order.y, stats.frame.height, stats.body);
+    let r = this.records.find((rec) => rec.runner && rec.type === type && !rec.sprite.active);
+    if (r) {
+      r.sprite.setActive(true).setVisible(true);
+      r.sprite.body.enable = true;
+      r.sprite.body.reset(order.x, y);
+    } else {
+      const sprite = this.group.create(order.x, y, stats.walkSheet) as EnemySprite;
+      sprite.body.setSize(stats.body.width, stats.body.height);
+      r = {
+        sprite,
+        type,
+        origin: { x: order.x, y: order.y },
+        hp: stats.hp,
+        patrol: initialPatrol(),
+        flyer: null,
+        direction: order.direction,
+        flashMs: 0,
+        runner: true,
+      };
+      sprite.setData('record', r);
+      this.records.push(r);
+    }
+    r.hp = stats.hp;
+    r.flashMs = 0;
+    r.direction = order.direction;
+    r.sprite.play(animKey(stats.walkSheet));
+    this.face(r);
+    this.paint(r);
+    this.runnersSpawned++;
+  }
+
+  /**
+   * Moves every enemy for this frame. Returns the shots fired this frame. `view` is the camera's
+   * span, and `mapHeight` the map's: runners far outside the view or down a pit are removed.
+   */
+  update(
+    dtMs: number,
+    player: Point | null,
+    view: { left: number; right: number },
+    mapHeight: number,
+  ): EnemyShot[] {
     const shots: EnemyShot[] = [];
     for (const r of this.records) {
       if (!r.sprite.active) continue;
-      if (r.flyer) {
+      if (r.runner) {
+        this.updateRunner(r, view, mapHeight);
+      } else if (r.flyer) {
         const shot = this.updateFlyer(r, dtMs, player);
         if (shot) shots.push(shot);
       } else {
@@ -111,7 +168,7 @@ export class Enemies {
       }
       if (r.flashMs > 0) {
         r.flashMs -= dtMs;
-        if (r.flashMs <= 0) r.sprite.clearTint().setTintMode(Phaser.TintModes.MULTIPLY);
+        if (r.flashMs <= 0) this.paint(r);
       }
     }
     return shots;
@@ -170,6 +227,34 @@ export class Enemies {
     body.setVelocityX(step.vx);
     if (step.vx === 0) r.sprite.anims.pause();
     else if (r.sprite.anims.isPaused) r.sprite.anims.resume();
+  }
+
+  private updateRunner(
+    r: EnemyRecord,
+    view: { left: number; right: number },
+    mapHeight: number,
+  ): void {
+    const body = r.sprite.body;
+    if (runnerGone(body.center.x, body.bottom, view, RUNNERS.farPx, mapHeight)) {
+      // Ran off or fell: gone quietly, ready to be sent in again.
+      body.stop();
+      body.enable = false;
+      r.sprite.setActive(false).setVisible(false);
+      return;
+    }
+    this.setDirection(
+      r,
+      stepRunner(r.direction, { left: body.blocked.left, right: body.blocked.right }),
+    );
+    body.setVelocityX(r.direction * ENEMIES[r.type].speed);
+  }
+
+  /** The enemy's own colouring (a variant's tint), and its walk speed; clears a hit flash. */
+  private paint(r: EnemyRecord): void {
+    const stats = ENEMIES[r.type];
+    r.sprite.clearTint().setTintMode(Phaser.TintModes.MULTIPLY);
+    if (stats.tint !== undefined) r.sprite.setTint(stats.tint);
+    r.sprite.anims.timeScale = stats.animTimeScale ?? 1;
   }
 
   private updateFlyer(r: EnemyRecord, dtMs: number, player: Point | null): EnemyShot | null {
