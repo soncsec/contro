@@ -33,7 +33,7 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 | Test rooms | The two corridor test rooms are **not part of the game** (owner left it to Claude, 2026-10-18): they stay in the repo as a training level that only the e2e build plays first, so browser tests keep small fixed rooms |
 | Health between sections | **Health carries over** from section to section and level to level, like score and lives (owner request 2026-10-18). A respawn after losing a life still starts with full health |
 | Player | The Warped space marine: idle, run, jump, crouch, shoot, die |
-| Aiming | Forward (standing, running, jumping), crouched forward, and **diagonal up**. The diagonal frame is derived from the existing art by Claude. Aim poses are data in the asset manifest so better art can replace them later without code changes (owner decision 2026-10-17) |
+| Aiming | Forward (standing, running, jumping), crouched forward, **diagonal up**, and **diagonal down while running or jumping** (owner request 2026-10-18, roadmap M3.13: down alone crouches; down plus left or right runs that way aiming 45° down; in the air down plus a direction aims down, and down alone still drops through catwalks). The diagonal frames are derived from the existing art by Claude. Aim poses are data in the asset manifest so better art can replace them later without code changes (owner decision 2026-10-17) |
 | Controls | Keyboard, **gamepad** (standard mapping) and **phone touch controls** (on-screen buttons on touch screens; owner approved 2026-10-18). Default keys: arrows or WASD to move, jump, fire, aim-up modifier, pause. Final key layout settled in M1/M2 play-tests |
 | Health | **Health bar** with several hits per life, brief invulnerability after a hit, **mid-level checkpoints**, and a small number of lives with continue from the last checkpoint (owner decision 2026-10-17). Exact numbers live in `src/config/tuning.ts` |
 | Enemies | Walking alien, flying alien, bipedal walker, alien creatures; enemy shots |
@@ -54,7 +54,7 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 ### Out of scope (v1)
 
 - Two-player co-op
-- Full 8-way aiming and straight-up aiming (possible later with new art)
+- Straight-up and straight-down aiming (possible later with new art)
 - Slopes
 - Online leaderboards, accounts, payments, analytics
 - Any backend or server-side code

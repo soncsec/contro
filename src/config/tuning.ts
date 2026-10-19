@@ -118,6 +118,8 @@ export const MUZZLE_FLASH_ANCHOR = { x: 6, y: 7 } as const;
  * 45° up about (12, 12), which moves (7, 11) to about (8, 15).
  */
 export const MUZZLE_FLASH_DIAG_ANCHOR = { x: 8, y: 15 } as const;
+/** Aiming down (M3.13) shows the diagonal flash flipped upside down: 24 − 15 = 9. */
+export const MUZZLE_FLASH_DIAG_DOWN_ANCHOR = { x: 8, y: 9 } as const;
 
 /** Enemies flash white for this long when hit (M1.6). */
 export const HIT_FLASH_MS = 70;

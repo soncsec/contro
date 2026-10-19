@@ -1,4 +1,5 @@
-"""Derives diagonal-up aiming frames for the marine by rotating his front arms and gun.
+"""Derives diagonal aiming frames (45° up, and 45° down for M3.13) for the marine by rotating
+his front arms and gun.
 
 The region in front of the torso (arms and rifle) is cut out, rotated about the shoulder
 with a RotSprite-style method (Scale2x three times, rotate, sample), and pasted back.
@@ -98,15 +99,20 @@ REGION_X0 = 37
 REGION_ABOVE, REGION_BELOW = 5, 4
 PIVOT_X, PIVOT_BELOW = 39.5, 4.5
 DIAGONAL = -45.0
+# Aiming down while running (M3.13): the same cut, turned the other way.
+DIAGONAL_DOWN = 45.0
 
 
-def aim_frame(frame: png.Image, keep_flash: bool = True) -> tuple[png.Image, tuple[int, int]]:
-    """Diagonal-up version of a frame, and its new barrel tip (for bullets and the flash)."""
+def aim_frame(
+    frame: png.Image, keep_flash: bool = True, degrees: float = DIAGONAL
+) -> tuple[png.Image, tuple[int, int]]:
+    """Diagonal version of a frame (up by default), and its new barrel tip (for bullets and the
+    flash)."""
     tip_x, tip_y = barrel_tip(frame)
     region = (REGION_X0, tip_y - REGION_ABOVE, len(frame[0]) - 1, tip_y + REGION_BELOW)
     pivot = (PIVOT_X, tip_y + PIVOT_BELOW)
-    out = aim_diagonal(frame, region, pivot, DIAGONAL, keep_flash)
-    a = math.radians(DIAGONAL)
+    out = aim_diagonal(frame, region, pivot, degrees, keep_flash)
+    a = math.radians(degrees)
     dx, dy = tip_x + 0.5 - pivot[0], tip_y + 0.5 - pivot[1]
     nx = pivot[0] + math.cos(a) * dx - math.sin(a) * dy
     ny = pivot[1] + math.sin(a) * dx + math.cos(a) * dy

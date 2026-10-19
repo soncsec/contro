@@ -37,6 +37,7 @@ PORTRAITS = "Warped/Misc/Warped Portraits Files/portraits with bg"
 #   how = "aim:<glob>"     raise the arms and rifle of each numbered frame 45° (tools/art/aim.py)
 #                          and pack them; the new barrel tips go to the generated muzzle file
 #   how = "aimbare:<glob>" the same, with any muzzle flash removed
+#   how = "aimdown:<glob>" lower the arms and rifle 45° instead (M3.13), with no muzzle flash
 #   how = "rot45:<glob>:WxH" rotate each frame 45° up onto a W×H canvas (bullets, flashes)
 #   how = "draw:catwalk"   new tiles drawn by tools/art/catwalk.py in the colours of the source
 #   how = "steelworks"     crop and stack the bulkhead-walls v1 layers (tools/art/steelworks.py)
@@ -52,6 +53,7 @@ ASSETS = [
     ("assets/player/marine-aim-diag.png", f"{MARINE}/Idle Gun/sprites", "aimbare:idle-gun*.png"),
     ("assets/player/marine-shoot-diag.png", f"{MARINE}/Shoot/sprites", "aim:shoot*.png"),
     ("assets/player/marine-run-diag.png", f"{MARINE}/Run with Gun/sprites", "aim:run-with-gun*.png"),
+    ("assets/player/marine-run-down.png", f"{MARINE}/Run with Gun/sprites", "aimdown:run-with-gun*.png"),
     ("assets/effects/bullet.png", f"{MARINE}/Misc", "pack:bullet*.png"),
     ("assets/effects/muzzle-flash.png", f"{MARINE}/Shoot/sprites", "flash:shoot*.png"),
     ("assets/effects/muzzle-flash-diag.png", f"{MARINE}/Shoot/sprites", "rot45flash:shoot*.png:24x24"),
@@ -153,11 +155,14 @@ def build() -> list[tuple[str, str, str]]:
             if kind == "flash":
                 images = [cut_flash(i) for i in images]
                 note = f"*derived*: muzzle flash cut out of {len(frames)} frames, packed into a strip"
-            elif kind in ("aim", "aimbare"):
-                done = [aim.aim_frame(i, keep_flash=kind == "aim") for i in images]
+            elif kind in ("aim", "aimbare", "aimdown"):
+                down = kind == "aimdown"
+                degrees = aim.DIAGONAL_DOWN if down else aim.DIAGONAL
+                done = [aim.aim_frame(i, keep_flash=kind == "aim", degrees=degrees) for i in images]
                 images = [img for img, _ in done]
                 muzzles[pathlib.Path(out).stem] = [tip for _, tip in done]
-                note = f"*derived*: arms and rifle raised 45° in {len(frames)} frames (`tools/art/aim.py`)"
+                way = "lowered" if down else "raised"
+                note = f"*derived*: arms and rifle {way} 45° in {len(frames)} frames (`tools/art/aim.py`)"
             elif kind in ("rot45", "rot45flash"):
                 assert size is not None
                 w, h = (int(v) for v in size.split("x"))

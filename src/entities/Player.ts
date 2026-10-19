@@ -7,6 +7,7 @@ import {
   MUZZLE,
   MUZZLE_FLASH_ANCHOR,
   MUZZLE_FLASH_DIAG_ANCHOR,
+  MUZZLE_FLASH_DIAG_DOWN_ANCHOR,
   PLATFORMS,
   PLAYER_BODY,
   PLAYER_CROUCH_BODY,
@@ -39,6 +40,7 @@ const ANIM_SHEETS: Readonly<Record<MarineAnim, string>> = {
   'aim-diag': 'marine-aim-diag',
   'shoot-diag': 'marine-shoot-diag',
   'run-diag': 'marine-run-diag',
+  'run-down': 'marine-run-down',
 };
 
 /** Barrel tips per animation: measured (tuning.ts) or generated with the derived art. */
@@ -47,6 +49,7 @@ const MUZZLES: Readonly<Record<MarineAnim, readonly (readonly [number, number])[
   'aim-diag': AIM_MUZZLES['marine-aim-diag'] ?? [],
   'shoot-diag': AIM_MUZZLES['marine-shoot-diag'] ?? [],
   'run-diag': AIM_MUZZLES['marine-run-diag'] ?? [],
+  'run-down': AIM_MUZZLES['marine-run-down'] ?? [],
 };
 
 /** Animations whose frames already show the muzzle flash. */
@@ -275,11 +278,11 @@ export class Player {
     if (this.flash.visible) this.placeFlash(muzzle);
     if (!weapon.fired) return null;
     if (!FLASH_DRAWN_IN.has(anim)) {
-      this.flash.setTexture(this.aim === 'diagonal' ? 'muzzle-flash-diag' : 'muzzle-flash');
+      // Aiming down shows the diagonal flash upside down.
+      const key = this.aim === 'forward' ? 'muzzle-flash' : 'muzzle-flash-diag';
+      this.flash.setTexture(key).setFlipY(this.aim === 'down');
       this.placeFlash(muzzle);
-      this.flash
-        .setVisible(true)
-        .play(animKey(this.aim === 'diagonal' ? 'muzzle-flash-diag' : 'muzzle-flash'));
+      this.flash.setVisible(true).play(animKey(key));
     }
     return {
       x: muzzle.x,
@@ -327,7 +330,12 @@ export class Player {
 
   private placeFlash(muzzle: { x: number; y: number }): void {
     const left = this.flipped();
-    const anchor = this.aim === 'diagonal' ? MUZZLE_FLASH_DIAG_ANCHOR : MUZZLE_FLASH_ANCHOR;
+    const anchor =
+      this.aim === 'diagonal'
+        ? MUZZLE_FLASH_DIAG_ANCHOR
+        : this.aim === 'down'
+          ? MUZZLE_FLASH_DIAG_DOWN_ANCHOR
+          : MUZZLE_FLASH_ANCHOR;
     this.flash.setFlipX(left);
     // Put the anchor pixel of the flash frame on the barrel tip.
     const w = this.flash.width;

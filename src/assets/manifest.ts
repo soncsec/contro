@@ -74,6 +74,8 @@ export const ASSETS: readonly Asset[] = [
   sheet('player', 'marine-aim-diag', 'marine-aim-diag.png', 75, 48, 4, 6, true),
   sheet('player', 'marine-shoot-diag', 'marine-shoot-diag.png', 75, 48, 2, 12, true),
   sheet('player', 'marine-run-diag', 'marine-run-diag.png', 75, 48, 10, 14, true),
+  // Derived: arms and rifle lowered 45° while running (M3.13)
+  sheet('player', 'marine-run-down', 'marine-run-down.png', 75, 48, 10, 14, true),
 
   // Enemies (the walker faces left in the art)
   sheet('enemies', 'alien-walker-idle', 'alien-walker-idle.png', 48, 48, 4, 6, true),

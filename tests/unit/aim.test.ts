@@ -66,3 +66,42 @@ describe('shotVelocity', () => {
     expect(shotVelocity(-1, 'diagonal', 300).vx).toBeCloseTo(-212.13, 2);
   });
 });
+
+describe('aiming down while running (M3.13)', () => {
+  const down: Stance = { crouching: false, aim: 'down' };
+
+  it('down alone still crouches on the floor', () => {
+    expect(stanceFor({ up: false, down: true, left: false, right: false }, true)).toEqual(crouch);
+  });
+
+  it('down with left or right runs and aims down, on the floor and in the air', () => {
+    expect(stanceFor({ up: false, down: true, right: true }, true)).toEqual(down);
+    expect(stanceFor({ up: false, down: true, left: true }, true)).toEqual(down);
+    expect(stanceFor({ up: false, down: true, right: true }, false)).toEqual(down);
+  });
+
+  it('down wins over up when moving', () => {
+    expect(stanceFor({ up: true, down: true, right: true }, true)).toEqual(down);
+  });
+
+  it('left and right together cancel out, so down crouches', () => {
+    expect(stanceFor({ up: false, down: true, left: true, right: true }, true)).toEqual(crouch);
+  });
+
+  it('down alone in the air aims forward (no crouch, no down aim)', () => {
+    expect(stanceFor({ up: false, down: true }, false)).toEqual(stand);
+  });
+
+  it('uses the run-down frames on the floor and the jump frames in the air', () => {
+    expect(marineAnim(true, 90, false, down)).toBe('run-down');
+    expect(marineAnim(true, 0, true, down)).toBe('run-down');
+    expect(marineAnim(false, 90, true, down)).toBe('jump');
+  });
+
+  it('flies 45° down at the same speed', () => {
+    const r = shotVelocity(1, 'down', 300);
+    expect(r.vx).toBeCloseTo(212.13, 2);
+    expect(r.vy).toBeCloseTo(212.13, 2);
+    expect(shotVelocity(-1, 'down', 300).vx).toBeCloseTo(-212.13, 2);
+  });
+});
