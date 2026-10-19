@@ -11,7 +11,7 @@
  "tilewidth": 16,
  "tileheight": 16,
  "nextlayerid": 20,
- "nextobjectid": 67,
+ "nextobjectid": 70,
  "layers": [
   {
    "id": 1,
@@ -4921,6 +4921,108 @@
     {
      "id": 61,
      "name": "",
+     "type": "spawner",
+     "x": 640,
+     "y": 88,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "enemy",
+       "type": "string",
+       "value": "alien-runner"
+      },
+      {
+       "name": "count",
+       "type": "int",
+       "value": 4
+      },
+      {
+       "name": "every",
+       "type": "int",
+       "value": 900
+      },
+      {
+       "name": "from",
+       "type": "string",
+       "value": "right"
+      }
+     ]
+    },
+    {
+     "id": 62,
+     "name": "",
+     "type": "spawner",
+     "x": 1600,
+     "y": 136,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "enemy",
+       "type": "string",
+       "value": "alien-runner"
+      },
+      {
+       "name": "count",
+       "type": "int",
+       "value": 4
+      },
+      {
+       "name": "every",
+       "type": "int",
+       "value": 900
+      },
+      {
+       "name": "from",
+       "type": "string",
+       "value": "right"
+      }
+     ]
+    },
+    {
+     "id": 63,
+     "name": "",
+     "type": "spawner",
+     "x": 2080,
+     "y": 88,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "enemy",
+       "type": "string",
+       "value": "alien-runner"
+      },
+      {
+       "name": "count",
+       "type": "int",
+       "value": 3
+      },
+      {
+       "name": "every",
+       "type": "int",
+       "value": 1000
+      },
+      {
+       "name": "from",
+       "type": "string",
+       "value": "left"
+      }
+     ]
+    },
+    {
+     "id": 64,
+     "name": "",
      "type": "checkpoint",
      "x": 848,
      "y": 136,
@@ -4931,7 +5033,7 @@
      "point": true
     },
     {
-     "id": 62,
+     "id": 65,
      "name": "",
      "type": "checkpoint",
      "x": 1632,
@@ -4943,7 +5045,7 @@
      "point": true
     },
     {
-     "id": 63,
+     "id": 66,
      "name": "",
      "type": "checkpoint",
      "x": 2272,
@@ -4955,7 +5057,7 @@
      "point": true
     },
     {
-     "id": 64,
+     "id": 67,
      "name": "",
      "type": "exit",
      "x": 2800,
@@ -4966,7 +5068,7 @@
      "visible": true
     },
     {
-     "id": 65,
+     "id": 68,
      "name": "",
      "type": "boss",
      "x": 2816,
@@ -4985,7 +5087,7 @@
      ]
     },
     {
-     "id": 66,
+     "id": 69,
      "name": "",
      "type": "arena",
      "x": 2560,

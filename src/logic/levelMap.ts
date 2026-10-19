@@ -9,6 +9,9 @@
  * - object layer "spawns": one "player-start" point, one "exit" rectangle,
  *   "enemy" points with an `enemy` string property naming a known enemy type,
  *   and any number of "checkpoint" points (respawn places)
+ * - optionally "spawner" points (M3.14): enemies that run in from the edge of the screen once
+ *   the point scrolls into view. Properties: `enemy` (a known enemy type), `count` and `every`
+ *   (whole numbers: how many, and ms between them), and `from` ("left" or "right")
  * - optionally a boss fight (M3.2): one "boss" point with a `boss` string property naming a
  *   known boss type, and one "arena" rectangle exactly one screen wide, reaching the map's
  *   right edge, with the boss inside it. Each needs the other.
@@ -17,6 +20,7 @@
  *   `parallaxx` (0–1, default 1) is how fast it scrolls with the camera; repeated sideways
  */
 import { GAME_WIDTH } from '../config/tuning';
+import type { Spawner } from './spawner';
 
 export const TILE_SIZE = 16;
 export const REQUIRED_TILE_LAYERS = ['background'] as const;
@@ -42,6 +46,8 @@ export interface LevelLayout {
   /** Respawn points, in map order. */
   checkpoints: { x: number; y: number }[];
   enemies: { x: number; y: number; enemy: string }[];
+  /** Enemies that run in from the screen's edge (M3.14). */
+  spawners: Spawner[];
   exit: Rect;
   /** The boss and its arena, if this map ends in a boss fight. */
   boss: { x: number; y: number; type: string; arena: Rect } | null;
@@ -242,6 +248,8 @@ export function validateLevelMap(
         if (typeof enemy !== 'string' || !knownEnemies.includes(enemy)) {
           problems.push(`${where}: unknown enemy type ${JSON.stringify(enemy)}`);
         }
+      } else if (o.type === 'spawner') {
+        problems.push(...spawnerProblems(o, where, knownEnemies));
       } else if (o.type === 'checkpoint') {
         if (o.point !== true) problems.push(`${where}: checkpoint must be a point`);
       } else if (o.type === 'boss') {
@@ -258,6 +266,22 @@ export function validateLevelMap(
     });
     problems.push(...bossProblems(spawns, widthPx));
   }
+  return problems;
+}
+
+function spawnerProblems(o: TiledObject, where: string, knownEnemies: readonly string[]): string[] {
+  const problems: string[] = [];
+  if (o.point !== true) problems.push(`${where}: spawner must be a point`);
+  const enemy = property(o, 'enemy');
+  if (typeof enemy !== 'string' || !knownEnemies.includes(enemy)) {
+    problems.push(`${where}: unknown enemy type ${JSON.stringify(enemy)}`);
+  }
+  if (!isPositiveInt(property(o, 'count'))) problems.push(`${where}: count must be a whole number`);
+  if (!isPositiveInt(property(o, 'every')))
+    problems.push(`${where}: every must be a whole number of ms`);
+  const from = property(o, 'from');
+  if (from !== 'left' && from !== 'right')
+    problems.push(`${where}: from must be "left" or "right"`);
   return problems;
 }
 
@@ -324,6 +348,16 @@ export function readLevelLayout(
     enemies: spawns
       .filter((o) => o.type === 'enemy')
       .map((o) => ({ x: o.x as number, y: o.y as number, enemy: property(o, 'enemy') as string })),
+    spawners: spawns
+      .filter((o) => o.type === 'spawner')
+      .map((o) => ({
+        x: o.x as number,
+        y: o.y as number,
+        enemy: property(o, 'enemy') as string,
+        count: property(o, 'count') as number,
+        everyMs: property(o, 'every') as number,
+        from: property(o, 'from') as 'left' | 'right',
+      })),
     exit: rect(exit),
     boss:
       boss && arena

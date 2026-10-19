@@ -10,6 +10,8 @@ Layouts are in LAYOUTS below. A layout gives the width in tiles and lists, in 16
   walkers    alien walkers by tile column; they stand on the walkway or ground there
              ("Ng" puts one on the ground under a walkway)
   flyers     (column, y px) alien flyers
+  spawners   (column, count, every ms, "left"|"right"): runners sent in from that edge of the
+             screen once the column scrolls into view (M3.14); the column must be ground
   checkpoints, start, exit: columns
   boss       optional (type, column): a boss fight in an arena, the map's last screen (20 tiles)
   tileset    "steelworks" (default) or "rust" (tools/art/rust.py, the same rows, 18 columns)
@@ -63,6 +65,7 @@ LAYOUTS = {
         "walkways": [(34, 8, 6), (75, 14, 5), (104, 9, 6), (128, 8, 4)],
         "walkers": [14, 26, "38g", 55, 70, "80g", 86, 110, 122, 132, 152, 168],
         "flyers": [(44, 50), (92, 40), (136, 44), (160, 50)],
+        "spawners": [(40, 3, 1200, "right"), (104, 3, 1000, "right"), (150, 2, 1500, "left")],
         "checkpoints": [50, 102, 144],
         "start": 3,
         "exit": 175,
@@ -79,6 +82,7 @@ LAYOUTS = {
         "walkways": [(28, 9, 5), (58, 10, 5), (96, 12, 4), (130, 9, 5)],
         "walkers": [10, 24, 32, "33g", 45, 52, 62, 75, 86, 100, "104g", 116, 125, 134, 147, 162],
         "flyers": [(40, 40), (70, 36), (108, 30), (138, 40), (158, 44)],
+        "spawners": [(50, 3, 1100, "right"), (120, 4, 900, "right")],
         "checkpoints": [46, 95, 144],
         "start": 3,
         "exit": 165,
@@ -96,6 +100,7 @@ LAYOUTS = {
         "walkers": [8, 13, 24, "25g", 36, 44, 48, 55, 64, "65g", 74, 82, 92, 102, 120, "122g",
                     132, 150],
         "flyers": [(30, 40), (58, 30), (84, 36), (112, 40), (140, 34)],
+        "spawners": [(34, 2, 1200, "left"), (90, 4, 900, "right"), (130, 3, 1000, "right")],
         "checkpoints": [34, 80, 116],
         "start": 3,
         "exit": 155,
@@ -113,6 +118,7 @@ LAYOUTS = {
         "walkers": [10, 20, "21g", 34, 47, 58, 62, 66, 78, 84, 93, 106, 116, "117g", 128, 133,
                     140, 148, 156, 164],
         "flyers": [(26, 44), (50, 36), (72, 40), (100, 34), (122, 44), (146, 38)],
+        "spawners": [(44, 3, 1000, "right"), (110, 3, 1000, "right"), (150, 3, 1200, "left")],
         "checkpoints": [56, 100, 145],
         "start": 3,
         "exit": 165,
@@ -131,6 +137,7 @@ LAYOUTS = {
         "walkers": [8, 14, 18, 28, "29g", 38, 44, 56, "57g", 64, 68, 74, 82, "83g", 90, 97, 106,
                     110, 120, "124g", 131, 137, 146, 152],
         "flyers": [(30, 40), (60, 36), (86, 30), (100, 40), (124, 34), (150, 40)],
+        "spawners": [(40, 4, 900, "right"), (100, 4, 900, "right"), (130, 3, 1000, "left")],
         # The last screen is the tank's arena (M3.3); the exit opens once it is destroyed.
         "boss": ("tank", 176),
         "checkpoints": [53, 102, 142],
@@ -186,13 +193,14 @@ def build(layout: dict) -> dict:
     colliders = []
     oid = iter(range(1, 10_000))
 
-    def obj(kind: str, x: float, y: float, w: float = 0, h: float = 0, **props: str) -> dict:
+    def obj(kind: str, x: float, y: float, w: float = 0, h: float = 0, **props) -> dict:
         o = {"id": next(oid), "name": "", "type": kind, "x": x, "y": y, "width": w, "height": h,
              "rotation": 0, "visible": True}
         if w == 0 and h == 0:
             o["point"] = True
         if props:
-            o["properties"] = [{"name": k, "type": "string", "value": v} for k, v in props.items()]
+            o["properties"] = [{"name": k, "type": "int" if isinstance(v, int) else "string", "value": v}
+                               for k, v in props.items()]
         return o
 
     # Ground colliders: one per run of columns with the same top.
@@ -241,6 +249,9 @@ def build(layout: dict) -> dict:
         spawns.append(obj("enemy", col * TILE, surface(col, ground), enemy="alien-walker"))
     for col, y in layout["flyers"]:
         spawns.append(obj("enemy", col * TILE, y, enemy="alien-flyer"))
+    for col, count, every, side in layout.get("spawners", []):
+        spawns.append(obj("spawner", col * TILE, surface(col, True), enemy="alien-runner",
+                          count=count, every=every, **{"from": side}))
     for col in layout["checkpoints"]:
         spawns.append(obj("checkpoint", col * TILE, surface(col)))
     ex = layout["exit"]

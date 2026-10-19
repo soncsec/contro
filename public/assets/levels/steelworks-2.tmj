@@ -11,7 +11,7 @@
  "tilewidth": 16,
  "tileheight": 16,
  "nextlayerid": 20,
- "nextobjectid": 51,
+ "nextobjectid": 53,
  "layers": [
   {
    "id": 1,
@@ -4475,6 +4475,74 @@
     {
      "id": 47,
      "name": "",
+     "type": "spawner",
+     "x": 800,
+     "y": 88,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "enemy",
+       "type": "string",
+       "value": "alien-runner"
+      },
+      {
+       "name": "count",
+       "type": "int",
+       "value": 3
+      },
+      {
+       "name": "every",
+       "type": "int",
+       "value": 1100
+      },
+      {
+       "name": "from",
+       "type": "string",
+       "value": "right"
+      }
+     ]
+    },
+    {
+     "id": 48,
+     "name": "",
+     "type": "spawner",
+     "x": 1920,
+     "y": 104,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "enemy",
+       "type": "string",
+       "value": "alien-runner"
+      },
+      {
+       "name": "count",
+       "type": "int",
+       "value": 4
+      },
+      {
+       "name": "every",
+       "type": "int",
+       "value": 900
+      },
+      {
+       "name": "from",
+       "type": "string",
+       "value": "right"
+      }
+     ]
+    },
+    {
+     "id": 49,
+     "name": "",
      "type": "checkpoint",
      "x": 736,
      "y": 136,
@@ -4485,7 +4553,7 @@
      "point": true
     },
     {
-     "id": 48,
+     "id": 50,
      "name": "",
      "type": "checkpoint",
      "x": 1520,
@@ -4497,7 +4565,7 @@
      "point": true
     },
     {
-     "id": 49,
+     "id": 51,
      "name": "",
      "type": "checkpoint",
      "x": 2304,
@@ -4509,7 +4577,7 @@
      "point": true
     },
     {
-     "id": 50,
+     "id": 52,
      "name": "",
      "type": "exit",
      "x": 2640,
