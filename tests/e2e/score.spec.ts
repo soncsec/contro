@@ -60,6 +60,9 @@ test('an extra life at 20 000 points, and another at 50 000', async ({ page }) =
 });
 
 test('game over resets the score but keeps the best', async ({ page }) => {
+  // Three deaths plus the game-over screen take seconds of game time, which runs slowly on a
+  // loaded machine (see boss.spec.ts).
+  test.setTimeout(120_000);
   await openLevel(page);
   await addScore(page, 900);
   for (let death = 0; death < 3; death++) {

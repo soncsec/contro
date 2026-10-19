@@ -79,6 +79,9 @@ test('after passing the checkpoint he respawns there', async ({ page }) => {
 test('losing the last life shows game over, then the level restarts with full lives', async ({
   page,
 }) => {
+  // Three deaths plus the game-over screen take seconds of game time, which runs slowly on a
+  // loaded machine (see boss.spec.ts).
+  test.setTimeout(120_000);
   const watched = watchPage(page);
   await openLevel(page);
   await dieAndWait(page);
@@ -146,6 +149,9 @@ test('losing a life after carrying low health still respawns at full health', as
 test('game over in a later section restarts that section, not the level (M3.0)', async ({
   page,
 }) => {
+  // Three deaths plus the game-over screen take seconds of game time, which runs slowly on a
+  // loaded machine (see boss.spec.ts).
+  test.setTimeout(120_000);
   await openLevel(page);
   await nextSection(page);
   expect((await level(page)).level).toBe('corridor-test-2');
