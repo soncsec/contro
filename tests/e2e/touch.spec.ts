@@ -117,7 +117,8 @@ test.describe('on a phone', () => {
     await expect.poll(async () => (await player(page)).onFloor).toBe(false);
     await jump();
     const fire = await thumb(page, '.touch-fire');
-    await expect.poll(async () => (await level(page)).bullets.fired).toBe(1);
+    // Held, FIRE keeps firing (M3.4): on a busy machine more follow before we look.
+    await expect.poll(async () => (await level(page)).bullets.fired).toBeGreaterThanOrEqual(1);
     await fire();
     await run();
   });
