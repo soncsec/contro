@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import { HEALTH } from '../config/tuning';
+import { ENEMY_TYPES, type EnemyType } from '../data/enemies';
 import { GameSound } from '../systems/GameSound';
 import type { AssetGroup } from '../assets/manifest';
 import type { AssetPreviewScene } from '../scenes/AssetPreviewScene';
@@ -47,6 +48,8 @@ export interface TestHook {
   hurtBoss(damage: number): void;
   /** Sends a weapon blimp across from the right edge at height y (M4.1). */
   spawnBlimp(weapon: 'machine-gun' | 'spread', y: number): void;
+  /** Puts an enemy on the ground at x (level pixels), as a map would (M4.2). */
+  placeEnemy(type: string, x: number): void;
   /** Moves the player to x (level pixels). Throws if no level is running. */
   teleportPlayer(x: number): void;
   /**
@@ -138,6 +141,14 @@ export function installTestHook(game: Phaser.Game): void {
         throw new Error(`unknown weapon ${String(weapon)}`);
       if (!Number.isFinite(y)) throw new Error(`spawnBlimp needs a number, got ${String(y)}`);
       scene.spawnBlimp(weapon, y);
+    },
+    placeEnemy: (type, x) => {
+      const scene = level();
+      if (!scene) throw new Error('no level is running');
+      if (!(ENEMY_TYPES as readonly string[]).includes(type))
+        throw new Error(`unknown enemy ${type}`);
+      if (!Number.isFinite(x)) throw new Error(`placeEnemy needs a number, got ${String(x)}`);
+      scene.placeEnemy(type as EnemyType, x);
     },
     teleportPlayer: (x) => {
       const scene = level();
