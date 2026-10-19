@@ -3,6 +3,7 @@ import { BACKGROUND_COLOR, CONTINUE, FONT, GAME_WIDTH, HEALTH } from '../config/
 import { continueOptions, useContinue, type ContinueOption } from '../logic/continues';
 import { stepMenu } from '../logic/menu';
 import { formatScore } from '../logic/score';
+import { GameSound } from '../systems/GameSound';
 import { PlayerInput } from '../systems/PlayerInput';
 import type { LevelSceneData } from './LevelScene';
 
@@ -102,6 +103,7 @@ export class ContinueScene extends Phaser.Scene {
     const step = stepMenu(this.index, this.options.length, pressed);
     if (step.index !== this.index) {
       this.index = step.index;
+      GameSound.play('sfx-blip');
       this.highlight();
     }
     if (step.choose) this.leave(this.options[this.index] ?? 'QUIT');
@@ -118,6 +120,7 @@ export class ContinueScene extends Phaser.Scene {
 
   private leave(option: ContinueOption): void {
     this.leaving = true;
+    GameSound.play('sfx-select');
     this.cameras.main.fadeOut(CONTINUE.fadeMs);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       if (option === 'QUIT') {

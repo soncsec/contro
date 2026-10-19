@@ -13,6 +13,8 @@ export interface CampaignLevel<Card extends string = string> {
   endCard: Card;
   /** Card shown before the level's first section (M3.4). */
   introCard?: Card;
+  /** The level's music loop (M3.6); none for a silent level. */
+  music?: string;
 }
 
 /** One section in play order. */
@@ -26,6 +28,8 @@ export interface Step<Card extends string = string> {
   exitCard: Card | null;
   /** The level's intro card, on its first section only (M3.4). */
   introCard: Card | null;
+  /** The level's music loop, or null (M3.6). */
+  music: string | null;
 }
 
 export function flattenCampaign<Card extends string>(
@@ -39,6 +43,7 @@ export function flattenCampaign<Card extends string>(
       name: lv.name,
       exitCard: i === lv.sections.length - 1 ? lv.endCard : null,
       introCard: i === 0 ? (lv.introCard ?? null) : null,
+      music: lv.music ?? null,
     })),
   );
 }

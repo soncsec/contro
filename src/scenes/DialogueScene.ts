@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { BACKGROUND_COLOR, DIALOGUE_CARD, FONT, GAME_WIDTH } from '../config/tuning';
 import { DIALOGUE, SPEAKERS, type DialogueId } from '../data/dialogue';
+import { GameSound } from '../systems/GameSound';
 import { PlayerInput } from '../systems/PlayerInput';
 import type { RunState } from './LevelScene';
 
@@ -114,6 +115,7 @@ export class DialogueScene extends Phaser.Scene {
 
   private continue(): void {
     this.leaving = true;
+    GameSound.play('sfx-select');
     this.cameras.main.fadeOut(DIALOGUE_CARD.fadeMs);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       const run = this.run ? { run: this.run } : {};

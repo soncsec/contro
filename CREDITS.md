@@ -55,7 +55,24 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 
 ## Audio
 
-None yet. Each CC0 source is added here after owner approval (ARCHITECTURE.md ADR-C06).
+Sound effects and music from CC0 packs, each approved by the owner (2026-10-19). Built by `tools/audio/build_audio.py`, which checks each downloaded pack against the SHA-256 recorded in it; only the files below are copied (ARCHITECTURE.md ADR-C06).
+
+<!-- audio:start -->
+| File | Source | Changes |
+|---|---|---|
+| `assets/audio/sfx-shot.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/laserSmall_000.ogg` by Kenney, CC0 | unchanged |
+| `assets/audio/sfx-enemy-hit.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/impactMetal_002.ogg` by Kenney, CC0 | unchanged |
+| `assets/audio/sfx-enemy-die.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/explosionCrunch_000.ogg` by Kenney, CC0 | unchanged |
+| `assets/audio/sfx-hurt.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/forceField_001.ogg` by Kenney, CC0 | unchanged |
+| `assets/audio/sfx-player-die.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/lowFrequency_explosion_001.ogg` by Kenney, CC0 | unchanged |
+| `assets/audio/sfx-enemy-shot.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/laserRetro_001.ogg` by Kenney, CC0 | unchanged |
+| `assets/audio/sfx-cannon.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/laserLarge_002.ogg` by Kenney, CC0 | unchanged |
+| `assets/audio/sfx-mortar.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/thrusterFire_001.ogg` by Kenney, CC0 | unchanged |
+| `assets/audio/sfx-blast.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/explosionCrunch_003.ogg` by Kenney, CC0 | unchanged |
+| `assets/audio/sfx-boss-blast.ogg` | [sci-fi_sounds.zip](https://opengameart.org/content/sci-fi-sounds) `Audio/lowFrequency_explosion_000.ogg` by Kenney, CC0 | unchanged |
+| `assets/audio/music-level-1.ogg` | [cyber_runer_files.zip](https://opengameart.org/content/cyber-runner-music) `Cyber_runer_files/cyber_runner.ogg` by ansimuz (Luis Zuno), CC0 | unchanged |
+| `assets/audio/music-boss.ogg` | [boss_fight_2_files.zip](https://opengameart.org/content/boss-fight-2) `Boss Fight 2 Files/Boss Fight 2.ogg` by ansimuz (Luis Zuno), CC0 | unchanged |
+<!-- audio:end -->
 
 ## Libraries
 

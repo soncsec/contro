@@ -164,6 +164,14 @@ export const HEALTH = {
   gameOverMs: 2500,
 } as const;
 
+/** Sound (M3.6). Volumes are 0–1. */
+export const SOUND = {
+  sfxVolume: 0.5,
+  musicVolume: 0.35,
+  /** How many recent sounds the test hook remembers. */
+  recent: 40,
+} as const;
+
 /** Enemies that run in from the screen's edge (M3.14). */
 export const RUNNERS = {
   /** They appear this far outside the view, so they run in rather than pop up. */

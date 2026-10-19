@@ -12,6 +12,7 @@ describe('furthest level reached (M3.5)', () => {
       version: 1,
       bestScore: 900,
       furthestLevel: 1,
+      soundOn: true,
     });
   });
 
@@ -26,6 +27,15 @@ describe('furthest level reached (M3.5)', () => {
     expect(at2.furthestLevel).toBe(2);
     expect(reachLevel(at2, 1)).toBe(at2);
     expect(reachLevel(at2, 2)).toBe(at2);
+  });
+});
+
+describe('sound setting (M3.6)', () => {
+  it('is on unless the save says off', () => {
+    expect(DEFAULT_SAVE.soundOn).toBe(true);
+    expect(parseSave('{"version":1,"bestScore":0}').soundOn).toBe(true);
+    expect(parseSave('{"version":1,"bestScore":0,"soundOn":false}').soundOn).toBe(false);
+    expect(parseSave('{"version":1,"bestScore":0,"soundOn":"no"}').soundOn).toBe(true);
   });
 });
 

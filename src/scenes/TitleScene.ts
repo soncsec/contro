@@ -8,6 +8,7 @@ import { stepMenu, titleOptions, type TitleOption } from '../logic/menu';
 import { pickLevel } from '../logic/save';
 import { formatScore } from '../logic/score';
 import { FULLSCREEN_KEY } from '../systems/Fullscreen';
+import { GameSound } from '../systems/GameSound';
 import { PlayerInput } from '../systems/PlayerInput';
 import { TouchControls } from '../systems/TouchControls';
 import { SaveStore } from '../systems/SaveStore';
@@ -84,6 +85,7 @@ export class TitleScene extends Phaser.Scene {
     this.highlight();
 
     this.controls = new PlayerInput(this);
+    GameSound.music(null);
     this.cameras.main.fadeIn(TITLE.fadeMs);
   }
 
@@ -160,12 +162,14 @@ export class TitleScene extends Phaser.Scene {
     const step = stepMenu(this.index, this.options.length, pressed);
     if (step.index !== this.index) {
       this.index = step.index;
+      GameSound.play('sfx-blip');
       this.highlight();
     }
     const option = this.options[this.index] ?? 'START';
     // On the LEVEL row, left and right choose the level to start from (M3.5).
     if (option === 'LEVEL' && (pressed.left || pressed.right)) {
       this.level = pickLevel(this.level, this.furthest, pressed.left ? -1 : 1);
+      GameSound.play('sfx-blip');
       this.highlight();
     }
     // Start on a gamepad (pause) also selects, as players expect on a title screen.
@@ -173,6 +177,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   private choose(option: TitleOption): void {
+    GameSound.play('sfx-select');
     switch (option) {
       case 'START':
       case 'LEVEL':

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { BACKGROUND_COLOR, CONTINUE, FONT, GAME_WIDTH } from '../config/tuning';
 import { formatScore } from '../logic/score';
+import { GameSound } from '../systems/GameSound';
 import { PlayerInput } from '../systems/PlayerInput';
 
 export interface EndSceneData {
@@ -63,6 +64,7 @@ export class EndScene extends Phaser.Scene {
     if (this.leaving || this.shownMs < CONTINUE.inputDelayMs) return;
     if (!(pressed.fire || pressed.jump || pressed.pause)) return;
     this.leaving = true;
+    GameSound.play('sfx-select');
     this.cameras.main.fadeOut(CONTINUE.fadeMs);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('Title');

@@ -14,6 +14,7 @@ export const STORY_LEVELS: readonly CampaignLevel<DialogueId>[] = [
     sections: ['steelworks-1', 'steelworks-2', 'steelworks-3', 'steelworks-4', 'steelworks-5'],
     introCard: 'level-1-intro',
     endCard: 'level-1-end',
+    music: 'music-level-1',
   },
 ];
 

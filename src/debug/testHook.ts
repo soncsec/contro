@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import { HEALTH } from '../config/tuning';
+import { GameSound } from '../systems/GameSound';
 import type { AssetGroup } from '../assets/manifest';
 import type { AssetPreviewScene } from '../scenes/AssetPreviewScene';
 import type { ContinueScene } from '../scenes/ContinueScene';
@@ -28,6 +29,8 @@ export interface TestHook {
   pauseMenu(): string | null;
   /** The last cheat confirmation on the pause screen, or null. */
   cheatMessage(): string | null;
+  /** Sound on or off, the music that should be playing, and recent sounds (M3.6). */
+  sound(): ReturnType<typeof GameSound.snapshot>;
   /** Frames per second the game is managing right now (Phaser's measurement). */
   fps(): number;
   /** The dialogue card on screen, or null if none is showing. */
@@ -77,6 +80,7 @@ export function installTestHook(game: Phaser.Game): void {
     },
     scene: () => game.scene.getScenes(true)[0]?.scene.key ?? null,
     fps: () => Math.round(game.loop.actualFps),
+    sound: () => GameSound.snapshot(),
     previewGroup: () =>
       game.scene.isActive('AssetPreview')
         ? (game.scene.getScene('AssetPreview') as AssetPreviewScene).currentGroup

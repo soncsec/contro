@@ -7,7 +7,7 @@
 
 | Milestone | Status |
 |---|---|
-| M0 Setup | Done except M0.4 (Tiled install) |
+| M0 Setup | Done (M0.4 dropped 2026-10-19) |
 | M1 Walking skeleton (to production) | Done: live at games.soncrant.com/contro/ |
 | M2 Core feel | Done (feel signed off by the owner 2026-10-18) |
 | M3 Level 1 Industrial (vertical slice) | In progress |
@@ -37,7 +37,7 @@
 - [x] M0.1 Discovery and plan; owner approved 2026-10-17
 - [x] M0.2 `git init` with `.gitignore` excluding `legacy/`; approved docs as the first commit; create `soncsec/contro` (public)
 - [x] M0.3 Branch protection on `main` matching Star Destroyer (PR required, admins included, no force pushes or deletions, conversation resolution, strict required checks once they have run); secret scanning with push protection and Dependabot alerts on. Direct push to `main` verified rejected 2026-10-17; required checks (Repo checks, Build and test, CodeQL analysis, CodeQL; strict) added after M0.6's first run
-- [ ] M0.4 Owner installs Tiled (`sudo apt install tiled`)
+- [x] ~~M0.4 Owner installs Tiled~~ Dropped (owner decision 2026-10-19): every map comes from the generator scripts, which are the authoring tool (ADR-C01)
 - [x] M0.5 Scaffold copied from Star Destroyer: Vite + TypeScript + Phaser 4.2.1 on port 5174, Prettier, ESLint, Vitest, seeded RNG with tests, a boot scene; `TEMPLATE-NOTES.md`
 - [x] M0.6 CI: repo checks and gitleaks, build and test (format, lint, typecheck, coverage, build, `npm audit`), CodeQL, Dependabot; staging deploy to GitHub Pages plus ZAP on `main`. Staging live at https://soncsec.github.io/contro/; first ZAP run 2026-10-17: 0 high, 5 medium, 5 low, all response headers GitHub Pages can't set (Apache sets them in production)
 - [x] M0.7 PR to `soncsec/games-portal` adding the Contro card (`coming-soon`) with a card image — games-portal PR #10, merged 2026-10-17
@@ -94,7 +94,7 @@
   - [x] M3.4a Holding the on-screen FIRE auto-fires every 160 ms (owner approved 2026-10-18; keys and gamepad keep one shot per press); the title's controls guide gains an AIM DOWN row (M3.13)
   - [x] M3.4b Continue after game over: CONTINUE restarts the section the marine died in with full lives and the score back to zero, QUIT returns to the title; a run has 3 continues (`CONTINUE.count`; owner to confirm, since game over used to allow unlimited retries), then game over returns to the title. START shows the level's intro card; a level's end card is followed by the next level's intro card; after Level 1 a TO BE CONTINUED screen with the score, then the title, instead of starting the campaign again. Level 1's cards use the drafted story text (owner may edit)
 - [x] M3.5 Save data (ADR-C08): the save keeps the furthest level reached (older saves read as level 1 and keep their best score; a cheated run doesn't count); once level 2 is reached the title gains a LEVEL row (left/right choose, START or fire begins there with its intro card), owner approved 2026-10-18. Volume joins the save with audio (M3.6)
-- [ ] M3.6 CC0 audio: sound effects and Level 1 music — *sources need approval*
+- [ ] M3.6 CC0 audio: sound effects and Level 1 music. Sources approved by the owner 2026-10-19: Kenney *Sci-Fi Sounds* and *63 Digital Sound Effects* (CC0) for effects; ansimuz *Cyber Runner* (Level 1) and *Boss Fight 2* (the tank) for music (CC0). OGG plus M4A for iPhone (ADR-C06 amended). Effects for shots, hits, kills, getting hurt, dying, enemy shots, the tank's cannon and mortar, explosions, extra lives and menus; the level's music carries across its sections and switches to the boss music in the fight; SOUND ON/OFF on the pause menu, saved
 - [x] M3.7 Playwright: complete Level 1 via the test hook and reach the Level 2 card. Built as `tests/e2e/level1.spec.ts`: START, both training sections, the cards, all five steelworks sections with score and cheats carried, the tank fight (frame rate recorded), its card, the end screen (Level 2 doesn't exist yet), the title. The test hook gains `fps()`; the boss fight ran at 39–46 fps headless on the loaded dev machine (load ~50), so the 60 fps check is done on a real device
 - [x] M3.8 Security build check (owner approved 2026-10-18): a CI step and release-script check that fail if the production build contains the e2e test hook, inline scripts or styles, `eval`/`new Function`, `innerHTML`, or any URL to another host. It runs before every release. Built as `scripts/check_build.py` (CI build and Pages jobs, `npm run check`, `release.sh`); Phaser's 1 `Function()` and 3 `innerHTML` uses reviewed and allowed, any more fail
 - [x] M3.9 Press Start 2P font (owner approved 2026-10-18): the same file and checksum as Star Destroyer, bundled and served from our origin; used for the HUD, banners and cards; CREDITS.md and the OFL licence text. Built: every text style uses `FONT` in `tuning.ts`; the game waits for the font before drawing; card lines now fit 26 characters (the 8 px font is wider than the old fallback), up to 3 lines
@@ -112,7 +112,7 @@
 
 **Demonstrable result:** Levels 1–2 playable back to back.
 
-- [ ] M4.1 Weapon pickups (2–3 types, rules decided here) with unit tests. One is the **machine gun** (issue #21): auto-fires while fire is held, at its own rate in `tuning.ts`
+- [ ] M4.1 Weapon pickups with unit tests. Owner decision 2026-10-19: **two pickups, machine gun and spread, dropped by flying pods** as in Contra: a pod crosses the screen; shooting it drops a letter pickup the marine walks into. The **machine gun** (issue #21) auto-fires while fire is held, at its own rate in `tuning.ts`; the **spread** fires three bullets in a fan. A pickup replaces the rifle until the marine loses a life
 - [ ] M4.2 Bipedal walker enemy
 - [ ] M4.3 Level 2: **at least 5 varied sections, about 5–8 minutes including the boss**, with props, **multi-level ground**, and a change of scenery (e.g. the Scifi lab or Synth City art)
 - [ ] M4.4 Mech boss

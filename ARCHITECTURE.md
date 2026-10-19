@@ -56,7 +56,8 @@ flowchart LR
 - **Decision:** levels are made in **Tiled** and saved as `.tmj` (JSON) in `public/assets/levels/`, with the tileset embedded (Phaser cannot load external tilesets). Each map has a `background` tile layer, a `collision` object layer of `solid` and `platform` rectangles, and a `spawns` object layer (player start, enemies, exit; later checkpoints, triggers and the boss arena). The full contract is in `src/logic/levelMap.ts`.
 - **Catwalks and pits (M2.4, 2026-10-17):** maps may have a second embedded tileset (gids follow on from the first) and an optional `platforms` tile layer drawn over the room. Catwalks are `platform` rectangles (one-way, land from above); pits are gaps between `solid` floor rectangles with no floor below the map. Only the marine collides with catwalks, so bullets, enemy shots and enemies pass through them. The catwalk and pit tiles are drawn by `tools/art/catwalk.py` in the corridor tileset's colours (owner chose this over the bulkhead scaffold).
 - **Collision as rectangles (M1.2, 2026-10-17):** collision is drawn as rectangles rather than marked on tiles, because the Warped room sections reuse the same tiles for walls and floor and draw the floor in perspective. Rectangles keep collision independent of the art.
-- **Tools:** `tools/levels/new_corridor_room.py` makes a first version of a map from corridor room sections; after that the `.tmj` is the source of truth. `tools/levels/render_map.py` renders a map with its collision and spawns marked, for PR screenshots.
+- **Tools:** `tools/levels/new_corridor_room.py` makes a first version of a map from corridor room sections; after that the `.tmj` is the source of truth.
+- **Generator scripts are the authoring tool (owner decision 2026-10-19):** in practice every map has come from a script (`tools/levels/steelworks_section.py` for Level 1's sections, from short layout descriptions), regenerated whenever its layout changes, and Tiled was never needed. The scripts stay the way maps are made; Tiled remains usable for one-off edits of a `.tmj`, which is still valid Tiled JSON. Before regenerating a map, check the script still reproduces the committed file, so no hand edit is lost. `tools/levels/render_map.py` renders a map with its collision and spawns marked, for PR screenshots.
 - **Guard rail:** a unit test loads every map and checks it: required layers exist, every object type is known, every enemy type exists in the data files, there is exactly one player start and one exit, and tilesets point to files that exist in `public/assets/`.
 - **Tradeoffs:** Tiled map files are large, so diffs are hard to review by eye. PRs that change a map include a screenshot.
 
@@ -86,8 +87,9 @@ flowchart LR
 
 ### ADR-C06: Audio — *Accepted*
 
-- **Decision:** Phaser WebAudio with **OGG** files (Chrome and Firefox both support it). Sound effects and one music loop per level from CC0 sources, each approved by the owner and listed in `CREDITS.md`. Audio is unlocked on the first key press or button press, as browsers require.
-- **Alternatives:** MP3 (larger for the same quality), OGG plus M4A (only needed for Safari, not a v1 target).
+- **Decision:** Phaser WebAudio with **OGG** files, **plus an M4A (AAC) copy of each** for iPhone Safari (amended 2026-10-19, owner approved: phones are a target since M3.11, and the owner plays on an iPhone). Phaser loads whichever the browser can play. Sound effects and one music loop per level from CC0 sources, each approved by the owner and listed in `CREDITS.md`. Audio is unlocked on the first key press or tap, as browsers require; the music starts then. Sound on/off is saved (ADR-C08) and set from the pause menu.
+- **Build:** `tools/audio/build_audio.py` reads the downloaded packs (not committed, like `legacy/`), checks each against its recorded SHA-256, copies only the files used, and makes the M4A copies and smaller music encodes with **ffmpeg**, a dev-machine tool only (nothing new ships in the game).
+- **Alternatives:** MP3 (larger for the same quality), OGG only (silent on older iPhones).
 - **Limits:** every file under the repo's 5 MB limit; music loops kept short (around 1–2 MB).
 
 ### ADR-C07: Input — keyboard and gamepad — *Accepted*
