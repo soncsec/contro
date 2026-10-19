@@ -127,7 +127,11 @@ test('a cheated run never sets a best score', async ({ page }) => {
   await page.evaluate(() => window.__contro?.addScore(5000));
   expect((await level(page)).score).toEqual({ score: 5300, best: 300 });
   const saved = await page.evaluate(() => window.localStorage.getItem('contro.save.v1'));
-  expect(JSON.parse(saved ?? '{}')).toEqual({ version: 1, bestScore: 300 });
+  expect(JSON.parse(saved ?? '{}')).toEqual({
+    version: 1,
+    bestScore: 300,
+    furthestLevel: 1,
+  });
 });
 
 test('an ordinary menu choice still works after stray arrow presses', async ({ page }) => {

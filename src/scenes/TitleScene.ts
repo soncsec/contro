@@ -1,18 +1,16 @@
 import Phaser from 'phaser';
 import { BACKGROUND_COLOR, FONT, GAME_HEIGHT, GAME_WIDTH, TITLE } from '../config/tuning';
-import { CAMPAIGN } from '../data/campaign';
+import { CAMPAIGN, CAMPAIGN_LEVELS } from '../data/campaign';
 import { campaignStart } from '../logic/campaign';
 import { controlsGuide } from '../logic/controls';
 import { DEFAULT_KEY_BINDINGS, DEFAULT_PAD_BINDINGS } from '../logic/input';
-import { stepMenu } from '../logic/menu';
+import { stepMenu, titleOptions, type TitleOption } from '../logic/menu';
+import { pickLevel } from '../logic/save';
 import { formatScore } from '../logic/score';
 import { FULLSCREEN_KEY } from '../systems/Fullscreen';
 import { PlayerInput } from '../systems/PlayerInput';
 import { TouchControls } from '../systems/TouchControls';
 import { SaveStore } from '../systems/SaveStore';
-
-export const TITLE_OPTIONS = ['START', 'CONTROLS', 'MORE GAMES'] as const;
-export type TitleOption = (typeof TITLE_OPTIONS)[number];
 
 const TEXT = { fontFamily: FONT.family, fontSize: FONT.size } as const;
 const COLORS = {
@@ -55,6 +53,10 @@ export class TitleScene extends Phaser.Scene {
   private best!: Phaser.GameObjects.Text;
   /** The guide shows the on-screen controls (a touch screen) instead of keys. */
   private touchGuide = false;
+  /** Menu options (LEVEL only once a later level was reached), and the level START plays. */
+  private options: TitleOption[] = [];
+  private furthest = 1;
+  private level = 1;
 
   constructor() {
     super('Title');
@@ -66,6 +68,10 @@ export class TitleScene extends Phaser.Scene {
     this.leaving = false;
     this.showingControls = false;
     this.items = [];
+    // The furthest level reached, but never past the levels this build has (M3.5).
+    this.furthest = Math.min(SaveStore.load().furthestLevel, CAMPAIGN_LEVELS.length);
+    this.level = this.furthest;
+    this.options = titleOptions(this.furthest);
   }
 
   create(): void {
@@ -95,11 +101,11 @@ export class TitleScene extends Phaser.Scene {
       cx,
       MENU_TOP + LINE,
       MENU_BAND.width,
-      LINE * TITLE_OPTIONS.length + 8,
+      LINE * this.options.length + 8,
       COLORS.shade,
       MENU_BAND.alpha,
     );
-    this.items = TITLE_OPTIONS.map((label, i) =>
+    this.items = this.options.map((label, i) =>
       this.add.text(cx, MENU_TOP + i * LINE, label, { ...TEXT }).setOrigin(0.5),
     );
     const best = (this.best = this.add
@@ -151,23 +157,30 @@ export class TitleScene extends Phaser.Scene {
       if (pressed.jump || pressed.fire || pressed.pause) this.setControlsVisible(false);
       return;
     }
-    const step = stepMenu(this.index, TITLE_OPTIONS.length, pressed);
+    const step = stepMenu(this.index, this.options.length, pressed);
     if (step.index !== this.index) {
       this.index = step.index;
       this.highlight();
     }
+    const option = this.options[this.index] ?? 'START';
+    // On the LEVEL row, left and right choose the level to start from (M3.5).
+    if (option === 'LEVEL' && (pressed.left || pressed.right)) {
+      this.level = pickLevel(this.level, this.furthest, pressed.left ? -1 : 1);
+      this.highlight();
+    }
     // Start on a gamepad (pause) also selects, as players expect on a title screen.
-    if (step.choose || step.back) this.choose(TITLE_OPTIONS[this.index] ?? 'START');
+    if (step.choose || step.back) this.choose(option);
   }
 
   private choose(option: TitleOption): void {
     switch (option) {
       case 'START':
+      case 'LEVEL':
         this.leaving = true;
         this.cameras.main.fadeOut(TITLE.fadeMs);
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
           // The first level's intro card, if it has one, then its first section (M3.4).
-          const { cards, nextLevel } = campaignStart(CAMPAIGN);
+          const { cards, nextLevel } = campaignStart(CAMPAIGN, this.level);
           const [card, ...more] = cards;
           if (card) this.scene.start('Dialogue', { card, more, nextLevel });
           else this.scene.start('Level', { level: nextLevel });
@@ -193,9 +206,18 @@ export class TitleScene extends Phaser.Scene {
 
   private highlight(): void {
     this.items.forEach((item, i) => {
-      const label = TITLE_OPTIONS[i] ?? '';
+      const option = this.options[i] ?? 'START';
       const on = i === this.index;
-      item.setText(on ? `> ${label} <` : label).setColor(on ? COLORS.selected : COLORS.option);
+      // The LEVEL row's arrows point outward when selected: left and right change it.
+      const text =
+        option === 'LEVEL'
+          ? on
+            ? `< LEVEL ${this.level} >`
+            : `LEVEL ${this.level}`
+          : on
+            ? `> ${option} <`
+            : option;
+      item.setText(text).setColor(on ? COLORS.selected : COLORS.option);
     });
   }
 
@@ -206,9 +228,13 @@ export class TitleScene extends Phaser.Scene {
     ready: boolean;
     best: string;
     touch: boolean;
+    options: TitleOption[];
+    level: number;
   } {
     return {
-      option: TITLE_OPTIONS[this.index] ?? 'START',
+      option: this.options[this.index] ?? 'START',
+      options: this.options,
+      level: this.level,
       controls: this.showingControls,
       ready: !this.leaving && this.shownMs >= TITLE.inputDelayMs,
       best: this.best.text,

@@ -61,10 +61,18 @@ export interface Route<Card extends string = string> {
   nextLevel: string | null;
 }
 
-/** A new game: the first level's intro card, if it has one, then its first section (M3.4). */
-export function campaignStart<Card extends string>(campaign: readonly Step<Card>[]): Route<Card> {
-  const first = campaign[0];
-  if (!first) throw new Error('the campaign is empty');
+/**
+ * A new game: the level's intro card, if it has one, then its first section (M3.4). Starts
+ * at the first level unless the title's level select chose another (M3.5).
+ */
+export function campaignStart<Card extends string>(
+  campaign: readonly Step<Card>[],
+  stage?: number,
+): Route<Card> {
+  if (campaign.length === 0) throw new Error('the campaign is empty');
+  const first =
+    stage === undefined ? campaign[0] : campaign.find((s) => s.stage === stage && s.section === 1);
+  if (!first) throw new Error(`no level ${String(stage)}`);
   return { cards: first.introCard ? [first.introCard] : [], nextLevel: first.level };
 }
 

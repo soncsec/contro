@@ -15,6 +15,8 @@ test('the game opens on the title screen, and START plays level 1-1', async ({ p
     ready: true,
     best: 'HI 000000',
     touch: false, // a computer: the guide lists keys, not the touch controls
+    options: ['START', 'CONTROLS', 'MORE GAMES'], // no LEVEL row before level 2 is reached
+    level: 1,
   });
   await page.keyboard.press('KeyX'); // fire selects too
   await expect.poll(() => sceneKey(page)).toBe('Level');

@@ -7,9 +7,21 @@ export const SAVE_KEY = 'contro.save.v1';
 export interface SaveData {
   version: 1;
   bestScore: number;
+  /**
+   * The furthest level number reached (M3.5), from 1. Saves made before it existed have no
+   * such field and read as 1, so they keep their best score.
+   */
+  furthestLevel: number;
 }
 
-export const DEFAULT_SAVE: SaveData = { version: 1, bestScore: 0 };
+export const DEFAULT_SAVE: SaveData = { version: 1, bestScore: 0, furthestLevel: 1 };
+
+/** A whole number at least `min`, or `fallback` for anything else. */
+function wholeAtLeast(value: unknown, min: number, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= min
+    ? Math.floor(value)
+    : fallback;
+}
 
 export function parseSave(raw: string | null): SaveData {
   if (raw === null) return DEFAULT_SAVE;
@@ -22,12 +34,27 @@ export function parseSave(raw: string | null): SaveData {
   if (typeof data !== 'object' || data === null) return DEFAULT_SAVE;
   const d = data as Record<string, unknown>;
   if (d['version'] !== 1) return DEFAULT_SAVE;
-  const best = d['bestScore'];
-  const bestScore =
-    typeof best === 'number' && Number.isFinite(best) && best >= 0 ? Math.floor(best) : 0;
-  return { version: 1, bestScore };
+  return {
+    version: 1,
+    bestScore: wholeAtLeast(d['bestScore'], 0, 0),
+    furthestLevel: wholeAtLeast(d['furthestLevel'], 1, 1),
+  };
 }
 
 export function serializeSave(data: SaveData): string {
   return JSON.stringify(data);
+}
+
+/** The save after reaching level `stage`: the furthest level never goes down. */
+export function reachLevel(data: SaveData, stage: number): SaveData {
+  return stage > data.furthestLevel ? { ...data, furthestLevel: Math.floor(stage) } : data;
+}
+
+/**
+ * The level the title's LEVEL row shows after pressing left (-1) or right (+1), wrapping
+ * between 1 and the furthest level reached (M3.5).
+ */
+export function pickLevel(current: number, furthest: number, step: -1 | 1): number {
+  const count = Math.max(1, Math.floor(furthest));
+  return ((((current - 1 + step) % count) + count) % count) + 1;
 }

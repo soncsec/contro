@@ -64,7 +64,7 @@ describe('save data', () => {
   });
 
   it('round-trips', () => {
-    const data = { version: 1 as const, bestScore: 4200 };
+    const data = { version: 1 as const, bestScore: 4200, furthestLevel: 2 };
     expect(parseSave(serializeSave(data))).toEqual(data);
   });
 
@@ -76,6 +76,10 @@ describe('save data', () => {
     expect(parseSave('{"version":2,"bestScore":5}')).toEqual(DEFAULT_SAVE);
     expect(parseSave('{"version":1,"bestScore":-3}')).toEqual(DEFAULT_SAVE);
     expect(parseSave('{"version":1,"bestScore":"lots"}')).toEqual(DEFAULT_SAVE);
-    expect(parseSave('{"version":1,"bestScore":12.7}')).toEqual({ version: 1, bestScore: 12 });
+    expect(parseSave('{"version":1,"bestScore":12.7}')).toEqual({
+      version: 1,
+      bestScore: 12,
+      furthestLevel: 1,
+    });
   });
 });
