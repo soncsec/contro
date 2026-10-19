@@ -6,7 +6,7 @@
  *   (WASD move, P pauses, X/J fire, Z/K jump, F is fullscreen), so typing one never
  *   moves the menu or closes it.
  */
-export type CheatId = 'extra-lives' | 'invincible' | 'invisible' | 'skip-room';
+export type CheatId = 'extra-lives' | 'invincible' | 'invisible' | 'skip-room' | 'next-weapon';
 
 export interface CheatCode {
   id: CheatId;
@@ -25,6 +25,8 @@ export const WORD_CHEATS: readonly CheatCode[] = [
   { id: 'invincible', sequence: ['I', 'R', 'O', 'N'] },
   { id: 'invisible', sequence: ['G', 'H', 'O', 'U', 'L'] },
   { id: 'skip-room', sequence: ['T', 'H', 'R', 'U'] },
+  // All weapons (M4.1; word chosen by the owner 2026-10-19): each entry steps to the next one.
+  { id: 'next-weapon', sequence: ['G', 'U', 'N', 'N', 'Y'] },
 ];
 
 /** Letters the game binds to actions or fullscreen; no word cheat may use them. */
@@ -97,6 +99,7 @@ export function applyCheat(s: CheatState, id: CheatId): CheatState {
       return { ...s, invisible: !s.invisible, used: true };
     case 'extra-lives':
     case 'skip-room':
+    case 'next-weapon':
       return { ...s, used: true };
   }
 }

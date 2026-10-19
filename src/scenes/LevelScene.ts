@@ -36,7 +36,14 @@ import { showGameOverText, showLevelBanner } from '../systems/LevelOverlays';
 import { PlayerInput } from '../systems/PlayerInput';
 import { RunnerSpawners } from '../systems/RunnerSpawners';
 import { Blimps, type BlimpSnapshot, type PickupSnapshot } from '../entities/Blimps';
-import { BLIMP, PICKUP_WEAPONS, type PickupWeapon, type WeaponType } from '../data/weapons';
+import {
+  BLIMP,
+  PICKUP_WEAPONS,
+  WEAPON_TYPES,
+  type PickupWeapon,
+  type WeaponType,
+} from '../data/weapons';
+import { nextWeapon } from '../logic/pickups';
 import { SaveStore } from '../systems/SaveStore';
 
 /** What carries from room to room: the score and lives. */
@@ -466,6 +473,11 @@ export class LevelScene extends Phaser.Scene {
       case 'skip-room':
         this.skipRoomOnResume = true;
         return 'SKIPPING ROOM';
+      case 'next-weapon': {
+        const weapon = nextWeapon(this.player.weaponType, WEAPON_TYPES);
+        this.player.weaponType = weapon;
+        return weapon.replace('-', ' ').toUpperCase();
+      }
     }
   }
 
