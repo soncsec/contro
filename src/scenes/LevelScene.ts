@@ -2,44 +2,39 @@ import Phaser from 'phaser';
 import { LEVELS } from '../assets/manifest';
 import {
   AIR_JUMP_RING_SQUASH,
-  BOSS_FIGHT,
   CHEAT_EXTRA_LIVES,
   CONTINUE,
   DIALOGUE_CARD,
-  FONT,
-  GAME_HEIGHT,
   GAME_WIDTH,
   GRAVITY_Y,
   HEALTH,
-  LEVEL_BANNER,
   PARALLAX_BACK_FACTOR,
   PLATFORMS,
   PLAYER_BODY,
   RIFLE_DAMAGE,
-  RUNNERS,
   SCORING,
 } from '../config/tuning';
-import { BOSSES, BOSS_TYPES } from '../data/bosses';
+import { BOSS_TYPES } from '../data/bosses';
 import { CAMPAIGN } from '../data/campaign';
 import { ENEMIES, ENEMY_TYPES } from '../data/enemies';
-import { Boss, type BossSnapshot } from '../entities/Boss';
 import { Bullets } from '../entities/Bullets';
 import { Effects } from '../entities/Effects';
 import { Enemies, type EnemySnapshot } from '../entities/Enemies';
 import { EnemyShots } from '../entities/EnemyShots';
 import { Hud } from '../entities/Hud';
 import { Player, type PlayerSnapshot } from '../entities/Player';
-import { arenaLocked } from '../logic/boss';
 import { afterExit, levelLabel, stepFor } from '../logic/campaign';
 import { standingOn } from '../logic/ground';
 import { respawnPoint } from '../logic/health';
 import { reachLevel } from '../logic/save';
-import { groundAt, initialSpawner, stepSpawner, type SpawnerState } from '../logic/spawner';
 import { addPoints, newRun, type ScoreState } from '../logic/score';
 import { NO_CHEATS, applyCheat, type CheatId, type CheatState } from '../logic/cheats';
 import { NO_ACTIONS, type ActionFrame } from '../logic/input';
 import { readLevelLayout, type LevelLayout } from '../logic/levelMap';
+import { BossFight, type BossFightSnapshot } from '../systems/BossFight';
+import { showGameOverText, showLevelBanner } from '../systems/LevelOverlays';
 import { PlayerInput } from '../systems/PlayerInput';
+import { RunnerSpawners } from '../systems/RunnerSpawners';
 import { SaveStore } from '../systems/SaveStore';
 
 /** What carries from room to room: the score and lives. */
@@ -101,7 +96,7 @@ export interface LevelSnapshot {
   exitX: number;
   airJumps: number;
   /** The boss fight, if this section has one (M3.2). */
-  boss: (BossSnapshot & { arenaLocked: boolean; defeated: boolean }) | null;
+  boss: BossFightSnapshot | null;
 }
 
 /** The first section of the campaign, when no section is named. */
@@ -143,17 +138,10 @@ export class LevelScene extends Phaser.Scene {
   private back: Phaser.GameObjects.TileSprite | null = null;
   /** Parallax scenery from the map's image layers, with how fast each scrolls. */
   private scenery: { sprite: Phaser.GameObjects.TileSprite; factor: number }[] = [];
-  /** Boss fight (M3.2): the boss, the wall that closes the arena behind the marine, state. */
-  private boss: Boss | null = null;
-  private arenaWall: Phaser.GameObjects.Zone | null = null;
-  private arenaIsLocked = false;
-  private bossDefeated = false;
-  /** Set once the boss's explosion has settled: the level ends as soon as he is alive. */
-  private levelWon = false;
-  /** Where each of the map's spawners has got to (M3.14). */
-  private spawnerStates: SpawnerState[] = [];
-  /** Mortar landing markers, reused. */
-  private markers: Phaser.GameObjects.Rectangle[] = [];
+  /** The section's boss fight, if its map has one (M3.2). */
+  private bossFight: BossFight | null = null;
+  /** Runners sent in from the screen's edge (M3.14). */
+  private spawners!: RunnerSpawners;
 
   constructor() {
     super('Level');
@@ -173,10 +161,6 @@ export class LevelScene extends Phaser.Scene {
     this.exiting = false;
     this.gameOver = false;
     this.reachedX = 0;
-    this.arenaIsLocked = false;
-    this.bossDefeated = false;
-    this.levelWon = false;
-    this.spawnerStates = [];
   }
 
   create(): void {
@@ -289,14 +273,26 @@ export class LevelScene extends Phaser.Scene {
       if (this.player.hurt(1, o.x) !== 'ignored') this.effects.play('hit', o.x, o.y);
       this.enemyShots.remove(o);
     });
-    this.createBoss();
     const step = stepFor(CAMPAIGN, this.levelKey);
     // Remember the furthest level reached, for the title's level select (M3.5). A cheated run
     // doesn't count, as it doesn't for the best score.
     if (!this.cheats.used) SaveStore.update((save) => reachLevel(save, step.stage));
     this.label = levelLabel(step);
     this.hud = new Hud(this, this.label);
-    this.showLevelBanner(this.label, step.name);
+    this.bannerVisible = true;
+    showLevelBanner(this, this.label, step.name, () => (this.bannerVisible = false));
+    this.bossFight = BossFight.create({
+      scene: this,
+      layout: this.layout,
+      player: this.player,
+      bullets: this.bullets,
+      effects: this.effects,
+      enemyShots: this.enemyShots,
+      hud: this.hud,
+      addScore: (points) => this.addScore(points),
+      win: () => this.reachExit(),
+    });
+    this.spawners = new RunnerSpawners(this.layout, this.enemies);
 
     // Reaching the exit shows this room's card, then the next room.
     const { exit } = this.layout;
@@ -309,7 +305,7 @@ export class LevelScene extends Phaser.Scene {
     this.physics.add.existing(exitZone, true);
     // A boss section's exit opens only once the boss is destroyed.
     this.physics.add.overlap(this.player.sprite, exitZone, () => {
-      if (!this.boss || this.bossDefeated) this.reachExit();
+      if (!this.bossFight || this.bossFight.exitOpen) this.reachExit();
     });
 
     this.cameras.main.setBounds(0, 0, widthPx, heightPx);
@@ -341,7 +337,7 @@ export class LevelScene extends Phaser.Scene {
     if (!this.player.dead) this.reachedX = Math.max(this.reachedX, this.player.snapshot().x);
     if (event === 'respawn') {
       // Dying in the boss fight starts it again from the checkpoint before the arena.
-      if (this.arenaIsLocked && !this.bossDefeated) this.unlockArena();
+      this.bossFight?.onRespawn();
       const at = this.respawnAt();
       this.player.respawn(at.x, at.y);
     } else if (event === 'game-over') {
@@ -364,180 +360,23 @@ export class LevelScene extends Phaser.Scene {
     for (const shot of this.enemies.update(deltaMs, target, view, this.layout.heightPx)) {
       this.enemyShots.fire(shot);
     }
-    // Spawners send runners in from the screen's edge once they scroll into view (M3.14).
-    this.layout.spawners.forEach((spawner, i) => {
-      const step = stepSpawner(
-        this.spawnerStates[i] ?? initialSpawner(),
-        spawner,
-        view,
-        deltaMs,
-        RUNNERS.margin,
-        (x) => groundAt(this.layout.colliders, x),
-      );
-      this.spawnerStates[i] = step.state;
-      if (step.spawn) this.enemies.spawn(step.spawn);
-    });
-    this.updateBoss(deltaMs, target);
+    this.spawners.update(deltaMs, view);
+    this.bossFight?.update(deltaMs, target);
     this.enemyShots.update();
     const scrollX = this.cameras.main.scrollX;
     if (this.back) this.back.tilePositionX = scrollX * PARALLAX_BACK_FACTOR;
     for (const { sprite, factor } of this.scenery) sprite.tilePositionX = scrollX * factor;
   }
 
-  /** The section's boss, if its map has one (M3.2): hits, touches, and the arena's wall. */
-  private createBoss(): void {
-    this.boss = null;
-    this.arenaWall = null;
-    this.markers = [];
-    const spawn = this.layout.boss;
-    if (!spawn) return;
-    const boss = (this.boss = new Boss(this, spawn, spawn.arena));
-    type Bullet = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-    this.physics.add.overlap(boss.sprite, this.bullets.group, (_boss, bullet) => {
-      const tip = this.bullets.absorb(bullet as Bullet);
-      if (!tip) return;
-      this.effects.play('hit', tip.x, tip.y, tip.direction < 0);
-      this.damageBoss(RIFLE_DAMAGE);
-    });
-    this.physics.add.overlap(this.player.sprite, boss.sprite, () => {
-      if (boss.dangerous) this.player.hurt(BOSSES[boss.type].contactDamage, boss.sprite.x);
-    });
-    // Closes behind the marine when the fight starts, so he can't leave the arena.
-    const { arena } = spawn;
-    const wall = (this.arenaWall = this.add.zone(arena.x - 8, arena.height / 2, 16, arena.height));
-    this.physics.add.existing(wall, true);
-    (wall.body as Phaser.Physics.Arcade.StaticBody).enable = false;
-    this.physics.add.collider(this.player.sprite, wall);
-  }
-
-  private damageBoss(amount: number): void {
-    if (!this.boss) return;
-    if (this.boss.damage(amount).destroyed) this.addScore(BOSSES[this.boss.type].points);
-  }
-
-  private updateBoss(deltaMs: number, target: { x: number; y: number } | null): void {
-    const boss = this.boss;
-    const spawn = this.layout.boss;
-    if (!boss || !spawn) return;
-    const p = this.player.snapshot();
-    if (!this.arenaIsLocked && !this.bossDefeated && !p.dead && arenaLocked(p.x, spawn.arena)) {
-      this.lockArena();
-    }
-    const stats = BOSSES[boss.type];
-    const r = boss.update(deltaMs, target);
-    for (const shot of r.shots) this.enemyShots.fire(shot);
-    for (const at of r.landings) this.markLanding(at, stats.mortar.flightMs);
-    for (const e of r.explosions) this.effects.play(stats.explosions.effect, e.x, e.y, false, 6);
-    const s = boss.snapshot();
-    if (this.arenaIsLocked && !this.bossDefeated) this.hud.boss(stats.name, s.hp / s.maxHp);
-    if (r.finished) {
-      this.bossDefeated = true;
-      this.hud.boss(null);
-      this.time.delayedCall(BOSS_FIGHT.finishDelayMs, () => (this.levelWon = true));
-    }
-    // The level ends once the explosion has settled (after a respawn, if a shell got him).
-    if (this.levelWon && !this.player.dead) this.reachExit();
-  }
-
-  /** The fight starts: the camera stays on the arena, its wall closes, the boss rolls in. */
-  private lockArena(): void {
-    const spawn = this.layout.boss;
-    if (!spawn || !this.boss) return;
-    this.arenaIsLocked = true;
-    const { arena } = spawn;
-    this.cameras.main.setBounds(arena.x, 0, arena.width, this.layout.heightPx);
-    if (this.arenaWall) (this.arenaWall.body as Phaser.Physics.Arcade.StaticBody).enable = true;
-    this.boss.start();
-  }
-
-  /** The marine died in the fight: open the arena and send the boss back to wait. */
-  private unlockArena(): void {
-    this.arenaIsLocked = false;
-    this.cameras.main.setBounds(0, 0, this.layout.widthPx, this.layout.heightPx);
-    if (this.arenaWall) (this.arenaWall.body as Phaser.Physics.Arcade.StaticBody).enable = false;
-    this.boss?.reset();
-    this.hud.boss(null);
-    for (const m of this.markers) m.setVisible(false);
-  }
-
-  /** A blinking mark on the floor where a mortar shell will land. */
-  private markLanding(at: { x: number; y: number }, flightMs: number): void {
-    let marker = this.markers.find((m) => !m.visible);
-    if (!marker) {
-      marker = this.add.rectangle(0, 0, 12, 3, 0xff4f4f).setOrigin(0.5, 1).setDepth(2);
-      this.markers.push(marker);
-    }
-    const m = marker;
-    this.tweens.killTweensOf(m);
-    m.setPosition(at.x, at.y).setVisible(true).setAlpha(1);
-    const blink = BOSS_FIGHT.markerBlinkMs;
-    this.tweens.add({
-      targets: m,
-      alpha: 0.2,
-      duration: blink,
-      yoyo: true,
-      repeat: Math.max(0, Math.floor(flightMs / (2 * blink)) - 1),
-      onComplete: () => m.setVisible(false),
-    });
-  }
-
   private respawnAt(): { x: number; y: number } {
     return respawnPoint(this.layout.playerStart, this.layout.checkpoints, this.reachedX);
-  }
-
-  /** "LEVEL 1-2" and the level's name across the middle of the screen, then fade out. */
-  private showLevelBanner(label: string, name: string): void {
-    const y = GAME_HEIGHT / 2 - 12;
-    const title = this.add
-      .text(GAME_WIDTH / 2, y, `LEVEL ${label}`, {
-        fontFamily: FONT.family,
-        fontSize: FONT.large,
-        color: '#ffd166',
-      })
-      .setOrigin(0.5);
-    const sub = this.add
-      .text(GAME_WIDTH / 2, y + 18, name, {
-        fontFamily: FONT.family,
-        fontSize: FONT.size,
-        color: '#4fe3c1',
-      })
-      .setOrigin(0.5);
-    // A dark band behind the text keeps it readable over any scenery.
-    const band = this.add
-      .rectangle(0, y - 14, GAME_WIDTH, 40, 0x07060d, 0.85)
-      .setOrigin(0)
-      .setScrollFactor(0)
-      .setDepth(99);
-    const banner = [band, title, sub];
-    title.setScrollFactor(0).setDepth(100);
-    sub.setScrollFactor(0).setDepth(100);
-    this.bannerVisible = true;
-    this.time.delayedCall(LEVEL_BANNER.showMs, () => {
-      this.tweens.add({
-        targets: banner,
-        alpha: 0,
-        duration: LEVEL_BANNER.fadeMs,
-        onComplete: () => {
-          for (const t of banner) t.destroy();
-          this.bannerVisible = false;
-        },
-      });
-    });
   }
 
   /** Out of lives: show GAME OVER, then the continue screen (M3.4). */
   private showGameOver(): void {
     if (this.gameOver) return;
     this.gameOver = true;
-    this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'GAME OVER', {
-        fontFamily: FONT.family,
-        fontSize: FONT.large,
-        color: '#ff4fd8',
-      })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(100);
+    showGameOverText(this);
     this.time.delayedCall(HEALTH.gameOverMs, () => {
       this.cameras.main.fadeOut(DIALOGUE_CARD.fadeMs);
       this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
@@ -623,7 +462,7 @@ export class LevelScene extends Phaser.Scene {
 
   /** Test hook: hurt the boss as if hit by bullets. */
   hurtBoss(damage: number): void {
-    this.damageBoss(damage);
+    this.bossFight?.damage(damage);
   }
 
   /** Test hook: move the player (feet stay on the same line). */
@@ -668,11 +507,7 @@ export class LevelScene extends Phaser.Scene {
       scenery: this.scenery.map((l) => l.sprite.texture.key),
       exitX: this.layout.exit.x,
       airJumps: this.airJumps,
-      boss: this.boss && {
-        ...this.boss.snapshot(),
-        arenaLocked: this.arenaIsLocked,
-        defeated: this.bossDefeated,
-      },
+      boss: this.bossFight?.snapshot() ?? null,
     };
   }
 }
