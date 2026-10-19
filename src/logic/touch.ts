@@ -4,6 +4,7 @@
  * virtual key codes, which feed the same action layer as the keyboard (ADR-C07).
  */
 import type { Bindings } from './input';
+import type { WeaponTuning } from './weapon';
 
 export const TOUCH_BINDINGS: Bindings = {
   left: ['TouchLeft'],
@@ -47,4 +48,17 @@ export function knobOffset(dx: number, dy: number, maxDistance: number): { x: nu
   if (length <= maxDistance || length === 0) return { x: dx, y: dy };
   const k = maxDistance / length;
   return { x: dx * k, y: dy * k };
+}
+
+/**
+ * The weapon rules for this frame. Holding the on-screen FIRE button auto-fires every
+ * `intervalMs` (M3.4, owner approved 2026-10-18): tapping a glass button fast is tiring.
+ * Otherwise the weapon's own rules apply (the rifle fires once per press, issue #21).
+ */
+export function weaponForFrame<T extends WeaponTuning>(
+  base: T,
+  touchAutoFire: boolean,
+  intervalMs: number,
+): T {
+  return touchAutoFire ? { ...base, autoFire: true, autoIntervalMs: intervalMs } : base;
 }

@@ -3,7 +3,10 @@ import {
   ACTIONS,
   KeyLatch,
   DEFAULT_KEY_BINDINGS,
+  NO_ACTIONS,
   actionsFromKeys,
+  mergeFrames,
+  type ActionFrame,
   boundKeys,
   horizontalDirection,
   phaserKeyName,
@@ -103,5 +106,22 @@ describe('KeyLatch', () => {
     latch.keyDown('ArrowLeft');
     latch.clear();
     expect(frame(latch)).toMatchObject({ held: { left: false }, pressed: { left: false } });
+  });
+});
+
+describe('mergeFrames and autoFire (M3.4)', () => {
+  const frame = (fire: boolean, autoFire?: boolean): ActionFrame => ({
+    held: { ...NO_ACTIONS, fire },
+    pressed: NO_ACTIONS,
+    ...(autoFire === undefined ? {} : { autoFire }),
+  });
+
+  it('auto-fires if either source does', () => {
+    expect(mergeFrames(frame(true, true), frame(false)).autoFire).toBe(true);
+    expect(mergeFrames(frame(false), frame(true, true)).autoFire).toBe(true);
+  });
+
+  it('leaves autoFire out when neither source auto-fires', () => {
+    expect(mergeFrames(frame(true), frame(false))).not.toHaveProperty('autoFire');
   });
 });

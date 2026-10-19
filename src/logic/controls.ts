@@ -61,11 +61,14 @@ export function controlsGuide(
   const second: SixLabels = touch
     ? TOUCH_GUIDE
     : [pairs.join(' '), k(keys.up), k(keys.down), k(keys.jump), k(keys.fire), k(keys.pause)];
+  // Aiming down (M3.13) is down while moving: the first down key plus the move keys.
+  const aimDown = touch ? TOUCH_AIM_DOWN : `${keyLabel(keys.down[0] ?? '')} + MOVE`;
   const fullscreen = touch ? TOUCH_FULLSCREEN : keyLabel(fullscreenKey);
   return [
     ['MOVE', second[0], p([...pad.buttons.left, ...pad.buttons.right], true)],
     ['AIM UP', second[1], p(pad.buttons.up, true)],
     ['CROUCH', second[2], p(pad.buttons.down, true)],
+    ['AIM DOWN', aimDown, p(pad.buttons.down, true)],
     ['JUMP', second[3], p(pad.buttons.jump)],
     ['FIRE', second[4], p(pad.buttons.fire)],
     ['PAUSE', second[5], p(pad.buttons.pause)],
@@ -85,3 +88,5 @@ const TOUCH_GUIDE: SixLabels = [
   TOUCH_LABELS.pause,
 ] as const;
 const TOUCH_FULLSCREEN = TOUCH_LABELS.fullscreen;
+/** The stick pushed diagonally down, left or right. */
+const TOUCH_AIM_DOWN = 'STICK DOWN-L/R';

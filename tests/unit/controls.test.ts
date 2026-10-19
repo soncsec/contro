@@ -37,6 +37,7 @@ describe('controlsGuide', () => {
       ['MOVE', 'LEFT/RIGHT A/D', 'D-PAD STICK'],
       ['AIM UP', 'UP W', 'D-PAD STICK'],
       ['CROUCH', 'DOWN S', 'D-PAD STICK'],
+      ['AIM DOWN', 'DOWN + MOVE', 'D-PAD STICK'],
       ['JUMP', 'SPACE Z K', 'A'],
       ['FIRE', 'X J', 'X B'],
       ['PAUSE', 'ESC P', 'START'],
@@ -49,6 +50,7 @@ describe('controlsGuide', () => {
       ['MOVE', 'STICK', 'D-PAD STICK'],
       ['AIM UP', 'STICK UP', 'D-PAD STICK'],
       ['CROUCH', 'STICK DOWN', 'D-PAD STICK'],
+      ['AIM DOWN', 'STICK DOWN-L/R', 'D-PAD STICK'],
       ['JUMP', 'JUMP', 'A'],
       ['FIRE', 'FIRE', 'X B'],
       ['PAUSE', 'II', 'START'],
@@ -69,12 +71,15 @@ describe('controlsGuide', () => {
     };
     const rows = controlsGuide(keys, pad, 'KeyG');
     expect(rows[0]).toEqual(['MOVE', 'Q/E H', 'D-PAD STICK']);
-    expect(rows[4]).toEqual(['FIRE', 'ENTER', 'Y']);
-    expect(rows[6]).toEqual(['FULLSCREEN', 'G', '']);
+    expect(rows[5]).toEqual(['FIRE', 'ENTER', 'Y']);
+    expect(rows[7]).toEqual(['FULLSCREEN', 'G', '']);
   });
 
   it('fits the 320 px screen at 8 px a character in three columns', () => {
-    const rows = controlsGuide(DEFAULT_KEY_BINDINGS, DEFAULT_PAD_BINDINGS, 'KeyF');
+    const rows = [
+      ...controlsGuide(DEFAULT_KEY_BINDINGS, DEFAULT_PAD_BINDINGS, 'KeyF'),
+      ...controlsGuide(DEFAULT_KEY_BINDINGS, DEFAULT_PAD_BINDINGS, 'KeyF', true),
+    ];
     for (const [action, keys, pad] of rows) {
       expect(action.length).toBeLessThanOrEqual(10);
       expect(keys.length).toBeLessThanOrEqual(14);

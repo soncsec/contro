@@ -235,4 +235,9 @@ export const TOUCH = {
   stickDeadzone: 0.3,
   /** The knob follows the thumb up to this share of the stick's radius. */
   knobTravel: 0.55,
+  /**
+   * Holding FIRE on the screen keeps firing this often (M3.4): about as fast as a thumb can
+   * tap, and the same as WEAPON.autoIntervalMs.
+   */
+  autoFireMs: 160,
 } as const;

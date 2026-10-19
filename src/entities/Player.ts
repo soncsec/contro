@@ -12,6 +12,7 @@ import {
   PLAYER_BODY,
   PLAYER_CROUCH_BODY,
   PLAYER_FRAME,
+  TOUCH,
   WEAPON,
 } from '../config/tuning';
 import { marineAnim, stanceFor, type Aim, type MarineAnim } from '../logic/aim';
@@ -28,6 +29,7 @@ import {
   type HitResult,
   type StepEvent,
 } from '../logic/health';
+import { weaponForFrame } from '../logic/touch';
 import { initialWeapon, stepWeapon, type WeaponState } from '../logic/weapon';
 
 const ANIM_SHEETS: Readonly<Record<MarineAnim, string>> = {
@@ -257,7 +259,8 @@ export class Player {
     }
     this.aim = stance.aim;
 
-    const weapon = stepWeapon(this.weapon, held.fire, pressed.fire, dtMs, WEAPON);
+    const rules = weaponForFrame(WEAPON, input.autoFire === true, TOUCH.autoFireMs);
+    const weapon = stepWeapon(this.weapon, held.fire, pressed.fire, dtMs, rules);
     this.weapon = weapon.state;
 
     // On the take-off frame the body still reports the floor, so use jumped too.

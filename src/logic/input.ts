@@ -53,6 +53,11 @@ export function phaserKeyName(code: string): string {
 export interface ActionFrame {
   held: ActionState;
   pressed: ActionState;
+  /**
+   * Fire is held on a control that auto-fires: the on-screen FIRE button (M3.4, owner
+   * approved 2026-10-18). Keys and gamepad keep the one-shot rifle (issue #21).
+   */
+  autoFire?: boolean;
 }
 
 /**
@@ -173,5 +178,6 @@ export function mergeFrames(a: ActionFrame, b: ActionFrame): ActionFrame {
     held[action] = a.held[action] || b.held[action];
     pressed[action] = a.pressed[action] || b.pressed[action];
   }
-  return { held, pressed };
+  const autoFire = a.autoFire === true || b.autoFire === true;
+  return autoFire ? { held, pressed, autoFire } : { held, pressed };
 }
