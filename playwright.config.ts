@@ -10,6 +10,9 @@ export default defineConfig({
   retries: 0,
   reporter: isCI ? [['list'], ['html', { open: 'never' }]] : 'list',
   timeout: 30_000,
+  // Each check may wait up to 10 s (Playwright's default is 5 s). Since the audio (M3.6) the
+  // first load takes longer, and shared CI and dev machines often run at high load.
+  expect: { timeout: 10_000 },
   use: {
     baseURL: `http://localhost:${PORT}/`,
     trace: 'retain-on-failure',
