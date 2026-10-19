@@ -28,6 +28,8 @@ export interface TestHook {
   pauseMenu(): string | null;
   /** The last cheat confirmation on the pause screen, or null. */
   cheatMessage(): string | null;
+  /** Frames per second the game is managing right now (Phaser's measurement). */
+  fps(): number;
   /** The dialogue card on screen, or null if none is showing. */
   dialogue(): ReturnType<DialogueScene['snapshot']> | null;
   /** The continue screen after game over, or null if it isn't showing (M3.4). */
@@ -74,6 +76,7 @@ export function installTestHook(game: Phaser.Game): void {
       game.scene.start('Level', { level: key, ...run });
     },
     scene: () => game.scene.getScenes(true)[0]?.scene.key ?? null,
+    fps: () => Math.round(game.loop.actualFps),
     previewGroup: () =>
       game.scene.isActive('AssetPreview')
         ? (game.scene.getScene('AssetPreview') as AssetPreviewScene).currentGroup

@@ -74,23 +74,45 @@ export async function walkThroughExit(page: Page): Promise<ExitResult> {
 }
 
 /**
- * Leaves this section by its exit, passing the level-end card if there is one, and waits
- * until the next section is running with the marine on the floor. Returns the card shown.
+ * Leaves this section by its exit, passing any cards (a level's end card, then the next
+ * level's intro card), and waits until the next section is running with the marine on the
+ * floor. Returns the first card shown, or null if none.
  */
 export async function nextSection(page: Page): Promise<string | null> {
+  const cards = await nextSectionCards(page);
+  return cards[0] ?? null;
+}
+
+/** Like nextSection, but returns every card shown on the way, in order. */
+export async function nextSectionCards(page: Page): Promise<string[]> {
   const from = (await level(page)).level;
   const { scene } = await walkThroughExit(page);
-  let card: string | null = null;
+  const cards: string[] = [];
   if (scene === 'Dialogue') {
-    card = (await page.evaluate(() => window.__contro?.dialogue()?.card)) ?? null;
-    await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
-    await page.keyboard.press('KeyX');
+    for (;;) {
+      const card = await page.evaluate(() => window.__contro?.dialogue() ?? null);
+      if (!card) break;
+      cards.push(card.card);
+      await expect
+        .poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready ?? null))
+        .toBe(true);
+      await page.keyboard.press('KeyX');
+      // The next card, or the next section.
+      await expect
+        .poll(async () => {
+          const d = await page.evaluate(() => window.__contro?.dialogue() ?? null);
+          if (d && d.card !== card.card) return 'card';
+          return (await sceneKey(page)) === 'Level' ? 'level' : 'waiting';
+        })
+        .not.toBe('waiting');
+      if ((await sceneKey(page)) === 'Level') break;
+    }
   }
   await expect
     .poll(() => page.evaluate(() => window.__contro?.level()?.level ?? null))
     .not.toBe(from);
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
-  return card;
+  return cards;
 }
 
 /** The title screen's state, or null if it isn't showing. */
