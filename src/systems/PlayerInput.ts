@@ -37,8 +37,11 @@ export class PlayerInput {
 
   /** The actions for this frame. Call once per frame. */
   frame(): ActionFrame {
+    const touch = this.touch.frame(TOUCH_BINDINGS);
+    // Holding the on-screen FIRE button auto-fires (M3.4); keys and gamepad don't.
+    const fromTouch = touch.held.fire ? { ...touch, autoFire: true } : touch;
     return mergeFrames(
-      mergeFrames(this.keyboard.frame(), this.touch.frame(TOUCH_BINDINGS)),
+      mergeFrames(this.keyboard.frame(), fromTouch),
       this.pad.frame(this.readPad(), DEFAULT_PAD_BINDINGS),
     );
   }
