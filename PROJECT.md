@@ -43,7 +43,7 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 | Double jump | **One extra jump in mid-air** (owner request 2026-10-17, roadmap M2.8). Restored on landing; also usable after walking off a ledge. Not in classic Contra; added for the platforming |
 | Story | **Minimal text**: one or two lines with a speaker portrait on the card between levels, plus intro and ending cards (owner decision 2026-10-17). Text lives in a data file |
 | Audio | **CC0 sound effects plus one music loop per level** (owner decision 2026-10-17). Each source needs owner approval and is listed in `CREDITS.md` |
-| Saving | Furthest level reached, best score, and volume settings in localStorage, safe if storage is unavailable |
+| Saving | Furthest level reached, best score, and volume settings in localStorage, safe if storage is unavailable. **The title can start from any level already reached** (owner approved 2026-10-18, M3.5) |
 | Scoring | **Points for each enemy destroyed** (walker 100, flyer 200, bosses more), shown in the HUD; best score saved. **Extra life at 20,000 and 50,000 points**, as in Contra. The score carries from room to room and resets on game over (owner request 2026-10-17, roadmap M2.9) |
 | Fullscreen | **F toggles fullscreen** (owner request 2026-10-17, roadmap M2.10) |
 | Cheat codes | Entered on the pause screen (owner request 2026-10-17, roadmap M2.11): **Konami code** (up up down down left right left right fire jump, keyboard or gamepad) for +5 lives; typed **IRON** invincibility (pits still kill), **GHOUL** invisibility (enemies don't aim or dive at you), **THRU** room skip; **all weapons** once pickups exist (M4). A cheat shows CHEAT on the HUD and stops the best score from being saved |

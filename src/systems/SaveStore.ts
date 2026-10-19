@@ -14,6 +14,13 @@ export const SaveStore = {
     }
   },
 
+  /** Loads, changes and saves in one step, so other fields are kept. */
+  update(change: (data: SaveData) => SaveData): void {
+    const before = this.load();
+    const after = change(before);
+    if (after !== before) this.save(after);
+  },
+
   save(data: SaveData): void {
     try {
       window.localStorage.setItem(SAVE_KEY, serializeSave(data));

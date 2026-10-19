@@ -128,6 +128,15 @@ describe('campaignStart (M3.4)', () => {
   it('rejects an empty campaign', () => {
     expect(() => campaignStart([])).toThrow(/empty/);
   });
+
+  it('starts at a chosen level, with its intro card (M3.5)', () => {
+    expect(campaignStart(steps, 2)).toEqual({ cards: ['intro-2'], nextLevel: 'c' });
+    expect(campaignStart(steps, 3)).toEqual({ cards: [], nextLevel: 'd' });
+  });
+
+  it('rejects a level that does not exist', () => {
+    expect(() => campaignStart(steps, 9)).toThrow(/no level 9/);
+  });
 });
 
 describe('validateCampaign', () => {

@@ -11,3 +11,11 @@ export function stepMenu(index: number, count: number, pressed: ActionState): Me
   next = ((next % count) + count) % count;
   return { index: next, choose: pressed.jump || pressed.fire, back: pressed.pause };
 }
+
+export const TITLE_OPTIONS = ['START', 'LEVEL', 'CONTROLS', 'MORE GAMES'] as const;
+export type TitleOption = (typeof TITLE_OPTIONS)[number];
+
+/** The title menu: the LEVEL row appears only once a later level has been reached (M3.5). */
+export function titleOptions(furthestLevel: number): TitleOption[] {
+  return TITLE_OPTIONS.filter((o) => o !== 'LEVEL' || furthestLevel > 1);
+}

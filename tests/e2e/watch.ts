@@ -124,3 +124,8 @@ export async function continueAfterGameOver(page: Page): Promise<void> {
   await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
 }
+
+/** The dialogue card on screen, or null if none is showing. */
+export function dialogue(page: Page) {
+  return page.evaluate(() => window.__contro?.dialogue() ?? null);
+}

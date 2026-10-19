@@ -32,6 +32,7 @@ import { arenaLocked } from '../logic/boss';
 import { afterExit, levelLabel, stepFor } from '../logic/campaign';
 import { standingOn } from '../logic/ground';
 import { respawnPoint } from '../logic/health';
+import { reachLevel } from '../logic/save';
 import { addPoints, newRun, type ScoreState } from '../logic/score';
 import { NO_CHEATS, applyCheat, type CheatId, type CheatState } from '../logic/cheats';
 import { NO_ACTIONS, type ActionFrame } from '../logic/input';
@@ -283,6 +284,9 @@ export class LevelScene extends Phaser.Scene {
     });
     this.createBoss();
     const step = stepFor(CAMPAIGN, this.levelKey);
+    // Remember the furthest level reached, for the title's level select (M3.5). A cheated run
+    // doesn't count, as it doesn't for the best score.
+    if (!this.cheats.used) SaveStore.update((save) => reachLevel(save, step.stage));
     this.label = levelLabel(step);
     this.hud = new Hud(this, this.label);
     this.showLevelBanner(this.label, step.name);
@@ -547,7 +551,7 @@ export class LevelScene extends Phaser.Scene {
     const newBest = best > this.score.best;
     this.score = { ...r.state, best };
     if (r.extraLives > 0) this.player.addLives(r.extraLives);
-    if (newBest) SaveStore.save({ version: 1, bestScore: this.score.best });
+    if (newBest) SaveStore.update((save) => ({ ...save, bestScore: this.score.best }));
   }
 
   /** A cheat was entered on the pause screen. Returns a short line confirming it. */

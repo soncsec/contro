@@ -30,7 +30,11 @@ test('destroying an alien scores its points, and the best score is saved', async
   }
   await expect.poll(async () => (await score(page)).score, { timeout: 10_000 }).toBe(100);
   expect((await score(page)).best).toBe(100);
-  expect(JSON.parse((await saved(page)) ?? '{}')).toEqual({ version: 1, bestScore: 100 });
+  expect(JSON.parse((await saved(page)) ?? '{}')).toEqual({
+    version: 1,
+    bestScore: 100,
+    furthestLevel: 1,
+  });
   expect(watched.errors).toEqual([]);
 });
 
