@@ -5,7 +5,9 @@ import { integerZoom } from './logic/scaling';
 import { installFullscreenKey } from './systems/Fullscreen';
 import { TouchControls } from './systems/TouchControls';
 import { AssetPreviewScene } from './scenes/AssetPreviewScene';
+import { ContinueScene } from './scenes/ContinueScene';
 import { DialogueScene } from './scenes/DialogueScene';
+import { EndScene } from './scenes/EndScene';
 import { LevelScene } from './scenes/LevelScene';
 import { PauseScene } from './scenes/PauseScene';
 import { PreloadScene } from './scenes/PreloadScene';
@@ -35,7 +37,16 @@ export const game = new Phaser.Game({
     default: 'arcade',
     arcade: { debug: false },
   },
-  scene: [PreloadScene, TitleScene, LevelScene, PauseScene, DialogueScene, AssetPreviewScene],
+  scene: [
+    PreloadScene,
+    TitleScene,
+    LevelScene,
+    PauseScene,
+    DialogueScene,
+    ContinueScene,
+    EndScene,
+    AssetPreviewScene,
+  ],
 });
 
 const container = document.getElementById('game');

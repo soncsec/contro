@@ -11,7 +11,7 @@ export interface CampaignLevel<Card extends string = string> {
   sections: readonly string[];
   /** Card shown after the level's last section. */
   endCard: Card;
-  /** Card shown before the level starts (used once the title screen exists, M3.4). */
+  /** Card shown before the level's first section (M3.4). */
   introCard?: Card;
 }
 
@@ -24,6 +24,8 @@ export interface Step<Card extends string = string> {
   name: string;
   /** The card after this section, or null between sections of the same level. */
   exitCard: Card | null;
+  /** The level's intro card, on its first section only (M3.4). */
+  introCard: Card | null;
 }
 
 export function flattenCampaign<Card extends string>(
@@ -36,6 +38,7 @@ export function flattenCampaign<Card extends string>(
       section: i + 1,
       name: lv.name,
       exitCard: i === lv.sections.length - 1 ? lv.endCard : null,
+      introCard: i === 0 ? (lv.introCard ?? null) : null,
     })),
   );
 }
@@ -52,19 +55,34 @@ export function stepFor<S extends Step>(campaign: readonly S[], level: string): 
   return step;
 }
 
+/** Cards to show in order, then the section to play (null: the campaign is over). */
+export interface Route<Card extends string = string> {
+  cards: Card[];
+  nextLevel: string | null;
+}
+
+/** A new game: the first level's intro card, if it has one, then its first section (M3.4). */
+export function campaignStart<Card extends string>(campaign: readonly Step<Card>[]): Route<Card> {
+  const first = campaign[0];
+  if (!first) throw new Error('the campaign is empty');
+  return { cards: first.introCard ? [first.introCard] : [], nextLevel: first.level };
+}
+
 /**
- * What follows `level`'s exit: the card to show (null between sections of a level) and the
- * section to play next, wrapping from the last to the first.
+ * What follows `level`'s exit: no card between sections of a level; after a level's last
+ * section, its end card and the next level's intro card. After the last level the campaign
+ * is over (nextLevel null), and the game shows the end screen (M3.4).
  */
 export function afterExit<Card extends string>(
   campaign: readonly Step<Card>[],
   level: string,
-): { card: Card | null; nextLevel: string } {
+): Route<Card> {
   const i = campaign.findIndex((s) => s.level === level);
   const step = campaign[i];
-  const next = campaign[(i + 1) % campaign.length];
-  if (!step || !next) throw new Error(`level ${level} is not in the campaign`);
-  return { card: step.exitCard, nextLevel: next.level };
+  if (!step) throw new Error(`level ${level} is not in the campaign`);
+  const next = campaign[i + 1] ?? null;
+  const cards = [step.exitCard, next?.introCard ?? null].filter((c): c is Card => c !== null);
+  return { cards, nextLevel: next?.level ?? null };
 }
 
 /**

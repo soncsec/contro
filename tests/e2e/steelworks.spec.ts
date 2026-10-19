@@ -85,11 +85,20 @@ SECTIONS.forEach((section, i) => {
         .toBe('fight');
       await page.evaluate(() => window.__contro?.hurtBoss(1000));
       await expect.poll(() => sceneKey(page), { timeout: 60_000 }).toBe('Dialogue');
-      // The last level so far: after its card the campaign starts again from the beginning.
+      // The last level so far: after its card comes the end screen, then the title (M3.4).
       expect(await page.evaluate(() => window.__contro?.dialogue())).toMatchObject({
         card: 'level-1-end',
-        nextLevel: 'corridor-test',
+        more: [],
+        nextLevel: null,
       });
+      await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
+      await page.keyboard.press('KeyX');
+      await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('End');
+      const end = await page.evaluate(() => window.__contro?.end());
+      expect(end?.score).toBeGreaterThanOrEqual(5000); // the tank alone is worth 5000
+      await expect.poll(() => page.evaluate(() => window.__contro?.end()?.ready)).toBe(true);
+      await page.keyboard.press('KeyX');
+      await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Title');
     });
   }
 });

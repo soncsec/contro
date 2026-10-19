@@ -12,6 +12,7 @@ import { DIALOGUE_CARD } from '../../src/config/tuning';
 import {
   type CampaignLevel,
   afterExit,
+  campaignStart,
   flattenCampaign,
   levelLabel,
   stepFor,
@@ -77,31 +78,37 @@ describe('dialogue data', () => {
 
 const levels: CampaignLevel[] = [
   { stage: 1, name: 'ONE', sections: ['a', 'b'], endCard: 'end-1', introCard: 'intro-1' },
-  { stage: 2, name: 'TWO', sections: ['c'], endCard: 'end-2' },
+  { stage: 2, name: 'TWO', sections: ['c'], endCard: 'end-2', introCard: 'intro-2' },
+  { stage: 3, name: 'THREE', sections: ['d'], endCard: 'end-3' },
 ];
 const steps = flattenCampaign(levels);
 
 describe('flattenCampaign', () => {
   it('lists every section in order with its level number and name', () => {
     expect(steps).toEqual([
-      { level: 'a', stage: 1, section: 1, name: 'ONE', exitCard: null },
-      { level: 'b', stage: 1, section: 2, name: 'ONE', exitCard: 'end-1' },
-      { level: 'c', stage: 2, section: 1, name: 'TWO', exitCard: 'end-2' },
+      { level: 'a', stage: 1, section: 1, name: 'ONE', exitCard: null, introCard: 'intro-1' },
+      { level: 'b', stage: 1, section: 2, name: 'ONE', exitCard: 'end-1', introCard: null },
+      { level: 'c', stage: 2, section: 1, name: 'TWO', exitCard: 'end-2', introCard: 'intro-2' },
+      { level: 'd', stage: 3, section: 1, name: 'THREE', exitCard: 'end-3', introCard: null },
     ]);
   });
 });
 
 describe('afterExit', () => {
   it('goes straight to the next section of the same level, with no card', () => {
-    expect(afterExit(steps, 'a')).toEqual({ card: null, nextLevel: 'b' });
+    expect(afterExit(steps, 'a')).toEqual({ cards: [], nextLevel: 'b' });
   });
 
-  it("shows the level's end card before the next level", () => {
-    expect(afterExit(steps, 'b')).toEqual({ card: 'end-1', nextLevel: 'c' });
+  it("shows the level's end card, then the next level's intro card (M3.4)", () => {
+    expect(afterExit(steps, 'b')).toEqual({ cards: ['end-1', 'intro-2'], nextLevel: 'c' });
   });
 
-  it('wraps from the last section to the first', () => {
-    expect(afterExit(steps, 'c')).toEqual({ card: 'end-2', nextLevel: 'a' });
+  it('shows only the end card when the next level has no intro', () => {
+    expect(afterExit(steps, 'c')).toEqual({ cards: ['end-2'], nextLevel: 'd' });
+  });
+
+  it('ends the campaign after the last level instead of starting again (M3.4)', () => {
+    expect(afterExit(steps, 'd')).toEqual({ cards: ['end-3'], nextLevel: null });
   });
 
   it('rejects a map not in the campaign', () => {
@@ -109,9 +116,23 @@ describe('afterExit', () => {
   });
 });
 
+describe('campaignStart (M3.4)', () => {
+  it("opens with the first level's intro card", () => {
+    expect(campaignStart(steps)).toEqual({ cards: ['intro-1'], nextLevel: 'a' });
+  });
+
+  it('goes straight in when the first level has no intro', () => {
+    expect(campaignStart(steps.slice(3))).toEqual({ cards: [], nextLevel: 'd' });
+  });
+
+  it('rejects an empty campaign', () => {
+    expect(() => campaignStart([])).toThrow(/empty/);
+  });
+});
+
 describe('validateCampaign', () => {
-  const maps = ['a', 'b', 'c'];
-  const cards = ['end-1', 'end-2', 'intro-1'];
+  const maps = ['a', 'b', 'c', 'd'];
+  const cards = ['end-1', 'end-2', 'end-3', 'intro-1', 'intro-2'];
 
   it('accepts a good campaign', () => {
     expect(validateCampaign(levels, maps, cards)).toEqual([]);

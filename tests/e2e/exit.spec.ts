@@ -28,7 +28,9 @@ test('a section exit leads straight to the next section, with no card', async ({
   expect(watched.errors).toEqual([]);
 });
 
-test("the level's last section ends with a card, then the next level", async ({ page }) => {
+test("the level's last section ends with its card, then the next level's intro card", async ({
+  page,
+}) => {
   const watched = watchPage(page);
   await openLevel(page);
   expect(await nextSection(page)).toBeNull();
@@ -36,13 +38,22 @@ test("the level's last section ends with a card, then the next level", async ({ 
   const exit = await walkThroughExit(page);
   expect(exit).toEqual({ lastVx: 0, scene: 'Dialogue' });
   // In the e2e build, training (level 1) is followed by the steelworks (level 2).
-  expect(await dialogue(page)).toMatchObject({ card: 'training-end', nextLevel: 'steelworks-1' });
+  expect(await dialogue(page)).toMatchObject({
+    card: 'training-end',
+    more: ['level-1-intro'],
+    nextLevel: 'steelworks-1',
+  });
 
   // A press during the first moments is ignored, so a held key can't skip the card.
   await page.keyboard.press('Space');
   await page.waitForTimeout(100);
   expect(await sceneKey(page)).toBe('Dialogue');
 
+  await expect.poll(async () => (await dialogue(page))?.ready).toBe(true);
+  await page.keyboard.press('KeyX');
+  // Then the steelworks' own intro card (M3.4).
+  await expect.poll(async () => (await dialogue(page))?.card).toBe('level-1-intro');
+  expect(await dialogue(page)).toMatchObject({ more: [], nextLevel: 'steelworks-1' });
   await expect.poll(async () => (await dialogue(page))?.ready).toBe(true);
   await page.keyboard.press('KeyX');
   await expect.poll(() => sceneKey(page)).toBe('Level');

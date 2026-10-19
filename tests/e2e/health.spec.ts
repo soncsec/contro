@@ -1,5 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, nextSection, startGame, waitGameTime, watchPage } from './watch';
+import {
+  continueAfterGameOver,
+  level,
+  nextSection,
+  startGame,
+  waitGameTime,
+  watchPage,
+} from './watch';
 
 async function openLevel(page: Page): Promise<void> {
   await startGame(page);
@@ -76,7 +83,7 @@ test('after passing the checkpoint he respawns there', async ({ page }) => {
   expect(back.player.lives).toBe(2);
 });
 
-test('losing the last life shows game over, then the level restarts with full lives', async ({
+test('losing the last life shows game over; CONTINUE restarts with full lives (M3.4)', async ({
   page,
 }) => {
   // Three deaths plus the game-over screen take seconds of game time, which runs slowly on a
@@ -89,14 +96,12 @@ test('losing the last life shows game over, then the level restarts with full li
   expect((await level(page)).player.lives).toBe(1);
   await hurt(page, 99);
   await expect.poll(async () => (await level(page)).gameOver, { timeout: 10_000 }).toBe(true);
-  // After "GAME OVER" the level restarts.
-  await expect
-    .poll(async () => (await page.evaluate(() => window.__contro?.level() ?? null))?.gameOver, {
-      timeout: 15_000,
-    })
-    .toBe(false);
-  await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
-  expect((await level(page)).player).toMatchObject({ hp: 4, lives: 3, dead: false });
+  // After "GAME OVER" comes the continue screen; continuing restarts with one fewer left.
+  await continueAfterGameOver(page);
+  const after = await level(page);
+  expect(after.player).toMatchObject({ hp: 4, lives: 3, dead: false });
+  expect(after.gameOver).toBe(false);
+  expect(after.continues).toBe(2);
   expect(watched.errors).toEqual([]);
 });
 
@@ -159,11 +164,7 @@ test('game over in a later section restarts that section, not the level (M3.0)',
   await dieAndWait(page);
   await hurt(page, 99);
   await expect.poll(async () => (await level(page)).gameOver, { timeout: 10_000 }).toBe(true);
-  await expect
-    .poll(async () => (await page.evaluate(() => window.__contro?.level() ?? null))?.gameOver, {
-      timeout: 15_000,
-    })
-    .toBe(false);
+  await continueAfterGameOver(page);
   const after = await level(page);
   expect(after.level).toBe('corridor-test-2');
   expect(after.label).toBe('1-2');

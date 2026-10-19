@@ -164,6 +164,15 @@ export const HEALTH = {
   gameOverMs: 2500,
 } as const;
 
+/** Continues after game over (M3.4): how many a run gets, and the screens around them. */
+export const CONTINUE = {
+  /** Continues a run starts with (owner approved 3, 2026-10-18). */
+  count: 3,
+  /** Ignore presses this long after the continue or end screen appears. */
+  inputDelayMs: 600,
+  fadeMs: 250,
+} as const;
+
 /** Catwalks and pits (M2.4). */
 export const PLATFORMS = {
   /** After down + jump on a catwalk, the marine passes through catwalks for this long. */

@@ -1,7 +1,10 @@
 import type Phaser from 'phaser';
+import { HEALTH } from '../config/tuning';
 import type { AssetGroup } from '../assets/manifest';
 import type { AssetPreviewScene } from '../scenes/AssetPreviewScene';
+import type { ContinueScene } from '../scenes/ContinueScene';
 import type { DialogueScene } from '../scenes/DialogueScene';
+import type { EndScene } from '../scenes/EndScene';
 import type { PauseScene } from '../scenes/PauseScene';
 import type { LevelScene, LevelSnapshot } from '../scenes/LevelScene';
 import type { TitleScene } from '../scenes/TitleScene';
@@ -27,6 +30,10 @@ export interface TestHook {
   cheatMessage(): string | null;
   /** The dialogue card on screen, or null if none is showing. */
   dialogue(): ReturnType<DialogueScene['snapshot']> | null;
+  /** The continue screen after game over, or null if it isn't showing (M3.4). */
+  continueMenu(): ReturnType<ContinueScene['snapshot']> | null;
+  /** The end screen after the last level, or null if it isn't showing (M3.4). */
+  end(): ReturnType<EndScene['snapshot']> | null;
   /** Adds points as if enemies were destroyed. Throws if no level is running. */
   addScore(points: number): void;
   /** Hurts the player as if touched from the front. Throws if no level is running. */
@@ -35,8 +42,11 @@ export interface TestHook {
   hurtBoss(damage: number): void;
   /** Moves the player to x (level pixels). Throws if no level is running. */
   teleportPlayer(x: number): void;
-  /** Leaves whatever is showing and starts a fresh run in the named map. */
-  startLevel(key: string): void;
+  /**
+   * Leaves whatever is showing and starts a fresh run in the named map, optionally with only
+   * this many continues left (M3.4).
+   */
+  startLevel(key: string, continues?: number): void;
 }
 
 declare global {
@@ -53,11 +63,15 @@ export function installTestHook(game: Phaser.Game): void {
       : null;
 
   window.__contro = {
-    startLevel: (key) => {
+    startLevel: (key, continues) => {
+      if (continues !== undefined && !(Number.isInteger(continues) && continues >= 0))
+        throw new Error(`startLevel needs a whole number of continues, got ${String(continues)}`);
       for (const scene of game.scene.getScenes(false)) {
         if (scene.scene.key !== 'Level' && scene.scene.isActive()) scene.scene.stop();
       }
-      game.scene.start('Level', { level: key });
+      const run =
+        continues === undefined ? {} : { run: { score: 0, lives: HEALTH.lives, continues } };
+      game.scene.start('Level', { level: key, ...run });
     },
     scene: () => game.scene.getScenes(true)[0]?.scene.key ?? null,
     previewGroup: () =>
@@ -81,6 +95,12 @@ export function installTestHook(game: Phaser.Game): void {
       game.scene.isActive('Dialogue')
         ? (game.scene.getScene('Dialogue') as DialogueScene).snapshot()
         : null,
+    continueMenu: () =>
+      game.scene.isActive('Continue')
+        ? (game.scene.getScene('Continue') as ContinueScene).snapshot()
+        : null,
+    end: () =>
+      game.scene.isActive('End') ? (game.scene.getScene('End') as EndScene).snapshot() : null,
     addScore: (points) => {
       const scene = level();
       if (!scene) throw new Error('no level is running');

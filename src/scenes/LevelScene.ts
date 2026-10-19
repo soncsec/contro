@@ -4,6 +4,7 @@ import {
   AIR_JUMP_RING_SQUASH,
   BOSS_FIGHT,
   CHEAT_EXTRA_LIVES,
+  CONTINUE,
   DIALOGUE_CARD,
   FONT,
   GAME_HEIGHT,
@@ -46,6 +47,8 @@ export interface RunState {
   hp?: number;
   /** Cheats switched on in this run (they carry from room to room). */
   cheats?: CheatState;
+  /** Continues left after game over (M3.4); a fresh run has CONTINUE.count. */
+  continues?: number;
 }
 
 export interface LevelSceneData {
@@ -80,6 +83,8 @@ export interface LevelSnapshot {
   reachedX: number;
   respawnAt: { x: number; y: number };
   gameOver: boolean;
+  /** Continues left in this run (M3.4). */
+  continues: number;
   score: { score: number; best: number };
   cheats: CheatState;
   /** Current level and section shown in the HUD, e.g. "1-2". */
@@ -126,6 +131,8 @@ export class LevelScene extends Phaser.Scene {
   private bannerVisible = false;
   private score: ScoreState = newRun(0);
   private cheats: CheatState = NO_CHEATS;
+  /** Continues left in this run (M3.4). */
+  private continues: number = CONTINUE.count;
   /** The run as it was when this room started (for Restart room). */
   private runAtStart: RunState | null = null;
   private back: Phaser.GameObjects.TileSprite | null = null;
@@ -149,6 +156,7 @@ export class LevelScene extends Phaser.Scene {
     this.levelKey = data.level ?? DEFAULT_LEVEL;
     this.runAtStart = data.run ?? null;
     this.cheats = data.run?.cheats ?? NO_CHEATS;
+    this.continues = data.run?.continues ?? CONTINUE.count;
     this.skipRoomOnResume = false;
     this.score = { ...newRun(SaveStore.load().bestScore), score: data.run?.score ?? 0 };
     // Thresholds already passed before this room don't award again.
@@ -490,7 +498,7 @@ export class LevelScene extends Phaser.Scene {
     });
   }
 
-  /** Out of lives: show GAME OVER, then restart this level with full lives. */
+  /** Out of lives: show GAME OVER, then the continue screen (M3.4). */
   private showGameOver(): void {
     if (this.gameOver) return;
     this.gameOver = true;
@@ -506,8 +514,12 @@ export class LevelScene extends Phaser.Scene {
     this.time.delayedCall(HEALTH.gameOverMs, () => {
       this.cameras.main.fadeOut(DIALOGUE_CARD.fadeMs);
       this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-        // A fresh run: score back to zero, full lives (the best score is kept).
-        this.scene.restart({ level: this.levelKey });
+        // Continuing restarts this section with full lives and the score back to zero.
+        this.scene.start('Continue', {
+          level: this.levelKey,
+          left: this.continues,
+          score: this.score.score,
+        });
       });
     });
   }
@@ -515,12 +527,15 @@ export class LevelScene extends Phaser.Scene {
   private reachExit(): void {
     if (this.exiting || this.player.dead) return;
     this.exiting = true;
-    const { card, nextLevel } = afterExit(CAMPAIGN, this.levelKey);
+    const { cards, nextLevel } = afterExit(CAMPAIGN, this.levelKey);
     this.cameras.main.fadeOut(DIALOGUE_CARD.fadeMs);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      // Between sections of a level, go straight on; a card plays only at a level's end.
-      if (card) this.scene.start('Dialogue', { card, nextLevel, run: this.run() });
-      else this.scene.start('Level', { level: nextLevel, run: this.run() });
+      // Between sections of a level, go straight on; cards play only at a level's end.
+      const [card, ...more] = cards;
+      const run = this.run();
+      if (card) this.scene.start('Dialogue', { card, more, nextLevel, run });
+      else if (nextLevel) this.scene.start('Level', { level: nextLevel, run });
+      else this.scene.start('End', { score: run.score });
     });
   }
 
@@ -556,7 +571,13 @@ export class LevelScene extends Phaser.Scene {
   /** The score, lives, health and cheats to carry into the next room. */
   run(): RunState {
     const p = this.player.snapshot();
-    return { score: this.score.score, lives: p.lives, hp: p.hp, cheats: this.cheats };
+    return {
+      score: this.score.score,
+      lives: p.lives,
+      hp: p.hp,
+      cheats: this.cheats,
+      continues: this.continues,
+    };
   }
 
   /** Room skip (cheat): leave through the exit as soon as the game resumes. */
@@ -611,6 +632,7 @@ export class LevelScene extends Phaser.Scene {
       reachedX: this.reachedX,
       respawnAt: this.respawnAt(),
       gameOver: this.gameOver,
+      continues: this.continues,
       score: { score: this.score.score, best: this.score.best },
       cheats: this.cheats,
       label: this.label,
