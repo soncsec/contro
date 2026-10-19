@@ -11,7 +11,7 @@
  "tilewidth": 16,
  "tileheight": 16,
  "nextlayerid": 20,
- "nextobjectid": 53,
+ "nextobjectid": 55,
  "layers": [
   {
    "id": 1,
@@ -4475,6 +4475,54 @@
     {
      "id": 47,
      "name": "",
+     "type": "blimp",
+     "x": 576,
+     "y": 44,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "carries",
+       "type": "string",
+       "value": "spread"
+      },
+      {
+       "name": "from",
+       "type": "string",
+       "value": "right"
+      }
+     ]
+    },
+    {
+     "id": 48,
+     "name": "",
+     "type": "blimp",
+     "x": 2048,
+     "y": 44,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "carries",
+       "type": "string",
+       "value": "health"
+      },
+      {
+       "name": "from",
+       "type": "string",
+       "value": "right"
+      }
+     ]
+    },
+    {
+     "id": 49,
+     "name": "",
      "type": "spawner",
      "x": 800,
      "y": 88,
@@ -4507,7 +4555,7 @@
      ]
     },
     {
-     "id": 48,
+     "id": 50,
      "name": "",
      "type": "spawner",
      "x": 1920,
@@ -4541,7 +4589,7 @@
      ]
     },
     {
-     "id": 49,
+     "id": 51,
      "name": "",
      "type": "checkpoint",
      "x": 736,
@@ -4553,7 +4601,7 @@
      "point": true
     },
     {
-     "id": 50,
+     "id": 52,
      "name": "",
      "type": "checkpoint",
      "x": 1520,
@@ -4565,7 +4613,7 @@
      "point": true
     },
     {
-     "id": 51,
+     "id": 53,
      "name": "",
      "type": "checkpoint",
      "x": 2304,
@@ -4577,7 +4625,7 @@
      "point": true
     },
     {
-     "id": 52,
+     "id": 54,
      "name": "",
      "type": "exit",
      "x": 2640,

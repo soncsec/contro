@@ -22,6 +22,7 @@ import { initialMovement, stepMovement, type MovementState } from '../logic/move
 import {
   fallDeath,
   initialHealth,
+  restoreHealth,
   stepHealth,
   takeHit,
   visibleWhileInvulnerable,
@@ -207,6 +208,11 @@ export class Player {
     this.sprite.body.reset(x, spriteYForFeet(feetY, PLAYER_FRAME.height, PLAYER_BODY));
     this.anim = 'idle';
     this.sprite.play(animKey(ANIM_SHEETS.idle));
+  }
+
+  /** A health pickup: back to full health (M4.1). */
+  restoreHealth(): void {
+    this.health = restoreHealth(this.health, HEALTH);
   }
 
   /** Extra lives (from scoring). */

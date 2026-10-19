@@ -68,6 +68,18 @@ export const WEAPONS: Readonly<Record<WeaponType, WeaponStats>> = {
   },
 };
 
+/**
+ * What a blimp can carry (M4.1): a weapon, or a full-health restore (owner request
+ * 2026-10-19). Each drops as its own pickup image.
+ */
+export const PICKUPS = ['machine-gun', 'spread', 'health'] as const;
+export type PickupKind = (typeof PICKUPS)[number];
+export const PICKUP_IMAGES: Readonly<Record<PickupKind, string>> = {
+  'machine-gun': 'pickup-machine-gun',
+  spread: 'pickup-spread',
+  health: 'pickup-health',
+};
+
 /** The bullet pool is as big as the largest weapon needs. */
 export const MAX_BULLETS = Math.max(...WEAPON_TYPES.map((t) => WEAPONS[t].maxBullets));
 

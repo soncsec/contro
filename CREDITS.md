@@ -43,6 +43,7 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/enemies/blimp-left.png` | `—` | *drawn by Claude* (`tools/art/blimp.py`): the weapon blimp, 2 frames (owner approved the design 2026-10-19) |
 | `assets/effects/pickup-machine-gun.png` | `—` | *drawn by Claude* (`tools/art/letters.py`): the M pickup, in the style of Press Start 2P (owner approved 2026-10-19) |
 | `assets/effects/pickup-spread.png` | `—` | *drawn by Claude* (`tools/art/letters.py`): the S pickup, in the style of Press Start 2P (owner approved 2026-10-19) |
+| `assets/effects/pickup-health.png` | `—` | *drawn by Claude* (`tools/art/letters.py`): the + pickup, in the style of Press Start 2P (owner approved 2026-10-19) |
 | `assets/levels/corridor/catwalk.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png` | *drawn by Claude* (`tools/art/catwalk.py`): catwalk and pit tiles in this tileset's colours, pit edges reuse its floor pixels |
 | `assets/levels/corridor/tileset.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png` | unchanged |
 | `assets/levels/steelworks/tileset.png` | `Warped/Environments/bulkhead-walls/v1/layers/bulkhead-walls-back.png, bulkhead-walls-platform.png, cols.png, bulkhead-walls-pipes.png` | *derived*: ceiling cropped off, wall and floor stacked with the scaffold walkway and a copy of the wall with the columns and pipes layered on, pixels unchanged; plus pit tiles *drawn by Claude* in the floor's colours (`tools/art/steelworks.py`) |

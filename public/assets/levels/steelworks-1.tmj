@@ -11,7 +11,7 @@
  "tilewidth": 16,
  "tileheight": 16,
  "nextlayerid": 20,
- "nextobjectid": 43,
+ "nextobjectid": 45,
  "layers": [
   {
    "id": 10,
@@ -4598,6 +4598,54 @@
     {
      "id": 36,
      "name": "",
+     "type": "blimp",
+     "x": 480,
+     "y": 48,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "carries",
+       "type": "string",
+       "value": "machine-gun"
+      },
+      {
+       "name": "from",
+       "type": "string",
+       "value": "right"
+      }
+     ]
+    },
+    {
+     "id": 37,
+     "name": "",
+     "type": "blimp",
+     "x": 1920,
+     "y": 52,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "carries",
+       "type": "string",
+       "value": "health"
+      },
+      {
+       "name": "from",
+       "type": "string",
+       "value": "right"
+      }
+     ]
+    },
+    {
+     "id": 38,
+     "name": "",
      "type": "spawner",
      "x": 640,
      "y": 136,
@@ -4630,7 +4678,7 @@
      ]
     },
     {
-     "id": 37,
+     "id": 39,
      "name": "",
      "type": "spawner",
      "x": 1664,
@@ -4664,7 +4712,7 @@
      ]
     },
     {
-     "id": 38,
+     "id": 40,
      "name": "",
      "type": "spawner",
      "x": 2400,
@@ -4698,7 +4746,7 @@
      ]
     },
     {
-     "id": 39,
+     "id": 41,
      "name": "",
      "type": "checkpoint",
      "x": 800,
@@ -4710,7 +4758,7 @@
      "point": true
     },
     {
-     "id": 40,
+     "id": 42,
      "name": "",
      "type": "checkpoint",
      "x": 1632,
@@ -4722,7 +4770,7 @@
      "point": true
     },
     {
-     "id": 41,
+     "id": 43,
      "name": "",
      "type": "checkpoint",
      "x": 2304,
@@ -4734,7 +4782,7 @@
      "point": true
     },
     {
-     "id": 42,
+     "id": 44,
      "name": "",
      "type": "exit",
      "x": 2800,

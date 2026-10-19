@@ -45,8 +45,8 @@ export interface TestHook {
   hurtPlayer(damage: number): void;
   /** Hurts the boss as if hit by bullets. Throws if no level is running. */
   hurtBoss(damage: number): void;
-  /** Sends a weapon blimp across from the right edge at height y (M4.1). */
-  spawnBlimp(weapon: 'machine-gun' | 'spread', y: number): void;
+  /** Sends a blimp carrying a pickup (a weapon or health) across from the right edge at height y. */
+  spawnBlimp(carries: 'machine-gun' | 'spread' | 'health', y: number): void;
   /** Moves the player to x (level pixels). Throws if no level is running. */
   teleportPlayer(x: number): void;
   /**
@@ -131,13 +131,13 @@ export function installTestHook(game: Phaser.Game): void {
         throw new Error(`hurtBoss needs a number, got ${String(damage)}`);
       scene.hurtBoss(damage);
     },
-    spawnBlimp: (weapon, y) => {
+    spawnBlimp: (carries, y) => {
       const scene = level();
       if (!scene) throw new Error('no level is running');
-      if (weapon !== 'machine-gun' && weapon !== 'spread')
-        throw new Error(`unknown weapon ${String(weapon)}`);
+      if (carries !== 'machine-gun' && carries !== 'spread' && carries !== 'health')
+        throw new Error(`unknown pickup ${String(carries)}`);
       if (!Number.isFinite(y)) throw new Error(`spawnBlimp needs a number, got ${String(y)}`);
-      scene.spawnBlimp(weapon, y);
+      scene.spawnBlimp(carries, y);
     },
     teleportPlayer: (x) => {
       const scene = level();

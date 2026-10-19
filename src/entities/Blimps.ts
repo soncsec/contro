@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { animKey } from '../assets/manifest';
 import { HIT_FLASH_MS } from '../config/tuning';
-import { BLIMP, PICKUP, WEAPONS, type PickupWeapon } from '../data/weapons';
+import { BLIMP, PICKUP, PICKUP_IMAGES, type PickupKind } from '../data/weapons';
 import { applyDamage } from '../logic/enemy';
 import { podPosition } from '../logic/pickups';
 
@@ -10,7 +10,7 @@ type Img = Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
 
 interface BlimpRecord {
   sprite: Body;
-  weapon: PickupWeapon;
+  carries: PickupKind;
   start: { x: number; y: number };
   direction: -1 | 1;
   ms: number;
@@ -19,14 +19,14 @@ interface BlimpRecord {
 }
 
 export interface BlimpSnapshot {
-  weapon: PickupWeapon;
+  carries: PickupKind;
   x: number;
   y: number;
   hp: number;
 }
 
 export interface PickupSnapshot {
-  weapon: PickupWeapon;
+  carries: PickupKind;
   x: number;
   feetY: number;
   onFloor: boolean;
@@ -45,23 +45,23 @@ export class Blimps {
   private readonly waiting: {
     x: number;
     y: number;
-    weapon: PickupWeapon;
+    carries: PickupKind;
     from: 'left' | 'right';
   }[];
 
   constructor(
     private readonly scene: Phaser.Scene,
-    placed: readonly { x: number; y: number; weapon: string; from: 'left' | 'right' }[],
+    placed: readonly { x: number; y: number; carries: string; from: 'left' | 'right' }[],
     private readonly onDestroyed: (x: number, y: number) => void,
   ) {
     this.blimpGroup = scene.physics.add.group({ allowGravity: false });
     this.pickupGroup = scene.physics.add.group();
-    this.waiting = placed.map((b) => ({ ...b, weapon: b.weapon as PickupWeapon }));
+    this.waiting = placed.map((b) => ({ ...b, carries: b.carries as PickupKind }));
   }
 
   /** Sends a blimp across from one edge of the view now (maps, and the e2e test hook). */
   launch(
-    weapon: PickupWeapon,
+    carries: PickupKind,
     y: number,
     from: 'left' | 'right',
     view: { left: number; right: number },
@@ -77,11 +77,11 @@ export class Blimps {
       const sprite = this.blimpGroup.create(x, y, BLIMP.sheet) as Body;
       sprite.body.setSize(BLIMP.body.width, BLIMP.body.height, false);
       sprite.play(animKey(BLIMP.sheet));
-      r = { sprite, weapon, start: { x, y }, direction, ms: 0, hp: BLIMP.hp, flashMs: 0 };
+      r = { sprite, carries, start: { x, y }, direction, ms: 0, hp: BLIMP.hp, flashMs: 0 };
       sprite.setData('record', r);
       this.blimps.push(r);
     }
-    Object.assign(r, { weapon, start: { x, y }, direction, ms: 0, hp: BLIMP.hp, flashMs: 0 });
+    Object.assign(r, { carries, start: { x, y }, direction, ms: 0, hp: BLIMP.hp, flashMs: 0 });
     // Flying left uses the mirrored sheet (its number still reads 07); the box mirrors too.
     const flipped = direction < 0;
     const sheet = flipped ? BLIMP.sheetLeft : BLIMP.sheet;
@@ -97,7 +97,7 @@ export class Blimps {
     for (let i = this.waiting.length - 1; i >= 0; i--) {
       const b = this.waiting[i];
       if (b && b.x >= view.left && b.x <= view.right) {
-        this.launch(b.weapon, b.y, b.from, view);
+        this.launch(b.carries, b.y, b.from, view);
         this.waiting.splice(i, 1);
       }
     }
@@ -135,17 +135,17 @@ export class Blimps {
     const { x, y } = r.sprite.body.center;
     this.hide(r.sprite);
     this.onDestroyed(x, y);
-    this.drop(r.weapon, x, y);
+    this.drop(r.carries, x, y);
     return true;
   }
 
-  /** The marine walked into this letter: it's collected. Returns its weapon, or null. */
-  collect(sprite: Phaser.GameObjects.GameObject): PickupWeapon | null {
+  /** The marine walked into this pickup: it's collected. Returns what it was, or null. */
+  collect(sprite: Phaser.GameObjects.GameObject): PickupKind | null {
     const pick = sprite as Img;
     if (!pick.active) return null;
-    const weapon = pick.getData('weapon') as PickupWeapon;
+    const carries = pick.getData('carries') as PickupKind;
     this.hide(pick);
-    return weapon;
+    return carries;
   }
 
   snapshot(): { blimps: BlimpSnapshot[]; pickups: PickupSnapshot[] } {
@@ -153,7 +153,7 @@ export class Blimps {
       blimps: this.blimps
         .filter((r) => r.sprite.active)
         .map((r) => ({
-          weapon: r.weapon,
+          carries: r.carries,
           x: Math.round(r.sprite.body.center.x),
           y: Math.round(r.sprite.body.center.y),
           hp: r.hp,
@@ -163,7 +163,7 @@ export class Blimps {
         if (!p.active) return [];
         return [
           {
-            weapon: p.getData('weapon') as PickupWeapon,
+            carries: p.getData('carries') as PickupKind,
             x: Math.round(p.body.center.x),
             feetY: Math.round(p.body.bottom),
             onFloor: p.body.blocked.down,
@@ -174,8 +174,8 @@ export class Blimps {
   }
 
   /** The letter pops up from where the blimp burst, then falls. */
-  private drop(weapon: PickupWeapon, x: number, y: number): void {
-    const key = WEAPONS[weapon].pickup ?? 'pickup-machine-gun';
+  private drop(carries: PickupKind, x: number, y: number): void {
+    const key = PICKUP_IMAGES[carries];
     let pick = this.pickupGroup.getChildren().find((c) => !c.active) as Img | undefined;
     if (pick) {
       pick.setTexture(key).setActive(true).setVisible(true);
@@ -186,7 +186,7 @@ export class Blimps {
       this.pickupGroup.add(pick);
       pick.body.setSize(PICKUP.body.width, PICKUP.body.height);
     }
-    pick.setData('weapon', weapon);
+    pick.setData('carries', carries);
     pick.body.setVelocity(0, PICKUP.popVy);
   }
 
