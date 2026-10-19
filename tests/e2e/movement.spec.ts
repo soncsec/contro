@@ -66,6 +66,9 @@ test('holding jump gives a full jump about one marine tall, then he lands', asyn
   await openLevel(page);
   await page.keyboard.down('Space');
   await expect.poll(async () => (await player(page)).anim).toBe('jump');
+  // On the take-off frame the body still reports the floor, so wait until he has left it
+  // before waiting for the landing (otherwise jump can be let go at once: a 5 px hop).
+  await expect.poll(async () => (await player(page)).onFloor).toBe(false);
   // The game records the jump's highest point itself: sampling from outside for a fixed
   // real time can end before the apex when a busy machine slows the game down.
   await expect.poll(async () => (await player(page)).onFloor, { timeout: 15_000 }).toBe(true);
