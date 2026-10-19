@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { BACKGROUND_COLOR, CONTINUE, FONT, GAME_WIDTH, HEALTH } from '../config/tuning';
 import { continueOptions, useContinue, type ContinueOption } from '../logic/continues';
-import { stepMenu } from '../logic/menu';
+import { stepMenu, shownFor } from '../logic/menu';
 import { formatScore } from '../logic/score';
 import { GameSound } from '../systems/GameSound';
 import { PlayerInput } from '../systems/PlayerInput';
@@ -93,7 +93,7 @@ export class ContinueScene extends Phaser.Scene {
   }
 
   override update(_time: number, deltaMs: number): void {
-    this.shownMs += deltaMs;
+    this.shownMs = shownFor(this.shownMs, deltaMs);
     const { pressed } = this.controls.frame();
     if (this.leaving || this.shownMs < CONTINUE.inputDelayMs) return;
     if (this.options.length === 0) {

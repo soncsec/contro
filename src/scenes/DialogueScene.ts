@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { shownFor } from '../logic/menu';
 import { BACKGROUND_COLOR, DIALOGUE_CARD, FONT, GAME_WIDTH } from '../config/tuning';
 import { DIALOGUE, SPEAKERS, type DialogueId } from '../data/dialogue';
 import { GameSound } from '../systems/GameSound';
@@ -92,7 +93,7 @@ export class DialogueScene extends Phaser.Scene {
   }
 
   override update(_time: number, deltaMs: number): void {
-    this.shownMs += deltaMs;
+    this.shownMs = shownFor(this.shownMs, deltaMs);
     const { pressed } = this.controls.frame();
     if (this.leaving || this.shownMs < DIALOGUE_CARD.inputDelayMs) return;
     if (pressed.fire || pressed.jump) this.continue();

@@ -19,3 +19,15 @@ export type TitleOption = (typeof TITLE_OPTIONS)[number];
 export function titleOptions(furthestLevel: number): TitleOption[] {
   return TITLE_OPTIONS.filter((o) => o !== 'LEVEL' || furthestLevel > 1);
 }
+
+/** Longest frame counted towards a screen's input delay, so one stalled frame can't use it up. */
+export const INPUT_DELAY_MAX_STEP_MS = 50;
+
+/**
+ * Time a screen has been showing, for its input delay. A frame longer than
+ * INPUT_DELAY_MAX_STEP_MS (a stall while the browser is busy) only counts that much, so a key
+ * pressed before the screen could take input never counts.
+ */
+export function shownFor(shownMs: number, deltaMs: number): number {
+  return shownMs + Math.min(Math.max(deltaMs, 0), INPUT_DELAY_MAX_STEP_MS);
+}

@@ -92,11 +92,12 @@ def build(src: pathlib.Path) -> list[tuple[str, str, str]]:
             else:
                 print(f"skipped {key}: {raw.suffix} needs ffmpeg to convert")
                 continue
+            page, author, licence, _ = PACKS[pack]
+            source = f"[{pack}]({page}) `{inner}` by {author}, {licence}"
+            rows.append((f"assets/audio/{ogg.name}", source, how))
             if have_ffmpeg:
                 ffmpeg("-i", str(raw), "-vn", "-c:a", "aac", "-b:a", M4A_BITRATE[kind], str(m4a))
-                how += f"; AAC copy {m4a.name}"
-            page, author, licence, _ = PACKS[pack]
-            rows.append((f"assets/audio/{ogg.name}", f"[{pack}]({page}) `{inner}` by {author}, {licence}", how))
+                rows.append((f"assets/audio/{m4a.name}", source, f"AAC (M4A) copy for iPhone Safari, {M4A_BITRATE[kind]}bit/s"))
             print(f"wrote {ogg.relative_to(ROOT)}")
     return rows
 

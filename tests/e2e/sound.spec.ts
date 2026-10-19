@@ -53,7 +53,11 @@ test('SOUND on the pause menu turns sound off, and it stays off after a reload',
   expect((await sound(page))?.on).toBe(true);
   await page.keyboard.press('Escape');
   await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBe('RESUME');
+  // One press at a time: two presses in the same frame count as one.
   await page.keyboard.press('ArrowDown');
+  await expect
+    .poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null))
+    .toBe('RESTART ROOM');
   await page.keyboard.press('ArrowDown');
   await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBe('SOUND');
   await page.keyboard.press('KeyX');

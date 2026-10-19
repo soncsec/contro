@@ -4,7 +4,7 @@ import { CAMPAIGN, CAMPAIGN_LEVELS } from '../data/campaign';
 import { campaignStart } from '../logic/campaign';
 import { controlsGuide } from '../logic/controls';
 import { DEFAULT_KEY_BINDINGS, DEFAULT_PAD_BINDINGS } from '../logic/input';
-import { stepMenu, titleOptions, type TitleOption } from '../logic/menu';
+import { stepMenu, titleOptions, type TitleOption, shownFor } from '../logic/menu';
 import { pickLevel } from '../logic/save';
 import { formatScore } from '../logic/score';
 import { FULLSCREEN_KEY } from '../systems/Fullscreen';
@@ -150,7 +150,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   override update(_time: number, deltaMs: number): void {
-    this.shownMs += deltaMs;
+    this.shownMs = shownFor(this.shownMs, deltaMs);
     if (this.back) this.back.tilePositionX += (TITLE.scrollSpeed * deltaMs) / 1000;
     const { pressed } = this.controls.frame();
     if (this.leaving || this.shownMs < TITLE.inputDelayMs) return;

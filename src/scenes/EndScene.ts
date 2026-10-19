@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { shownFor } from '../logic/menu';
 import { BACKGROUND_COLOR, CONTINUE, FONT, GAME_WIDTH } from '../config/tuning';
 import { formatScore } from '../logic/score';
 import { GameSound } from '../systems/GameSound';
@@ -59,7 +60,7 @@ export class EndScene extends Phaser.Scene {
   }
 
   override update(_time: number, deltaMs: number): void {
-    this.shownMs += deltaMs;
+    this.shownMs = shownFor(this.shownMs, deltaMs);
     const { pressed } = this.controls.frame();
     if (this.leaving || this.shownMs < CONTINUE.inputDelayMs) return;
     if (!(pressed.fire || pressed.jump || pressed.pause)) return;
