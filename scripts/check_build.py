@@ -21,7 +21,11 @@ import re
 import sys
 from html.parser import HTMLParser
 
-ALLOWED_SUFFIXES = {".html", ".js", ".css", ".png", ".tmj", ".json", ".ttf", ".woff2", ".txt"}
+ALLOWED_SUFFIXES = {".html", ".js", ".css", ".png", ".tmj", ".json", ".ttf", ".woff2", ".txt", ".ogg", ".m4a"}
+
+# Audio (M3.6, ADR-C06): accepted only if the file really is that format, so nothing can be
+# shipped disguised as a sound. OGG files start with "OggS"; M4A (MP4) files have "ftyp" at 4.
+AUDIO_MAGIC = {".ogg": (0, b"OggS"), ".m4a": (4, b"ftyp")}
 
 # Risky code patterns, and how many times each may appear in the bundle (all inside Phaser).
 RISKY = {
@@ -129,6 +133,11 @@ def check_build(dist: pathlib.Path) -> list[str]:
             problems.append(f"{rel}: unexpected file type")
             continue
         if path.suffix.lower() == ".png":
+            continue
+        if path.suffix.lower() in AUDIO_MAGIC:
+            at, magic = AUDIO_MAGIC[path.suffix.lower()]
+            if path.read_bytes()[at : at + len(magic)] != magic:
+                problems.append(f"{rel}: not a real {path.suffix.lower()[1:].upper()} file")
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
         if "__contro" in text:

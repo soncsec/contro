@@ -51,6 +51,21 @@ class CheckBuildTest(unittest.TestCase):
         self.assertEqual(self.problems(), [])
         self.assertEqual(check_build.main(["check_build.py", str(self.dist)]), 0)
 
+    def test_real_audio_files_pass(self) -> None:
+        (self.dist / "assets" / "a.ogg").write_bytes(b"OggS\x00\x02rest")
+        (self.dist / "assets" / "a.m4a").write_bytes(b"\x00\x00\x00\x20ftypM4A rest")
+        self.assertEqual(self.problems(), [])
+
+    def test_a_file_disguised_as_audio_fails(self) -> None:
+        self.write("assets/b.ogg", "<script>alert(1)</script>")
+        self.assertProblem("b.ogg: not a real OGG file")
+        self.write("assets/c.m4a", "window.x=1")
+        self.assertProblem("c.m4a: not a real M4A file")
+
+    def test_other_audio_formats_fail(self) -> None:
+        (self.dist / "assets" / "a.mp3").write_bytes(b"ID3")
+        self.assertProblem("a.mp3: unexpected file type")
+
     def test_a_missing_build_fails(self) -> None:
         (self.dist / "index.html").unlink()
         self.assertProblem("index.html not found")
