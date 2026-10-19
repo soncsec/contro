@@ -330,6 +330,7 @@ export class LevelScene extends Phaser.Scene {
     });
     this.spawners = new RunnerSpawners(this.layout, this.enemies);
     // The level's music; it keeps playing from one section to the next (M3.6).
+    GameSound.loadMusic(this);
     GameSound.music(step.music as MusicKey | null);
     // Weapon blimps and the letters they drop (M4.1).
     this.blimps = new Blimps(this, this.layout.blimps, (x, y) => {
