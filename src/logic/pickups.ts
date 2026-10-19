@@ -47,3 +47,9 @@ export function podPosition(
 export function weaponAfterDeath(): 'rifle' {
   return 'rifle';
 }
+
+/** The weapon after `current` in `order`, wrapping (the GUNNY cheat steps through them all). */
+export function nextWeapon<T extends string>(current: T, order: readonly T[]): T {
+  const i = order.indexOf(current);
+  return order[(i + 1) % order.length] ?? current;
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PICKUP_WEAPONS, WEAPONS, WEAPON_TYPES } from '../../src/data/weapons';
-import { fanVelocities, podPosition, weaponAfterDeath } from '../../src/logic/pickups';
+import { fanVelocities, nextWeapon, podPosition, weaponAfterDeath } from '../../src/logic/pickups';
 
 describe('weapon data (M4.1)', () => {
   it('has the rifle and the two approved pickups', () => {
@@ -65,5 +65,13 @@ describe('pods (M4.1)', () => {
 describe('losing a life (M4.1)', () => {
   it('goes back to the rifle', () => {
     expect(weaponAfterDeath()).toBe('rifle');
+  });
+});
+
+describe('nextWeapon (the GUNNY cheat)', () => {
+  it('steps through every weapon and wraps', () => {
+    expect(nextWeapon('rifle', WEAPON_TYPES)).toBe('machine-gun');
+    expect(nextWeapon('machine-gun', WEAPON_TYPES)).toBe('spread');
+    expect(nextWeapon('spread', WEAPON_TYPES)).toBe('rifle');
   });
 });

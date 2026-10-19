@@ -76,6 +76,23 @@ test('IRON makes hits harmless, and typing it again turns it off', async ({ page
   expect((await level(page)).player.hp).toBe(3);
 });
 
+test('GUNNY steps through every weapon, and counts as a cheat (M4.1)', async ({ page }) => {
+  await openLevel(page);
+  await pause(page);
+  const GUNNY = ['KeyG', 'KeyU', 'KeyN', 'KeyN', 'KeyY'];
+  for (const [weapon, shown] of [
+    ['machine-gun', 'MACHINE GUN'],
+    ['spread', 'SPREAD'],
+    ['rifle', 'RIFLE'],
+  ] as const) {
+    await enter(page, GUNNY);
+    await expect.poll(() => message(page)).toBe(shown);
+    expect((await level(page)).player.weapon).toBe(weapon);
+  }
+  expect((await level(page)).cheats.used).toBe(true);
+  await resume(page);
+});
+
 test('invincibility does not save him from a pit', async ({ page }) => {
   await openLevel(page);
   await pause(page);
