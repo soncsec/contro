@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { BACKGROUND_COLOR, FONT, GAME_HEIGHT, GAME_WIDTH, TITLE } from '../config/tuning';
 import { CAMPAIGN } from '../data/campaign';
+import { campaignStart } from '../logic/campaign';
 import { controlsGuide } from '../logic/controls';
 import { DEFAULT_KEY_BINDINGS, DEFAULT_PAD_BINDINGS } from '../logic/input';
 import { stepMenu } from '../logic/menu';
@@ -165,7 +166,11 @@ export class TitleScene extends Phaser.Scene {
         this.leaving = true;
         this.cameras.main.fadeOut(TITLE.fadeMs);
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-          this.scene.start('Level', { level: CAMPAIGN[0]?.level });
+          // The first level's intro card, if it has one, then its first section (M3.4).
+          const { cards, nextLevel } = campaignStart(CAMPAIGN);
+          const [card, ...more] = cards;
+          if (card) this.scene.start('Dialogue', { card, more, nextLevel });
+          else this.scene.start('Level', { level: nextLevel });
         });
         break;
       case 'CONTROLS':

@@ -105,3 +105,22 @@ export async function startGame(page: Page, path = './'): Promise<void> {
   await page.keyboard.press('Space');
   await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
 }
+
+/** The continue screen's state after game over, or null if it isn't showing (M3.4). */
+export function continueMenu(page: Page) {
+  return page.evaluate(() => window.__contro?.continueMenu() ?? null);
+}
+
+/**
+ * After game over, waits for the continue screen, chooses CONTINUE, and resolves once the
+ * section has restarted. GAME OVER shows for seconds of game time, which can be slow under
+ * load, so the waits are long.
+ */
+export async function continueAfterGameOver(page: Page): Promise<void> {
+  await expect.poll(() => sceneKey(page), { timeout: 120_000 }).toBe('Continue');
+  await expect.poll(async () => (await continueMenu(page))?.ready, { timeout: 15_000 }).toBe(true);
+  expect((await continueMenu(page))?.option).toBe('CONTINUE');
+  await page.keyboard.press('KeyX');
+  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
+}

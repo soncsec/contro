@@ -1,6 +1,7 @@
 /**
- * Dialogue cards shown between rooms and levels (PROJECT.md: minimal text, owner decision
- * 2026-10-17). Names and lines are placeholders for the owner to edit.
+ * Dialogue cards shown between levels (PROJECT.md: minimal text, owner decision 2026-10-17).
+ * The story thread (drafted for the owner, 2026-10-18): the hive is taking over human
+ * machines, which is why the marine fights a tank and a mech. The owner may edit any line.
  * tests/unit/dialogue.test.ts checks every card fits on screen.
  */
 export interface Speaker {
@@ -25,20 +26,20 @@ export interface DialogueCard {
 }
 
 export const DIALOGUE = {
-  // Before level 1 (shown once the title screen exists, M3.4).
+  // Before level 1, after START on the title screen (M3.4).
   'level-1-intro': {
     speaker: 'ops',
-    lines: ['Corridor A is clear.', 'More hostiles past', 'the next door.'],
+    lines: ['Hive spores hit the', 'steelworks at 0300.', 'Clear it, marine.'],
   },
   // After the training corridor (e2e build only).
   'training-end': {
     speaker: 'ops',
     lines: ['Training complete.', 'Report to the steelworks.'],
   },
-  // After level 1's last section.
+  // After level 1's last section, once the tank is destroyed.
   'level-1-end': {
-    speaker: 'hive',
-    lines: ['Every step brings you', 'deeper into us, marine.'],
+    speaker: 'commander',
+    lines: ['That tank was ours once.', 'The hive is driving our', 'own machines now.'],
   },
 } as const satisfies Record<string, DialogueCard>;
 

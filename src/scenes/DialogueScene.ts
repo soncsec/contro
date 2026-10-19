@@ -6,8 +6,10 @@ import type { RunState } from './LevelScene';
 
 export interface DialogueSceneData {
   card: DialogueId;
-  /** Level to start when the player continues. */
-  nextLevel: string;
+  /** Cards still to show after this one (M3.4: a level's end card, then the next intro). */
+  more?: readonly DialogueId[];
+  /** Level to start after the last card, or null at the end of the campaign (end screen). */
+  nextLevel: string | null;
   /** Score and lives to carry into it. */
   run?: RunState;
 }
@@ -30,7 +32,8 @@ const HINT_BLINK_MS = 500;
  */
 export class DialogueScene extends Phaser.Scene {
   private card!: DialogueId;
-  private nextLevel!: string;
+  private more: readonly DialogueId[] = [];
+  private nextLevel: string | null = null;
   private run: RunState | undefined;
   private controls!: PlayerInput;
   private shownMs = 0;
@@ -42,6 +45,7 @@ export class DialogueScene extends Phaser.Scene {
 
   init(data: DialogueSceneData): void {
     this.card = data.card;
+    this.more = data.more ?? [];
     this.nextLevel = data.nextLevel;
     this.run = data.run;
     this.shownMs = 0;
@@ -94,9 +98,15 @@ export class DialogueScene extends Phaser.Scene {
   }
 
   /** Test hook: the card on screen and where continuing leads. */
-  snapshot(): { card: DialogueId; nextLevel: string; ready: boolean } {
+  snapshot(): {
+    card: DialogueId;
+    more: readonly DialogueId[];
+    nextLevel: string | null;
+    ready: boolean;
+  } {
     return {
       card: this.card,
+      more: this.more,
       nextLevel: this.nextLevel,
       ready: this.shownMs >= DIALOGUE_CARD.inputDelayMs,
     };
@@ -106,7 +116,16 @@ export class DialogueScene extends Phaser.Scene {
     this.leaving = true;
     this.cameras.main.fadeOut(DIALOGUE_CARD.fadeMs);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('Level', { level: this.nextLevel, ...(this.run ? { run: this.run } : {}) });
+      const run = this.run ? { run: this.run } : {};
+      const [card, ...more] = this.more;
+      if (card) {
+        const next: DialogueSceneData = { card, more, nextLevel: this.nextLevel, ...run };
+        this.scene.restart(next);
+      } else if (this.nextLevel) {
+        this.scene.start('Level', { level: this.nextLevel, ...run });
+      } else {
+        this.scene.start('End', { score: this.run?.score ?? 0 });
+      }
     });
   }
 }
