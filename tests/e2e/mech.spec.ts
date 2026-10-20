@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { BOSSES } from '../../src/data/bosses';
 import { level, sceneKey, title, waitGameTime, watchPage } from './watch';
 
 /**
@@ -22,7 +23,12 @@ test('the mech walks in, then fires its spread at the marine', async ({ page }) 
   const watched = watchPage(page);
   await openArena(page);
   const s = await level(page);
-  expect(s.boss).toMatchObject({ type: 'mech', hp: 150, phase: 0, arenaLocked: true });
+  expect(s.boss).toMatchObject({
+    type: 'mech',
+    hp: BOSSES.mech.tuning.hp,
+    phase: 0,
+    arenaLocked: true,
+  });
   const later = await waitGameTime(page, s.timeMs, 2500);
   // Three shots at a time from its chest light.
   expect(later.enemyShots.fired - s.enemyShots.fired).toBeGreaterThanOrEqual(3);
