@@ -1,6 +1,7 @@
 import type { BodyBox } from '../logic/body';
 import type { BipedTuning } from '../logic/biped';
 import type { FlyerTuning } from '../logic/flyer';
+import type { SnakeTuning } from '../logic/snake';
 
 /**
  * Enemy types that level maps may place, and their stats (ARCHITECTURE.md ADR-C03).
@@ -11,15 +12,17 @@ export const ENEMY_TYPES = [
   'alien-flyer',
   'alien-runner',
   'bipedal-walker',
+  'spitting-snake',
 ] as const;
 export type EnemyType = (typeof ENEMY_TYPES)[number];
 
 export interface EnemyStats {
   /**
    * Walkers patrol on the floor; flyers hover, shoot and dive (src/logic/flyer.ts); runners
-   * run in from the edge of the screen and keep going (src/logic/spawner.ts, M3.14).
+   * run in from the edge of the screen and keep going (src/logic/spawner.ts, M3.14); snakes
+   * sit still and spit (src/logic/snake.ts, M5.1).
    */
-  movement: 'walker' | 'flyer' | 'runner' | 'biped';
+  movement: 'walker' | 'flyer' | 'runner' | 'biped' | 'snake';
   /** Colour multiplied over the art, so one sheet can make a variant (M3.14). */
   tint?: number;
   /** Speeds up the walk animation, for an enemy faster than the art was drawn for. */
@@ -52,6 +55,15 @@ export interface EnemyStats {
     /** Barrel tip [x, y] in the frame, facing right as drawn. */
     muzzle: readonly [number, number];
     shotSpeed: number;
+  };
+  /** Snakes only (M5.1): when it spits, and the art for it. */
+  snake?: SnakeTuning & {
+    /** Mouth [x, y] in the strike frame, facing right as drawn: where the glob leaves from. */
+    mouth: readonly [number, number];
+    /** Sheet played once as it rears back and strikes (its last frame is the strike). */
+    strikeSheet: string;
+    /** The glob's sprite sheet. */
+    spitSheet: string;
   };
 }
 
@@ -142,6 +154,33 @@ export const ENEMIES: Readonly<Record<EnemyType, EnemyStats>> = {
       aimMs: 600,
       muzzle: [61, 34],
       shotSpeed: 110,
+    },
+  },
+  // M5.1: the pack's snake (owner chose it for Level 3, 2026-10-20). Sits on a ledge like a
+  // turret and spits a glob aimed at the marine. Small: on his own floor, crouch to hit it.
+  'spitting-snake': {
+    movement: 'snake',
+    walkSheet: 'snake-idle',
+    frame: { width: 36, height: 21 },
+    // The coil spans x 11–25 and rows 4–20, centred so it stays put when it turns.
+    body: { width: 14, height: 17, offsetX: 11, offsetY: 4 },
+    facesLeftInArt: false,
+    hp: 2,
+    speed: 0,
+    patrolRange: 0,
+    turnPauseMs: 0,
+    deathEffect: 'enemy-death',
+    contactDamage: 1,
+    points: 150,
+    snake: {
+      sightRange: 200,
+      // Matches the strike sheet: 4 frames at 10 fps.
+      windupMs: 400,
+      restMs: 1600,
+      shotSpeed: 100,
+      mouth: [32, 10],
+      strikeSheet: 'snake-strike',
+      spitSheet: 'snake-spit',
     },
   },
 };

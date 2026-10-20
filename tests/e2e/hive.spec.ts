@@ -26,6 +26,10 @@ test('4-1 the alien base loads in front of its back wall, with the marine on a b
   expect(s.player.feetY).toBe(130); // the bridge's deck at 128, feet 2 px into it
   expect(s.widthPx).toBe(180 * 16);
   expect(s.enemies.filter((e) => e.type === 'bipedal-walker')).toHaveLength(1);
+  // Spitting snakes (M5.1) on the raised bridges, above the floor.
+  const snakes = s.enemies.filter((e) => e.type === 'spitting-snake');
+  expect(snakes).toHaveLength(6);
+  expect(snakes.every((e) => e.feetY < 130)).toBe(true);
   expect(watched.errors).toEqual([]);
   expect(watched.foreignRequests).toEqual([]);
 });
