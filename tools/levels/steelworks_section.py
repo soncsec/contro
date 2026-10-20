@@ -257,6 +257,28 @@ LAYOUTS = {
         "start": 3,
         "exit": 175,
     },
+    # 3-2: deeper into the alien base, on two levels. A high route of raised bridges and
+    # vent walkways over a low route broken by six gaps, snakes on the high bridges, and two
+    # bipedal walkers below.
+    "base2": {
+        "width": 170,
+        "tileset": "alien",
+        "scenery": "alien",
+        "floor": [(0, 24), (27, 52), (55, 78), (81, 104), (107, 130), (133, 150), (153, 170)],
+        "blocks": [(8, 16, 6), (16, 22, 4), (34, 42, 6), (42, 50, 4), (62, 70, 6), (70, 76, 4),
+                   (88, 96, 6), (96, 102, 4), (114, 122, 6), (122, 128, 4), (140, 148, 6)],
+        "walkways": [(21, 8, 3), (49, 8, 3), (75, 8, 3), (101, 8, 3), (127, 8, 3), (149, 6, 5)],
+        "walkers": [4, 12, 18, "23g", 30, 38, 46, "50g", 58, 66, 74, "77g", 85, 92, 100, "103g",
+                    110, 118, 126, "129g", 138, 145, 160],
+        "flyers": [(30, 36), (64, 30), (96, 34), (130, 30), (158, 40)],
+        "bipeds": [60, 136],
+        "snakes": [20, 45, 72, 98, 124],
+        "spawners": [(28, 3, 900, "right"), (84, 4, 900, "left"), (136, 4, 900, "right")],
+        "blimps": [(40, 40, "machine-gun", "right"), (118, 40, "health", "right")],
+        "checkpoints": [56, 108, 154],
+        "start": 3,
+        "exit": 165,
+    },
 }
 
 

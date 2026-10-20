@@ -34,10 +34,34 @@ test('4-1 the alien base loads in front of its back wall, with the marine on a b
   expect(watched.foreignRequests).toEqual([]);
 });
 
+test('4-1 leads straight into 4-2, with no card', async ({ page }) => {
+  await openSection(page, 'hive-1');
+  const exit = await walkThroughExit(page);
+  expect(exit.scene).toBe('Level');
+  await expect.poll(async () => (await level(page)).level).toBe('hive-2');
+  expect((await level(page)).label).toBe('4-2');
+});
+
+test('4-2 is deeper in the base, on two levels, with snakes up high and two bipedal walkers', async ({
+  page,
+}) => {
+  const watched = watchPage(page);
+  await openSection(page, 'hive-2');
+  const s = await level(page);
+  expect(s.label).toBe('4-2');
+  expect(s.scenery).toEqual(['alien-back', 'alien-structures']);
+  expect(s.widthPx).toBe(170 * 16);
+  expect(s.enemies.filter((e) => e.type === 'bipedal-walker')).toHaveLength(2);
+  const snakes = s.enemies.filter((e) => e.type === 'spitting-snake');
+  expect(snakes).toHaveLength(5);
+  expect(snakes.every((e) => e.feetY < 100)).toBe(true); // on the high bridges
+  expect(watched.errors).toEqual([]);
+});
+
 test('the last section so far ends the game with the ending card, then the end screen', async ({
   page,
 }) => {
-  await openSection(page, 'hive-1');
+  await openSection(page, 'hive-2');
   const exit = await walkThroughExit(page);
   expect(exit.scene).toBe('Dialogue');
   expect(await page.evaluate(() => window.__contro?.dialogue())).toMatchObject({
