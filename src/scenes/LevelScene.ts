@@ -16,7 +16,7 @@ import {
 } from '../config/tuning';
 import { BOSS_TYPES } from '../data/bosses';
 import { CAMPAIGN } from '../data/campaign';
-import { ENEMIES, ENEMY_TYPES } from '../data/enemies';
+import { ENEMIES, ENEMY_TYPES, type EnemyType } from '../data/enemies';
 import { Bullets } from '../entities/Bullets';
 import { Effects } from '../entities/Effects';
 import { Enemies, type EnemySnapshot } from '../entities/Enemies';
@@ -27,6 +27,7 @@ import { afterExit, levelLabel, stepFor } from '../logic/campaign';
 import { standingOn } from '../logic/ground';
 import { respawnPoint } from '../logic/health';
 import { reachLevel } from '../logic/save';
+import { groundAt } from '../logic/spawner';
 import { addPoints, newRun, type ScoreState } from '../logic/score';
 import { NO_CHEATS, applyCheat, type CheatId, type CheatState } from '../logic/cheats';
 import { NO_ACTIONS, type ActionFrame } from '../logic/input';
@@ -539,6 +540,13 @@ export class LevelScene extends Phaser.Scene {
   spawnBlimp(weapon: PickupWeapon, y: number): void {
     const left = this.cameras.main.scrollX;
     this.blimps.launch(weapon, y, 'right', { left, right: left + GAME_WIDTH });
+  }
+
+  /** Test hook: put an enemy on the ground at x, as a map would. */
+  placeEnemy(type: EnemyType, x: number): void {
+    const y = groundAt(this.layout.colliders, x);
+    if (y === null) throw new Error(`no ground at x ${x}`);
+    this.enemies.place({ x, y, enemy: type });
   }
 
   /** Test hook: move the player (feet stay on the same line). */

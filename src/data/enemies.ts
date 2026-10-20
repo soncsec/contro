@@ -1,11 +1,17 @@
 import type { BodyBox } from '../logic/body';
+import type { BipedTuning } from '../logic/biped';
 import type { FlyerTuning } from '../logic/flyer';
 
 /**
  * Enemy types that level maps may place, and their stats (ARCHITECTURE.md ADR-C03).
  * tests/unit/enemies.test.ts checks every entry against the asset manifest.
  */
-export const ENEMY_TYPES = ['alien-walker', 'alien-flyer', 'alien-runner'] as const;
+export const ENEMY_TYPES = [
+  'alien-walker',
+  'alien-flyer',
+  'alien-runner',
+  'bipedal-walker',
+] as const;
 export type EnemyType = (typeof ENEMY_TYPES)[number];
 
 export interface EnemyStats {
@@ -13,7 +19,7 @@ export interface EnemyStats {
    * Walkers patrol on the floor; flyers hover, shoot and dive (src/logic/flyer.ts); runners
    * run in from the edge of the screen and keep going (src/logic/spawner.ts, M3.14).
    */
-  movement: 'walker' | 'flyer' | 'runner';
+  movement: 'walker' | 'flyer' | 'runner' | 'biped';
   /** Colour multiplied over the art, so one sheet can make a variant (M3.14). */
   tint?: number;
   /** Speeds up the walk animation, for an enemy faster than the art was drawn for. */
@@ -41,6 +47,12 @@ export interface EnemyStats {
   points: number;
   /** Flyers only: hover, dive and shooting numbers. */
   flyer?: FlyerTuning;
+  /** Bipeds only (M4.2): walking, aiming and the cannon. */
+  biped?: BipedTuning & {
+    /** Barrel tip [x, y] in the frame, facing right as drawn. */
+    muzzle: readonly [number, number];
+    shotSpeed: number;
+  };
 }
 
 export const ENEMIES: Readonly<Record<EnemyType, EnemyStats>> = {
@@ -105,5 +117,31 @@ export const ENEMIES: Readonly<Record<EnemyType, EnemyStats>> = {
     points: 50,
     tint: 0xff8a7a,
     animTimeScale: 2.5,
+  },
+  // M4.2: the pack's bipedal unit (owner approved 2026-10-19). Walks at the marine, stops and
+  // fires its cannon at head height (29 px above its feet: crouch or jump to dodge).
+  'bipedal-walker': {
+    movement: 'biped',
+    walkSheet: 'bipedal-walk',
+    frame: { width: 80, height: 64 },
+    // The body and legs span x 15–58 and rows 10–63 (the barrel sticks out past x 58).
+    body: { width: 40, height: 50, offsetX: 16, offsetY: 13 },
+    facesLeftInArt: false,
+    hp: 6,
+    speed: 18,
+    patrolRange: 0,
+    turnPauseMs: 0,
+    deathEffect: 'ground-explosion',
+    contactDamage: 1,
+    points: 400,
+    biped: {
+      speed: 18,
+      sightRange: 260,
+      keepDistance: 90,
+      walkMs: 2400,
+      aimMs: 600,
+      muzzle: [61, 34],
+      shotSpeed: 110,
+    },
   },
 };

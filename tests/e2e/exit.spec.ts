@@ -63,7 +63,12 @@ test("the level's last section ends with its card, then the next level's intro c
   const next = await level(page);
   expect(next.level).toBe('steelworks-1');
   expect(next.label).toBe('2-1');
-  const full = { 'alien-walker': 3, 'alien-flyer': 2, 'alien-runner': 1 } as const;
+  const full = {
+    'alien-walker': 3,
+    'alien-flyer': 2,
+    'alien-runner': 1,
+    'bipedal-walker': 6,
+  } as const;
   expect(next.enemies.every((e) => e.alive && e.hp === full[e.type])).toBe(true);
   // Shooting still works in the new level.
   await page.keyboard.press('KeyX');
