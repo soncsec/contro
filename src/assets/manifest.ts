@@ -277,6 +277,7 @@ export const SOUND_KEYS = [
   'sfx-select',
   'music-level-1',
   'music-level-2',
+  'music-level-3',
   'music-boss',
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];

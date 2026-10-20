@@ -37,6 +37,9 @@ PACKS = {
     # Level 2's music (M4.5; owner approved 2026-10-19).
     "dark-happy-world.zip": ("https://opengameart.org/content/dark-happy-world", "ansimuz (Luis Zuno)", "CC0",
                              "c8f34eadc1f8beda5d1724f901ae7715daa158a67a33ae271cd5634bc50e151b"),
+    # Level 3's music (M5.5; owner approved 2026-10-20). SHA-256 as downloaded 2026-10-20.
+    "Ghost-Town-Files.zip": ("https://opengameart.org/content/gothicvania-ghost-town", "ansimuz (Luis Zuno)",
+                             "CC0", "fdc9b04ecd7c76ea6c16f6e4a24b443cee002b1b722ffeafd33bb47b81e07b3c"),
 }
 
 # key → (zip, file inside it, kind). Keys match SOUNDS in src/assets/manifest.ts.
@@ -57,6 +60,7 @@ SOUNDS = {
     "music-level-1": ("cyber_runer_files.zip", "Cyber_runer_files/cyber_runner.ogg", "music"),
     "music-boss": ("boss_fight_2_files.zip", "Boss Fight 2 Files/Boss Fight 2.ogg", "music"),
     "music-level-2": ("dark-happy-world.zip", "dark-happy-world/dark-happy-world.ogg", "music"),
+    "music-level-3": ("Ghost-Town-Files.zip", "ghost-town.ogg", "music"),
 }
 
 MUSIC_OGG_QUALITY = "3"  # libvorbis -q:a (about 112 kbit/s): loops stay under 2 MB
