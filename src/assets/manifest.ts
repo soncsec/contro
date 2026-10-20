@@ -89,6 +89,8 @@ export const ASSETS: readonly Asset[] = [
   sheet('enemies', 'tank', 'tank.png', 128, 64, 4, 10, true),
   // M4.2: the bipedal walker (faces right in the art), 7 walk frames
   sheet('enemies', 'bipedal-walk', 'bipedal-walk.png', 80, 64, 7, 8, true),
+  // M4.4: the Level 2 boss, the mech, 10 walk frames
+  sheet('enemies', 'mech', 'mech.png', 96, 80, 10, 10, true),
 
   // Effects
   sheet('effects', 'bullet', 'bullet.png', 10, 4, 2, 12, true),
@@ -211,6 +213,15 @@ export const LEVELS: readonly LevelAsset[] = [
     key: 'neon-4',
     path: 'assets/levels/neon-4.tmj',
     tilesets: { neon: 'neon-tileset' },
+  },
+  {
+    key: 'neon-5',
+    path: 'assets/levels/neon-5.tmj',
+    tilesets: {
+      corridor: 'corridor-tileset',
+      catwalk: 'corridor-catwalk',
+      props: 'corridor-props',
+    },
   },
 ];
 

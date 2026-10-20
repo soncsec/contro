@@ -17,6 +17,7 @@ are tile columns; the floor is where feet touch, y 160.
   blimps     (column, y px, carries, "left"|"right")
   props      (name, column): a prop standing on the floor (props.PROPS)
   checkpoints columns
+  boss       optional (type, column): a boss fight in an arena, the map's last screen (20 tiles)
 This makes the first version of a map; after that the .tmj is the source of truth (ADR-C01).
 """
 import json
@@ -48,6 +49,22 @@ LAYOUTS = {
         "props": [("cryo", 9), ("servers", 54), ("terminal", 62), ("cryo", 96), ("servers", 142),
                   ("terminal", 152)],
         "checkpoints": [40, 82, 124],
+    },
+    # 2-5: the last corridor, into the mech's arena (M4.4). A run past server rooms with pits
+    # and catwalks, then the last screen: the EXIT door, shut until the mech is destroyed.
+    "arena": {
+        "rooms": ["panels", "terminal", "cryo", "window", "shutter", "panels", "cryo", "terminal",
+                  "window", "panels", "exit"],
+        "pits": [30, 70],
+        "catwalks": [(26, 6, 11), (40, 4, 6), (66, 6, 11), (84, 5, 7)],
+        "walkers": [12, 20, (31, "cw"), 48, 56, (71, "cw"), 80, 96, 104],
+        "flyers": [(38, 46), (90, 42)],
+        "bipeds": [60, 100],
+        "spawners": [(34, 3, 1000, "right"), (76, 3, 1000, "left")],
+        "blimps": [(18, 44, "machine-gun", "right"), (96, 44, "health", "right")],
+        "props": [("servers", 9), ("terminal", 16), ("cryo", 52), ("servers", 108)],
+        "checkpoints": [36, 78, 112],
+        "boss": ("mech", 128),
     },
 }
 
@@ -91,6 +108,14 @@ def build(layout: dict) -> dict:
                           count=count, every=every, **{"from": side}))
     for col, y, carries, side in layout.get("blimps", []):
         spawns.append(obj(next(oid), "blimp", col * TILE, y, carries=carries, **{"from": side}))
+    if "boss" in layout:
+        boss_type, col = layout["boss"]
+        screen = 20  # tiles: the arena is the last screen of the map
+        spawns.append(obj(next(oid), "boss", col * TILE, FLOOR_Y, boss=boss_type))
+        arena = obj(next(oid), "arena", (width - screen) * TILE, 0)
+        arena.update({"width": screen * TILE, "height": room.HEIGHT * TILE})
+        del arena["point"]
+        spawns.append(arena)
     m["nextobjectid"] = next(oid)
 
     # The props layer: each prop's cell, bottom row on the last row above the floor plane.

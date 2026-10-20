@@ -5,7 +5,7 @@
  */
 
 export type BossMode = 'waiting' | 'intro' | 'fight' | 'dying' | 'dead';
-export type AttackKind = 'cannon' | 'mortar';
+export type AttackKind = 'cannon' | 'mortar' | 'spread' | 'leap';
 
 export interface AttackTuning {
   kind: AttackKind;
@@ -21,6 +21,8 @@ export interface BossPhaseTuning {
   /** Driving speed in px/s. */
   driveSpeed: number;
   attacks: readonly AttackTuning[];
+  /** Sends a ground shockwave at the marine each time it turns around (the mech, M4.4). */
+  shockwaveOnTurn?: boolean;
 }
 
 export interface BossTuning {
@@ -51,6 +53,8 @@ export interface BossStep {
   vx: number;
   /** Attacks to make this frame. */
   attacks: AttackKind[];
+  /** True in the frame it turned around at an end of its range while fighting. */
+  turned: boolean;
   /** True in the frame the explosion ends. */
   finished: boolean;
 }
@@ -91,7 +95,7 @@ export function stepBoss(
   dtMs: number,
   t: BossTuning,
 ): BossStep {
-  const none = { vx: 0, attacks: [] as AttackKind[], finished: false };
+  const none = { vx: 0, attacks: [] as AttackKind[], turned: false, finished: false };
   switch (prev.mode) {
     case 'waiting':
     case 'dead':
@@ -121,7 +125,7 @@ function fight(
 ): BossStep {
   const phaseIndex = phaseFor(prev.hp, t);
   const phase = t.phases[phaseIndex];
-  if (!phase) return { state: prev, vx: 0, attacks: [], finished: false };
+  if (!phase) return { state: prev, vx: 0, attacks: [], turned: false, finished: false };
   // A new phase starts its own attack timers.
   const timers = phaseIndex === prev.phase ? { ...prev.timers } : firstTimers(phase);
   let direction = prev.direction;
@@ -141,6 +145,7 @@ function fight(
     state: { ...prev, phase: phaseIndex, direction, timers },
     vx: direction * phase.driveSpeed,
     attacks,
+    turned: direction !== prev.direction,
     finished: false,
   };
 }
@@ -189,4 +194,23 @@ export function lobVelocity(
 /** The arena locks once the marine's centre reaches its middle (the camera is then on it). */
 export function arenaLocked(playerX: number, arena: { x: number; width: number }): boolean {
   return playerX >= arena.x + arena.width / 2;
+}
+
+/**
+ * Where a leaping boss is `ms` into a leap from `from` to `to` (feet positions) taking
+ * `durationMs`, rising `height` px at the top: x moves evenly, y follows a parabola (M4.4).
+ */
+export function leapArc(
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  ms: number,
+  durationMs: number,
+  height: number,
+): { x: number; y: number; done: boolean } {
+  const t = Math.min(1, Math.max(0, ms / durationMs));
+  return {
+    x: from.x + (to.x - from.x) * t,
+    y: from.y + (to.y - from.y) * t - 4 * height * t * (1 - t),
+    done: t >= 1,
+  };
 }

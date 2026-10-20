@@ -5,7 +5,7 @@ import type { BossTuning } from '../logic/boss';
  * Bosses that level maps may place (ARCHITECTURE.md ADR-C03), with their phases and attacks.
  * tests/unit/bosses.test.ts checks every entry against the asset manifest and the rules.
  */
-export const BOSS_TYPES = ['tank'] as const;
+export const BOSS_TYPES = ['tank', 'mech'] as const;
 export type BossType = (typeof BOSS_TYPES)[number];
 
 export interface BossStats {
@@ -26,13 +26,20 @@ export interface BossStats {
   /** Where it waits before rolling in, past the arena's right edge. */
   startBeyond: number;
   tuning: BossTuning;
-  cannon: { shotSpeed: number };
-  mortar: {
+  /** The tank's cannon: a straight shot from the muzzle towards the marine's side. */
+  cannon?: { shotSpeed: number };
+  mortar?: {
     /** Time in the air; the landing spot is marked all that time. */
     flightMs: number;
     /** Lands up to this far either side of the marine (seeded RNG). */
     spread: number;
   };
+  /** The mech's spread: `count` shots from the muzzle, aimed at the marine, fanned out. */
+  spreadShot?: { shotSpeed: number; count: number; spreadDeg: number };
+  /** A shot rolling along the floor, to jump over; `height` px above the feet. */
+  shockwave?: { speed: number; height: number };
+  /** The mech's leap onto the marine: time in the air and how high it rises. */
+  leap?: { durationMs: number; height: number };
   contactDamage: number;
   points: number;
   /** Big explosions while it blows up, and the time between them. */
@@ -80,6 +87,51 @@ export const BOSSES: Readonly<Record<BossType, BossStats>> = {
     mortar: { flightMs: 900, spread: 24 },
     contactDamage: 1,
     points: 5000,
+    explosions: { effect: 'ground-explosion', everyMs: 300 },
+  },
+  // Level 2 (M4.4; design approved by the owner 2026-10-19): stomps back and forth firing a
+  // 3-shot spread from its chest light, with a ground shockwave each time it turns; below half
+  // health it is faster and leaps onto the marine (the landing marked), a shockwave both ways.
+  mech: {
+    name: 'MECH',
+    sheet: 'mech',
+    frame: { width: 96, height: 80 },
+    // The legs, body and arms span x 20–66 and rows 16–79 (its feet touch the bottom row).
+    body: { width: 40, height: 58, offsetX: 24, offsetY: 21 },
+    facesLeftInArt: false,
+    // The chest light (the spread comes from here) and the head.
+    muzzle: [47, 36],
+    hatch: [47, 24],
+    drive: { min: 150, max: 270 },
+    startBeyond: 70,
+    tuning: {
+      hp: 150,
+      introSpeed: 40,
+      phases: [
+        {
+          fromHpShare: 1,
+          driveSpeed: 24,
+          shockwaveOnTurn: true,
+          attacks: [{ kind: 'spread', cooldownMs: 1800, firstDelayMs: 800 }],
+        },
+        {
+          fromHpShare: 0.5,
+          driveSpeed: 36,
+          shockwaveOnTurn: true,
+          attacks: [
+            { kind: 'spread', cooldownMs: 1400, firstDelayMs: 600 },
+            { kind: 'leap', cooldownMs: 3200, firstDelayMs: 1500 },
+          ],
+        },
+      ],
+      dyingMs: 2600,
+    },
+    spreadShot: { shotSpeed: 100, count: 3, spreadDeg: 15 },
+    // Low enough to jump over, high enough to hit a standing or crouching marine.
+    shockwave: { speed: 120, height: 5 },
+    leap: { durationMs: 1000, height: 60 },
+    contactDamage: 1,
+    points: 8000,
     explosions: { effect: 'ground-explosion', everyMs: 300 },
   },
 };

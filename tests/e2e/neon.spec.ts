@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, sceneKey, title, walkThroughExit, watchPage } from './watch';
+import { level, title, walkThroughExit, watchPage } from './watch';
 
 /**
  * Level 2, the Neon District (M4.3). In the e2e build the training corridor is level 1, so the
@@ -71,21 +71,12 @@ test('3-3 leads straight into 3-4, the lab, indoors', async ({ page }) => {
   expect(s.enemies.filter((e) => e.type === 'bipedal-walker')).toHaveLength(2);
 });
 
-test('the last section built so far ends the game with its card, then the end screen', async ({
-  page,
-}) => {
+test('3-4 leads straight into 3-5, the corridor to the boss', async ({ page }) => {
   await openSection(page, 'neon-4');
   const exit = await walkThroughExit(page);
-  expect(exit.scene).toBe('Dialogue');
-  expect(await page.evaluate(() => window.__contro?.dialogue())).toMatchObject({
-    card: 'level-2-end',
-    more: [],
-    nextLevel: null,
-  });
-  await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
-  await page.keyboard.press('KeyX');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('End');
-  await expect.poll(() => page.evaluate(() => window.__contro?.end()?.ready)).toBe(true);
-  await page.keyboard.press('KeyX');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Title');
+  expect(exit.scene).toBe('Level');
+  await expect.poll(async () => (await level(page)).level).toBe('neon-5');
+  const s = await level(page);
+  expect(s.label).toBe('3-5');
+  expect(s.boss).toMatchObject({ type: 'mech', mode: 'waiting' });
 });

@@ -6,6 +6,7 @@ import { bodyOffsetX, framePointToWorld, spriteYForFeet } from '../logic/body';
 import {
   damageBoss,
   initialBoss,
+  leapArc,
   lobVelocity,
   startBoss,
   stepBoss,
@@ -14,6 +15,7 @@ import {
 } from '../logic/boss';
 import type { Rect } from '../logic/levelMap';
 import { createRng, type Rng } from '../logic/rng';
+import { fanVelocities } from '../logic/pickups';
 import type { EnemyShot } from './Enemies';
 
 type BossSprite = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
@@ -30,8 +32,8 @@ export interface BossSnapshot {
 /** What the boss did this frame. */
 export interface BossUpdate {
   shots: EnemyShot[];
-  /** Where each mortar shell fired this frame will land. */
-  landings: { x: number; y: number }[];
+  /** Where each mortar shell (or leap) started this frame will land, and how soon. */
+  landings: { x: number; y: number; ms: number }[];
   /** Big explosions to show (while it blows up). */
   explosions: { x: number; y: number }[];
   /** True in the frame its last explosion ends. */
@@ -49,6 +51,12 @@ export class Boss {
   private state: BossState;
   private flashMs = 0;
   private explodeMs = 0;
+  /** A leap in the air (the mech, M4.4): where from and to (feet), and how far into it. */
+  private leap: {
+    from: { x: number; y: number };
+    to: { x: number; y: number };
+    ms: number;
+  } | null = null;
   private rng: Rng;
   private readonly feetY: number;
 
@@ -86,6 +94,7 @@ export class Boss {
     this.rng = createRng(BOSS_FIGHT.rngSeed);
     this.flashMs = 0;
     this.explodeMs = 0;
+    this.leap = null;
     const x = this.arena.x + this.arena.width + stats.startBeyond;
     const y = spriteYForFeet(this.feetY, stats.frame.height, stats.body);
     this.sprite.setActive(true).setVisible(true).clearTint();
@@ -133,25 +142,28 @@ export class Boss {
     this.state = step.state;
     body.setVelocityX(step.vx);
     const out: BossUpdate = { shots: [], landings: [], explosions: [], finished: step.finished };
-    for (const attack of step.attacks) {
-      if (attack === 'cannon') {
-        const m = this.framePoint(stats.muzzle);
-        out.shots.push({ x: m.x, y: m.y, vx: -stats.cannon.shotSpeed, vy: 0 });
-      } else if (target) {
-        // A lobbed shell, landing near the marine (kept inside the arena).
-        const from = this.framePoint(stats.hatch);
-        const spread = stats.mortar.spread;
-        const x = Phaser.Math.Clamp(
-          target.x + this.rng.range(-spread, spread),
-          this.arena.x + 8,
-          this.arena.x + this.arena.width - 8,
-        );
-        const to = { x, y: this.feetY };
-        const v = lobVelocity(from, to, stats.mortar.flightMs, GRAVITY_Y);
-        out.shots.push({ ...from, ...v, gravity: true, burstAtY: to.y });
-        out.landings.push(to);
+    // In the air (a leap): follow the arc instead of driving; a shockwave both ways on landing.
+    if (this.leap && stats.leap) {
+      this.leap.ms += dtMs;
+      const p = leapArc(
+        this.leap.from,
+        this.leap.to,
+        this.leap.ms,
+        stats.leap.durationMs,
+        stats.leap.height,
+      );
+      body.setVelocityX(0);
+      body.reset(p.x, spriteYForFeet(p.y, stats.frame.height, stats.body));
+      if (p.done) {
+        this.leap = null;
+        out.shots.push(...this.shockwaves([-1, 1]));
       }
     }
+    const phase = stats.tuning.phases[this.state.phase];
+    if (step.turned && phase?.shockwaveOnTurn && target && !this.leap) {
+      out.shots.push(...this.shockwaves([target.x < body.center.x ? -1 : 1]));
+    }
+    for (const attack of step.attacks) this.attack(attack, target, range, out);
     if (this.flashMs > 0) {
       this.flashMs -= dtMs;
       if (this.flashMs <= 0) this.sprite.clearTint().setTintMode(Phaser.TintModes.MULTIPLY);
@@ -172,6 +184,60 @@ export class Boss {
       out.explosions.push({ x: body.center.x, y: body.center.y });
     }
     return out;
+  }
+
+  private attack(
+    attack: string,
+    target: { x: number; y: number } | null,
+    range: { min: number; max: number },
+    out: BossUpdate,
+  ): void {
+    const stats = this.stats;
+    if (attack === 'cannon' && stats.cannon) {
+      const m = this.framePoint(stats.muzzle);
+      out.shots.push({ x: m.x, y: m.y, vx: -stats.cannon.shotSpeed, vy: 0 });
+    } else if (attack === 'mortar' && stats.mortar && target) {
+      // A lobbed shell, landing near the marine (kept inside the arena).
+      const from = this.framePoint(stats.hatch);
+      const spread = stats.mortar.spread;
+      const x = Phaser.Math.Clamp(
+        target.x + this.rng.range(-spread, spread),
+        this.arena.x + 8,
+        this.arena.x + this.arena.width - 8,
+      );
+      const to = { x, y: this.feetY };
+      const v = lobVelocity(from, to, stats.mortar.flightMs, GRAVITY_Y);
+      out.shots.push({ ...from, ...v, gravity: true, burstAtY: to.y });
+      out.landings.push({ ...to, ms: stats.mortar.flightMs });
+    } else if (attack === 'spread' && stats.spreadShot && target) {
+      // Shots from the chest light, aimed at the marine and fanned out (M4.4).
+      const m = this.framePoint(stats.muzzle);
+      const dx = target.x - m.x;
+      const dy = target.y - m.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const s = stats.spreadShot;
+      const aimed = { vx: (dx / len) * s.shotSpeed, vy: (dy / len) * s.shotSpeed };
+      for (const v of fanVelocities(aimed, s.count, s.spreadDeg)) out.shots.push({ ...m, ...v });
+    } else if (attack === 'leap' && stats.leap && target && !this.leap) {
+      // Jump onto the marine's spot (kept to its range), the landing marked while in the air.
+      const from = { x: this.sprite.body.center.x, y: this.feetY };
+      const to = { x: Phaser.Math.Clamp(target.x, range.min, range.max), y: this.feetY };
+      this.leap = { from, to, ms: 0 };
+      out.landings.push({ ...to, ms: stats.leap.durationMs });
+    }
+  }
+
+  /** Shots rolling along the floor away from the boss, one each way given. */
+  private shockwaves(directions: readonly (-1 | 1)[]): EnemyShot[] {
+    const w = this.stats.shockwave;
+    if (!w) return [];
+    const x = this.sprite.body.center.x;
+    return directions.map((d) => ({
+      x: x + d * (this.stats.body.width / 2),
+      y: this.feetY - w.height,
+      vx: d * w.speed,
+      vy: 0,
+    }));
   }
 
   snapshot(): BossSnapshot {

@@ -29,6 +29,7 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/effects/hit.png` | `Explosions and Magic/Hit/hit.png` | unchanged |
 | `assets/enemies/tank.png` | `Warped/Characters/tank-unit/Spritesheet.png` | unchanged |
 | `assets/enemies/bipedal-walk.png` | `Warped/Characters/bipedal-Unit/sprites/bipedal-unit1.png … bipedal-unit7.png` | 7 frames packed into a strip |
+| `assets/enemies/mech.png` | `Warped/Characters/mech-unit/sprites/mech-unit-export1.png … mech-unit-export10.png` | 10 frames packed into a strip |
 | `assets/effects/ground-explosion.png` | `Explosions and Magic/Ground Explosion/spritesheet/explosion-animation.png` | unchanged |
 | `assets/enemies/alien-flyer.png` | `Warped/Characters/alien-flying-enemy/spritesheet.png` | unchanged |
 | `assets/effects/enemy-shot.png` | `Gothicvania/Misc/EnemyProjectile/spritesheet.png` | unchanged |
