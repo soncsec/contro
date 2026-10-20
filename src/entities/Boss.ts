@@ -5,11 +5,13 @@ import { BOSSES, type BossType } from '../data/bosses';
 import { bodyOffsetX, framePointToWorld, spriteYForFeet } from '../logic/body';
 import {
   damageBoss,
+  hoverBob,
   initialBoss,
   leapArc,
   lobVelocity,
   startBoss,
   stepBoss,
+  swoopEnd,
   type BossMode,
   type BossState,
 } from '../logic/boss';
@@ -23,6 +25,9 @@ type BossSprite = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
 export interface BossSnapshot {
   type: BossType;
   x: number;
+  /** Body centre and bottom (feet) y: a hovering boss's feet are above the floor (M5.3). */
+  y: number;
+  feetY: number;
   hp: number;
   maxHp: number;
   mode: BossMode;
@@ -51,12 +56,20 @@ export class Boss {
   private state: BossState;
   private flashMs = 0;
   private explodeMs = 0;
-  /** A leap in the air (the mech, M4.4): where from and to (feet), and how far into it. */
+  /**
+   * A leap in the air (the mech, M4.4) or a swoop (the demon, M5.3): where from and to
+   * (feet), how far into it, how long it takes and how high it rises (negative: a dive).
+   */
   private leap: {
     from: { x: number; y: number };
     to: { x: number; y: number };
     ms: number;
+    durationMs: number;
+    height: number;
+    swoop: boolean;
   } | null = null;
+  /** Time hovering, for the bob (the demon). */
+  private hoverMs = 0;
   private rng: Rng;
   private readonly feetY: number;
 
@@ -87,6 +100,11 @@ export class Boss {
     return BOSSES[this.type];
   }
 
+  /** Where its feet rest: on the floor, or above it for a hovering boss (the demon). */
+  private get restFeetY(): number {
+    return this.feetY - (this.stats.hover?.height ?? 0);
+  }
+
   /** Back to waiting beyond the arena at full health (the marine died during the fight). */
   reset(): void {
     const stats = this.stats;
@@ -95,8 +113,9 @@ export class Boss {
     this.flashMs = 0;
     this.explodeMs = 0;
     this.leap = null;
+    this.hoverMs = 0;
     const x = this.arena.x + this.arena.width + stats.startBeyond;
-    const y = spriteYForFeet(this.feetY, stats.frame.height, stats.body);
+    const y = spriteYForFeet(this.restFeetY, stats.frame.height, stats.body);
     this.sprite.setActive(true).setVisible(true).clearTint();
     this.sprite.body.enable = true;
     this.sprite.body.reset(x, y);
@@ -142,22 +161,32 @@ export class Boss {
     this.state = step.state;
     body.setVelocityX(step.vx);
     const out: BossUpdate = { shots: [], landings: [], explosions: [], finished: step.finished };
-    // In the air (a leap): follow the arc instead of driving; a shockwave both ways on landing.
-    if (this.leap && stats.leap) {
+    // In the air (a leap or a swoop): follow the arc instead of driving. A leap lands with a
+    // shockwave both ways; a swoop rises back to hovering.
+    if (this.leap) {
       this.leap.ms += dtMs;
-      const p = leapArc(
-        this.leap.from,
-        this.leap.to,
-        this.leap.ms,
-        stats.leap.durationMs,
-        stats.leap.height,
-      );
-      body.setVelocityX(0);
-      body.reset(p.x, spriteYForFeet(p.y, stats.frame.height, stats.body));
+      const leap = this.leap;
+      const p = leapArc(leap.from, leap.to, leap.ms, leap.durationMs, leap.height);
+      if (leap.swoop) {
+        // A hovering boss steers onto the arc by speed (its centre and feet), like its hover.
+        const dt = Math.max(dtMs, 1) / 1000;
+        body.setVelocity((p.x - body.center.x) / dt, (p.y - body.bottom) / dt);
+      } else {
+        body.setVelocityX(0);
+        body.reset(p.x, spriteYForFeet(p.y, stats.frame.height, stats.body));
+      }
       if (p.done) {
         this.leap = null;
-        out.shots.push(...this.shockwaves([-1, 1]));
+        if (!leap.swoop) out.shots.push(...this.shockwaves([-1, 1]));
       }
+    } else if (stats.hover && (this.state.mode === 'fight' || this.state.mode === 'intro')) {
+      // Hovering: bob up and down while it drifts (its x is still driven by the rules). Steer
+      // its height by speed, not by placing it: physics moves bodies before this runs, so
+      // placing it at the sprite's (older) position would undo this frame's drift.
+      this.hoverMs += dtMs;
+      const bob = hoverBob(this.hoverMs, stats.hover.bobPx, stats.hover.bobMs);
+      const dt = Math.max(dtMs, 1) / 1000;
+      body.setVelocityY((this.restFeetY + bob - body.bottom) / dt);
     }
     const phase = stats.tuning.phases[this.state.phase];
     if (step.turned && phase?.shockwaveOnTurn && target && !this.leap) {
@@ -217,13 +246,28 @@ export class Boss {
       const len = Math.hypot(dx, dy) || 1;
       const s = stats.spreadShot;
       const aimed = { vx: (dx / len) * s.shotSpeed, vy: (dy / len) * s.shotSpeed };
-      for (const v of fanVelocities(aimed, s.count, s.spreadDeg)) out.shots.push({ ...m, ...v });
+      const sheet = s.sheet ? { sheet: s.sheet } : {};
+      for (const v of fanVelocities(aimed, s.count, s.spreadDeg)) {
+        out.shots.push({ ...m, ...v, ...sheet });
+      }
     } else if (attack === 'leap' && stats.leap && target && !this.leap) {
       // Jump onto the marine's spot (kept to its range), the landing marked while in the air.
       const from = { x: this.sprite.body.center.x, y: this.feetY };
       const to = { x: Phaser.Math.Clamp(target.x, range.min, range.max), y: this.feetY };
-      this.leap = { from, to, ms: 0 };
-      out.landings.push({ ...to, ms: stats.leap.durationMs });
+      const { durationMs, height } = stats.leap;
+      this.leap = { from, to, ms: 0, durationMs, height, swoop: false };
+      out.landings.push({ ...to, ms: durationMs });
+    } else if (attack === 'wave' && stats.shockwave && target) {
+      // Acid breathed out, rolling along the floor at the marine (the demon, M5.3).
+      out.shots.push(...this.shockwaves([target.x < this.sprite.body.center.x ? -1 : 1]));
+    } else if (attack === 'swoop' && stats.swoop && target && !this.leap) {
+      // A dive across the arena, lowest over the marine; the spot is marked first (M5.3).
+      const y = this.restFeetY;
+      const from = { x: this.sprite.body.center.x, y };
+      const to = { x: swoopEnd(from.x, target.x, range), y };
+      const { durationMs, dip } = stats.swoop;
+      this.leap = { from, to, ms: 0, durationMs, height: -dip, swoop: true };
+      out.landings.push({ x: (from.x + to.x) / 2, y: this.feetY, ms: durationMs / 2 });
     }
   }
 
@@ -232,11 +276,13 @@ export class Boss {
     const w = this.stats.shockwave;
     if (!w) return [];
     const x = this.sprite.body.center.x;
+    const sheet = w.sheet ? { sheet: w.sheet } : {};
     return directions.map((d) => ({
       x: x + d * (this.stats.body.width / 2),
       y: this.feetY - w.height,
       vx: d * w.speed,
       vy: 0,
+      ...sheet,
     }));
   }
 
@@ -244,6 +290,8 @@ export class Boss {
     return {
       type: this.type,
       x: Math.round(this.sprite.body.center.x),
+      y: Math.round(this.sprite.body.center.y),
+      feetY: Math.round(this.sprite.body.bottom),
       hp: this.state.hp,
       maxHp: this.stats.tuning.hp,
       mode: this.state.mode,

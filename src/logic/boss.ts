@@ -5,7 +5,11 @@
  */
 
 export type BossMode = 'waiting' | 'intro' | 'fight' | 'dying' | 'dead';
-export type AttackKind = 'cannon' | 'mortar' | 'spread' | 'leap';
+/**
+ * cannon and mortar: the tank; spread and leap: the mech (M4.4); wave (acid rolling along the
+ * floor) and swoop (a dive across the arena): the demon (M5.3).
+ */
+export type AttackKind = 'cannon' | 'mortar' | 'spread' | 'leap' | 'wave' | 'swoop';
 
 export interface AttackTuning {
   kind: AttackKind;
@@ -213,4 +217,20 @@ export function leapArc(
     y: from.y + (to.y - from.y) * t - 4 * height * t * (1 - t),
     done: t >= 1,
   };
+}
+
+/**
+ * A hovering boss's height offset `ms` into the fight (the demon, M5.3): it bobs up and down
+ * by `bobPx` every `bobMs`. Negative is up.
+ */
+export function hoverBob(ms: number, bobPx: number, bobMs: number): number {
+  return bobMs > 0 ? -bobPx * Math.sin((2 * Math.PI * ms) / bobMs) : 0;
+}
+
+/**
+ * Where a swoop ends (the demon, M5.3): as far past the marine as it starts on the other
+ * side, so the lowest point of its dip is where he stands; kept to its range.
+ */
+export function swoopEnd(fromX: number, targetX: number, range: DriveRange): number {
+  return Math.min(range.max, Math.max(range.min, 2 * targetX - fromX));
 }

@@ -58,6 +58,9 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/levels/alien/back.png` | `Warped/Environments/alien-environment/PNG/layers/background.png` | unchanged |
 | `assets/levels/alien/structures.png` | `Warped/Environments/alien-environment/PNG/layers/back-structures.png` | unchanged |
 | `assets/levels/tissue/tileset.png` | `Gothicvania/Environments/Living-Tissue-Platform-Files/PNG/layers/tileset.png, bakground.png` | *derived*: the ledge's crest, veined flesh and ends cut and repeated as floor, under-floor, walkway and pits; the background repeated as the wall; pixels unchanged (`tools/art/tissue.py`) |
+| `assets/enemies/demon.png` | `Gothicvania/Characters/demon-Files/Sprites/Idle/idle1.png … idle6.png` | *derived*: the 6 idle frames cropped to the demon (160×128) and recoloured in hive colours: red wings to acid green, cyan flames to yellow-green (`tools/art/demon.py`) |
+| `assets/effects/acid-glob.png` | `—` | *drawn by Claude* (`tools/art/demon.py`): the demon's acid glob, 2 frames |
+| `assets/effects/acid-wave.png` | `—` | *drawn by Claude* (`tools/art/demon.py`): the demon's acid wave rolling along the floor, 2 frames |
 | `assets/levels/base/room.png` | `Warped/Environments/alien-environment/PNG/layers/background.png, back-structures.png` | *derived*: the alien base's background and back structures drawn in perspective as the room's side walls and far wall; floor and ceiling shaded in their colours (`tools/art/base_room.py`) |
 | `assets/levels/base/core.png` | `—` | *drawn by Claude* (`tools/art/base_room.py`): the far wall's glowing core, 2 frames |
 | `assets/levels/base/barrier.png` | `—` | *drawn by Claude* (`tools/art/base_room.py`): the electric barrier, 2 frames |

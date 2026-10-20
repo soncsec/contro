@@ -18,6 +18,7 @@ import alien  # noqa: E402
 import base_room  # noqa: E402
 import blimp  # noqa: E402
 import catwalk  # noqa: E402
+import demon  # noqa: E402
 import letters  # noqa: E402
 import neon  # noqa: E402
 import props  # noqa: E402
@@ -111,6 +112,10 @@ ASSETS = [
     ("assets/levels/alien/structures.png", "Warped/Environments/alien-environment/PNG/layers/back-structures.png", "copy"),
     # Level 3, inside the hive (owner chose "into the hive", 2026-10-20): the living-tissue tileset
     ("assets/levels/tissue/tileset.png", "Gothicvania/Environments/Living-Tissue-Platform-Files/PNG/layers", "tissue"),
+    # M5.3: Level 3's boss, the demon in hive colours (owner chose it from mockups, 2026-10-20)
+    ("assets/enemies/demon.png", "Gothicvania/Characters/demon-Files/Sprites/Idle", "demon"),
+    ("assets/effects/acid-glob.png", "", "draw:acid-glob"),
+    ("assets/effects/acid-wave.png", "", "draw:acid-wave"),
     # M5.6: the into-the-screen base room (ADR-C11; owner approved the mockup 2026-10-20)
     ("assets/levels/base/room.png", "Warped/Environments/alien-environment/PNG/layers", "base:room"),
     ("assets/levels/base/core.png", "", "base:core"),
@@ -216,6 +221,15 @@ def build() -> list[tuple[str, str, str]]:
         elif how == "base:marine":
             png.write(str(dest), base_room.marine_back())
             rows.append((out, "—", "*drawn by Claude* (`tools/art/base_room.py`): the marine seen from behind, in the space marine's colours: standing, two running steps, crouching"))
+        elif how == "demon":
+            png.write(str(dest), demon.demon(str(source)))
+            rows.append((out, f"{src}/idle1.png … idle6.png", "*derived*: the 6 idle frames cropped to the demon (160×128) and recoloured in hive colours: red wings to acid green, cyan flames to yellow-green (`tools/art/demon.py`)"))
+        elif how == "draw:acid-glob":
+            png.write(str(dest), demon.acid_glob())
+            rows.append((out, "—", "*drawn by Claude* (`tools/art/demon.py`): the demon's acid glob, 2 frames"))
+        elif how == "draw:acid-wave":
+            png.write(str(dest), demon.acid_wave())
+            rows.append((out, "—", "*drawn by Claude* (`tools/art/demon.py`): the demon's acid wave rolling along the floor, 2 frames"))
         elif how == "tissue":
             png.write(str(dest), tissue.build(str(source / "tileset.png"), str(source / "bakground.png")))
             rows.append((out, f"{src}/tileset.png, bakground.png", "*derived*: the ledge's crest, veined flesh and ends cut and repeated as floor, under-floor, walkway and pits; the background repeated as the wall; pixels unchanged (`tools/art/tissue.py`)"))
