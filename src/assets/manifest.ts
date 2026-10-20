@@ -202,6 +202,11 @@ export const LEVELS: readonly LevelAsset[] = [
       props: 'corridor-props',
     },
   },
+  {
+    key: 'neon-3',
+    path: 'assets/levels/neon-3.tmj',
+    tilesets: { neon: 'neon-tileset' },
+  },
 ];
 
 /**
