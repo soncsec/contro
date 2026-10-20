@@ -146,6 +146,8 @@ export const ASSETS: readonly Asset[] = [
   image('levels', 'alien-tileset', 'alien/tileset.png', 320, 368),
   image('levels', 'alien-back', 'alien/back.png', 192, 176),
   image('levels', 'alien-structures', 'alien/structures.png', 416, 176),
+  // Level 3 inside the hive: the living-tissue tileset
+  image('levels', 'tissue-tileset', 'tissue/tileset.png', 320, 368),
   // M5.6: the into-the-screen base room (ADR-C11): the room, its core and electric barrier
   image('levels', 'base-room', 'base/room.png', 320, 176),
   sheet('levels', 'base-core', 'base/core.png', 28, 28, 2, 4, true),
@@ -246,6 +248,11 @@ export const LEVELS: readonly LevelAsset[] = [
     key: 'hive-2',
     path: 'assets/levels/hive-2.tmj',
     tilesets: { alien: 'alien-tileset' },
+  },
+  {
+    key: 'hive-3',
+    path: 'assets/levels/hive-3.tmj',
+    tilesets: { tissue: 'tissue-tileset' },
   },
 ];
 
