@@ -87,6 +87,8 @@ export const ASSETS: readonly Asset[] = [
   sheet('enemies', 'blimp-left', 'blimp-left.png', 84, 40, 2, 12, true),
   // Level 1 boss (M3.3): the tank's treads roll through 4 frames
   sheet('enemies', 'tank', 'tank.png', 128, 64, 4, 10, true),
+  // M4.2: the bipedal walker (faces right in the art), 7 walk frames
+  sheet('enemies', 'bipedal-walk', 'bipedal-walk.png', 80, 64, 7, 8, true),
 
   // Effects
   sheet('effects', 'bullet', 'bullet.png', 10, 4, 2, 12, true),

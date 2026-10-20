@@ -4,6 +4,7 @@ import { HIT_FLASH_MS, RUNNERS } from '../config/tuning';
 import { ENEMIES, type EnemyType } from '../data/enemies';
 import { bodyOffsetX, spriteYForFeet } from '../logic/body';
 import { applyDamage, initialPatrol, stepPatrol, type PatrolState } from '../logic/enemy';
+import { initialBiped, stepBiped, type BipedState } from '../logic/biped';
 import { runnerGone, stepRunner, type SpawnOrder } from '../logic/spawner';
 import {
   initialFlyer,
@@ -26,6 +27,8 @@ interface EnemyRecord {
   hp: number;
   patrol: PatrolState;
   flyer: FlyerState | null;
+  /** Bipedal walkers only (M4.2). */
+  biped: BipedState | null;
   /** Facing as drawn: -1 left, 1 right. */
   direction: -1 | 1;
   flashMs: number;
@@ -72,6 +75,8 @@ export class Enemies {
 
   /** Runners sent in so far (for tests). */
   runnersSpawned = 0;
+  /** Flyers placed so far: each starts its attacks a little later than the last. */
+  private flyers = 0;
 
   constructor(
     scene: Phaser.Scene,
@@ -79,36 +84,39 @@ export class Enemies {
     private readonly onDeath: (type: EnemyType, x: number, y: number) => void,
   ) {
     this.group = scene.physics.add.group();
-    let flyers = 0;
-    for (const spawn of spawns) {
-      const type = spawn.enemy as EnemyType;
-      const stats = ENEMIES[type];
-      const flying = stats.movement === 'flyer' && stats.flyer !== undefined;
-      // Walkers stand with their feet on the spawn point; flyers hover with their body centred on it.
-      const y = flying
-        ? spawn.y - (stats.body.offsetY + stats.body.height / 2) + stats.frame.height / 2
-        : spriteYForFeet(spawn.y, stats.frame.height, stats.body);
-      const sprite = this.group.create(spawn.x, y, stats.walkSheet) as EnemySprite;
-      sprite.body.setSize(stats.body.width, stats.body.height);
-      if (flying) sprite.body.setAllowGravity(false);
-      sprite.play(animKey(stats.walkSheet));
-      const record: EnemyRecord = {
-        sprite,
-        type,
-        origin: { x: spawn.x, y: spawn.y },
-        hp: stats.hp,
-        patrol: initialPatrol(),
-        flyer:
-          flying && stats.flyer ? initialFlyer(stats.flyer, flyers++ * FLYER_STAGGER_MS) : null,
-        direction: -1,
-        flashMs: 0,
-        runner: false,
-      };
-      this.face(record);
-      this.paint(record);
-      sprite.setData('record', record);
-      this.records.push(record);
-    }
+    for (const spawn of spawns) this.place(spawn);
+  }
+
+  /** Places an enemy as a map does: walkers stand on the point, flyers hover on it. */
+  place(spawn: { x: number; y: number; enemy: string }): void {
+    const type = spawn.enemy as EnemyType;
+    const stats = ENEMIES[type];
+    const flying = stats.movement === 'flyer' && stats.flyer !== undefined;
+    // Walkers stand with their feet on the spawn point; flyers hover with their body centred on it.
+    const y = flying
+      ? spawn.y - (stats.body.offsetY + stats.body.height / 2) + stats.frame.height / 2
+      : spriteYForFeet(spawn.y, stats.frame.height, stats.body);
+    const sprite = this.group.create(spawn.x, y, stats.walkSheet) as EnemySprite;
+    sprite.body.setSize(stats.body.width, stats.body.height);
+    if (flying) sprite.body.setAllowGravity(false);
+    sprite.play(animKey(stats.walkSheet));
+    const record: EnemyRecord = {
+      sprite,
+      type,
+      origin: { x: spawn.x, y: spawn.y },
+      hp: stats.hp,
+      patrol: initialPatrol(),
+      flyer:
+        flying && stats.flyer ? initialFlyer(stats.flyer, this.flyers++ * FLYER_STAGGER_MS) : null,
+      biped: stats.biped ? initialBiped() : null,
+      direction: -1,
+      flashMs: 0,
+      runner: false,
+    };
+    this.face(record);
+    this.paint(record);
+    sprite.setData('record', record);
+    this.records.push(record);
   }
 
   /**
@@ -134,6 +142,7 @@ export class Enemies {
         hp: stats.hp,
         patrol: initialPatrol(),
         flyer: null,
+        biped: null,
         direction: order.direction,
         flashMs: 0,
         runner: true,
@@ -167,6 +176,9 @@ export class Enemies {
         this.updateRunner(r, view, mapHeight);
       } else if (r.flyer) {
         const shot = this.updateFlyer(r, dtMs, player);
+        if (shot) shots.push(shot);
+      } else if (r.biped) {
+        const shot = this.updateBiped(r, dtMs, player);
         if (shot) shots.push(shot);
       } else {
         this.updateWalker(r, dtMs);
@@ -260,6 +272,35 @@ export class Enemies {
     r.sprite.clearTint().setTintMode(Phaser.TintModes.MULTIPLY);
     if (stats.tint !== undefined) r.sprite.setTint(stats.tint);
     r.sprite.anims.timeScale = stats.animTimeScale ?? 1;
+  }
+
+  /** Walks at the marine, stops to aim, fires its cannon from the barrel (M4.2). */
+  private updateBiped(r: EnemyRecord, dtMs: number, player: Point | null): EnemyShot | null {
+    const tuning = ENEMIES[r.type].biped;
+    if (!r.biped || !tuning) return null;
+    const body = r.sprite.body;
+    const step = stepBiped(
+      r.biped,
+      body.center.x,
+      player?.x ?? null,
+      { left: body.blocked.left, right: body.blocked.right },
+      dtMs,
+      tuning,
+    );
+    r.biped = step.state;
+    this.setDirection(r, step.state.direction);
+    body.setVelocityX(step.vx);
+    // Standing still (idle or aiming), the legs stop on the first frame.
+    if (step.vx === 0) r.sprite.anims.pause(r.sprite.anims.currentAnim?.frames[0]);
+    else if (r.sprite.anims.isPaused) r.sprite.anims.resume();
+    if (!step.fire) return null;
+    const stats = ENEMIES[r.type];
+    const [mx, my] = tuning.muzzle;
+    const flipped = r.direction < 0;
+    const left = r.sprite.x - stats.frame.width / 2;
+    const top = r.sprite.y - stats.frame.height / 2;
+    const x = left + (flipped ? stats.frame.width - mx : mx);
+    return { x, y: top + my, vx: r.direction * tuning.shotSpeed, vy: 0 };
   }
 
   private updateFlyer(r: EnemyRecord, dtMs: number, player: Point | null): EnemyShot | null {
