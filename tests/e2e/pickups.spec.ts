@@ -60,8 +60,10 @@ test('shooting down a blimp drops its letter; walking into M gives the machine g
   const later = await waitGameTime(page, start.timeMs, 1000);
   await page.keyboard.up('KeyX');
   const expected = (later.timeMs - start.timeMs) / WEAPONS['machine-gun'].autoIntervalMs;
+  // At most one shot per frame: on a loaded machine long frames drop the real rate a little
+  // below one per 100 ms, so allow 70% of it (still far above the rifle's single shot).
   expect(later.bullets.fired - start.bullets.fired).toBeGreaterThanOrEqual(
-    Math.floor(expected) - 2,
+    Math.floor(expected * 0.7),
   );
   expect(watched.errors).toEqual([]);
 });
