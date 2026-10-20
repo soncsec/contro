@@ -30,9 +30,18 @@ export function stepWeapon(
   dtMs: number,
   t: WeaponTuning,
 ): { state: WeaponState; fired: boolean } {
-  const since = prev.sinceShotMs + Math.max(dtMs, 0);
-  const fired = firePressed ? since >= t.tapMinMs : t.autoFire && fire && since >= t.autoIntervalMs;
-  return { state: { sinceShotMs: fired ? 0 : since }, fired };
+  const dt = Math.max(dtMs, 0);
+  const since = prev.sinceShotMs + dt;
+  if (firePressed) {
+    const fired = since >= t.tapMinMs;
+    return { state: { sinceShotMs: fired ? 0 : since }, fired };
+  }
+  const fired = t.autoFire && fire && since >= t.autoIntervalMs;
+  if (!fired) return { state: { sinceShotMs: since }, fired };
+  // Held auto-fire keeps the time this frame ran past the interval, so the rate holds at low
+  // frame rates (otherwise at 20 fps a 100 ms gun fires only every third frame, 150 ms).
+  // At most one frame's worth carries over: still at most one shot per frame.
+  return { state: { sinceShotMs: Math.min(since - t.autoIntervalMs, dt) }, fired };
 }
 
 /** True once a bullet at (x, y) is more than `margin` outside the camera view. */
