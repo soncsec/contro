@@ -11,7 +11,7 @@ Outputs (all used by build_assets.py):
   room(...)          320×176 room without the core and barrier
   core()             2 frames 28×28: the far wall's glowing core, pulsing
   barrier()          2 frames 96×72: the electric barrier in front of the far wall
-  marine_back()      4 frames 22×38: standing, two running steps, crouching
+  marine_back()      4 frames 24×40: standing, two running steps, crouching
 """
 import math
 
@@ -124,58 +124,94 @@ def barrier() -> png.Image:
     return png.strip(frames)
 
 
-SUIT, SUIT_DARK = (226, 112, 40, 255), (160, 70, 30, 255)
-HELMET, HELMET_SHADE = (232, 230, 222, 255), (168, 166, 160, 255)
-PACK, PACK_LIGHT, PACK_DARK = (120, 124, 134, 255), (160, 164, 172, 255), (84, 86, 96, 255)
-BOOT, GUN, OUTLINE = (58, 40, 40, 255), (66, 66, 58, 255), (20, 14, 20, 255)
+# The marine seen from behind (owner chose this refined version, 2026-10-20): drawn by Claude
+# as a pixel map in the side-view marine's own palette (space-marine-lite's colours), so he
+# reads as the same character. 24×40 frames; one character per pixel.
+PAL = {
+ '.': (0,0,0,0), 'o': (22,10,31,255),
+ 'H': (222,196,179,255), 'h': (202,164,146,255), 's': (147,103,91,255), 'd': (97,62,57,255),
+ 'O': (224,128,47,255), 'M': (196,91,30,255), 'N': (155,56,19,255), 'r': (125,35,14,255), 'R': (70,12,31,255),
+ 'G': (79,68,45,255), 'g': (127,116,88,255), 'l': (177,159,119,255),
+ 'K': (41,27,52,255), 'k': (115,94,130,255),
+}
+HEAD = [
+ ".........oooooo.........",
+ "........oHHHHhho........",
+ ".......oHHHHHHhso.......",
+ "......oHHHHHHhhhso......",
+ "......oHHHHHhhhhso......",
+ "......oHHHHhhhhsso...o..",
+ "......ohHHhhhhhssdo.olo.",
+ "......ohhhhhhhsssdo.ogo.",
+ ".......ohhhhssssdo.ogGo.",
+ "........osssssddo..oGo..",
+]
+BODY = [
+ "....ooooRRRRRRRRoooogGo.",
+ "...oMOOoHHHHHHhhoOOoGo..",
+ "..oNMOOoHHhhhhhsoOOogGo.",
+ "..oNMOMohhhhhhhsoMOoGo..",
+ "..oNMMMohhhhhhssoMhhGo..",
+ "..oNMMMohsssssssoMhho...",
+ "..orNMMohhhhhhssoMNNo...",
+ "..orNNMohsssssssoNNro...",
+ "...orNMooddddddoorNro...",
+ "...ohhoMMNNrrNNMMohho...",
+ "...ossoMMNNRRNNMMosso...",
+ "....oooRRRRooRRRRooo....",
+ "....okkkoooooooookko....",
+]
+LEGS = {
+ 'stand': [
+ ".....oMMMNo..oNMMMo.....",
+ ".....oMOMNo..oNMOMo.....",
+ ".....oMOMNo..oNMOMo.....",
+ ".....oMMNro..orNMMo.....",
+ ".....ohhsso..ohhsso.....",
+ ".....oMMNro..orNMMo.....",
+ ".....oMMNro..orNMMo.....",
+ ".....orNNRo..oRNNro.....",
+ "....oKKKKKo..oKKKKKo....",
+ "....okKKKKo..okKKKKo....",
+ "....oooooo....oooooo....",
+ ],
+ 'left': [
+ ".....oMMMNo..oNMMMo.....",
+ ".....oMOMNo..oNMOMo.....",
+ ".....oMMNro..oNMOMo.....",
+ ".....ohhsso..orNMMo.....",
+ ".....oMMNro..ohhsso.....",
+ ".....orNNRo..orNMMo.....",
+ "....oKKKKKo..orNMMo.....",
+ "....okKKKKo..oRNNro.....",
+ "....oooooo..oKKKKKo.....",
+ "............okKKKKo.....",
+ "............oooooo......",
+ ],
+}
+LEGS['right'] = [row[::-1] for row in LEGS['left']]
+CROUCH_LEGS = [
+ "....oMMMNro..orNMMMo....",
+ "...oMOMNNRo..oRNNMOMo...",
+ "...ohhssooo..ooosshho...",
+ "...oKKKKKKo..oKKKKKKo...",
+ "...okKKKKKo..okKKKKKo...",
+ "...ooooooo....ooooooo...",
+]
 
 
-def _marine(legs: str, crouch: bool) -> png.Image:
-    w, h = 22, 38
-    m = [[CLEAR] * w for _ in range(h)]
-
-    def r(x0: int, y0: int, x1: int, y1: int, c: tuple) -> None:
-        for yy in range(max(0, y0), min(h, y1 + 1)):
-            for xx in range(max(0, x0), min(w, x1 + 1)):
-                m[yy][xx] = c
-
-    top = 10 if crouch else 0  # crouched, he sits 10 px lower
-    for yy in range(11):
-        for xx in range(4, 18):
-            if math.hypot(xx - 10.5, yy - 5.5) <= 5.6:
-                m[top + yy][xx] = HELMET if xx < 13 or yy < 4 else HELMET_SHADE
-    r(3, top + 10, 18, top + 23 - (4 if crouch else 0), SUIT)
-    r(3, top + 10, 4, top + 23 - (4 if crouch else 0), SUIT_DARK)
-    r(6, top + 11, 15, top + 20 - (3 if crouch else 0), PACK)
-    r(6, top + 11, 15, top + 12, PACK_LIGHT)
-    r(14, top + 13, 15, top + 20 - (3 if crouch else 0), PACK_DARK)
-    r(1, top + 11, 2, top + 19, SUIT)
-    r(19, top + 11, 20, top + 18, SUIT_DARK)
-    r(17, top + 2, 18, top + 12, GUN)
-    r(16, top + 3, 19, top + 4, GUN)
-    if crouch:
-        r(3, 24, 9, 33, SUIT)
-        r(12, 24, 18, 33, SUIT_DARK)
-        r(2, 34, 9, 37, BOOT)
-        r(12, 34, 19, 37, BOOT)
-    else:
-        lift_l, lift_r = {"stand": (0, 0), "left": (3, 0), "right": (0, 3)}[legs]
-        r(4, 24, 9, 33 - lift_l, SUIT)
-        r(12, 24, 17, 33 - lift_r, SUIT_DARK)
-        r(4, 34 - lift_l, 9, 37 - lift_l, BOOT)
-        r(12, 34 - lift_r, 17, 37 - lift_r, BOOT)
-    out = [row[:] for row in m]
-    for yy in range(h):
-        for xx in range(w):
-            if m[yy][xx][3]:
-                continue
-            for dy, dx in ((0, 1), (1, 0), (0, -1), (-1, 0)):
-                y2, x2 = yy + dy, xx + dx
-                if 0 <= y2 < h and 0 <= x2 < w and m[y2][x2][3]:
-                    out[yy][xx] = OUTLINE
-                    break
-    return out
+def _frame(rows: list[str]) -> png.Image:
+    padded = ["." * 24] * (40 - len(rows)) + rows
+    return [[PAL[c] for c in r.ljust(24, ".")[:24]] for r in padded]
 
 
 def marine_back() -> png.Image:
-    return png.strip([_marine("stand", False), _marine("left", False), _marine("right", False), _marine("stand", True)])
+    """Standing, two running steps, crouching."""
+    return png.strip(
+        [
+            _frame(HEAD + BODY + LEGS["stand"]),
+            _frame(HEAD + BODY + LEGS["left"]),
+            _frame(HEAD + BODY + LEGS["right"]),
+            _frame(HEAD + BODY + CROUCH_LEGS),
+        ]
+    )
