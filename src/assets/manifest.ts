@@ -254,6 +254,11 @@ export const LEVELS: readonly LevelAsset[] = [
     path: 'assets/levels/hive-3.tmj',
     tilesets: { tissue: 'tissue-tileset' },
   },
+  {
+    key: 'hive-4',
+    path: 'assets/levels/hive-4.tmj',
+    tilesets: { tissue: 'tissue-tileset' },
+  },
 ];
 
 /**
