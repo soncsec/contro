@@ -51,6 +51,41 @@ describe('stepWeapon', () => {
     expect(shots).toEqual([0, 10, 20, 30, 40, 50]);
   });
 
+  it('held auto-fire keeps its rate at a low frame rate (49 ms frames)', () => {
+    const machineGun = { ...WEAPON, autoFire: true, autoIntervalMs: 100 };
+    let s = initialWeapon();
+    let shots = 0;
+    // 2 s of 49 ms frames, fire held after the first press: one shot per 100 ms, about 20.
+    for (let i = 0; i < 41; i++) {
+      const r = stepWeapon(s, true, i === 0, 49, machineGun);
+      if (r.fired) shots++;
+      s = r.state;
+    }
+    expect(shots).toBeGreaterThanOrEqual(19);
+    expect(shots).toBeLessThanOrEqual(21);
+  });
+
+  it('auto-fire never fires more than once a frame, even with very long frames', () => {
+    const machineGun = { ...WEAPON, autoFire: true, autoIntervalMs: 100 };
+    let s = initialWeapon();
+    let shots = 0;
+    for (let i = 0; i < 10; i++) {
+      const r = stepWeapon(s, true, i === 0, 350, machineGun);
+      if (r.fired) shots++;
+      s = r.state;
+    }
+    expect(shots).toBe(10);
+    // The carried-over time is at most one frame's worth.
+    expect(s.sinceShotMs).toBeLessThanOrEqual(350);
+  });
+
+  it('starting to hold fire without a fresh press does not fire twice in a row', () => {
+    const machineGun = { ...WEAPON, autoFire: true, autoIntervalMs: 100 };
+    const first = stepWeapon(initialWeapon(), true, false, FRAME, machineGun);
+    expect(first.fired).toBe(true);
+    expect(stepWeapon(first.state, true, false, FRAME, machineGun).fired).toBe(false);
+  });
+
   it('lets fast tapping fire every 90 ms or so', () => {
     // Press 1 frame, release 5 frames: a new press every 96 ms.
     const pattern = Array.from({ length: 60 }, (_, i) => i % 6 === 0);
