@@ -11,7 +11,7 @@
  "tilewidth": 16,
  "tileheight": 16,
  "nextlayerid": 20,
- "nextobjectid": 58,
+ "nextobjectid": 64,
  "layers": [
   {
    "id": 10,
@@ -4668,6 +4668,120 @@
      "id": 43,
      "name": "",
      "type": "enemy",
+     "x": 352,
+     "y": 98,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "enemy",
+       "type": "string",
+       "value": "spitting-snake"
+      }
+     ]
+    },
+    {
+     "id": 44,
+     "name": "",
+     "type": "enemy",
+     "x": 848,
+     "y": 98,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "enemy",
+       "type": "string",
+       "value": "spitting-snake"
+      }
+     ]
+    },
+    {
+     "id": 45,
+     "name": "",
+     "type": "enemy",
+     "x": 976,
+     "y": 66,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "enemy",
+       "type": "string",
+       "value": "spitting-snake"
+      }
+     ]
+    },
+    {
+     "id": 46,
+     "name": "",
+     "type": "enemy",
+     "x": 1408,
+     "y": 98,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "enemy",
+       "type": "string",
+       "value": "spitting-snake"
+      }
+     ]
+    },
+    {
+     "id": 47,
+     "name": "",
+     "type": "enemy",
+     "x": 1968,
+     "y": 66,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "enemy",
+       "type": "string",
+       "value": "spitting-snake"
+      }
+     ]
+    },
+    {
+     "id": 48,
+     "name": "",
+     "type": "enemy",
+     "x": 2656,
+     "y": 98,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "enemy",
+       "type": "string",
+       "value": "spitting-snake"
+      }
+     ]
+    },
+    {
+     "id": 49,
+     "name": "",
+     "type": "enemy",
      "x": 1856,
      "y": 98,
      "width": 0,
@@ -4684,7 +4798,7 @@
      ]
     },
     {
-     "id": 44,
+     "id": 50,
      "name": "",
      "type": "enemy",
      "x": 640,
@@ -4703,7 +4817,7 @@
      ]
     },
     {
-     "id": 45,
+     "id": 51,
      "name": "",
      "type": "enemy",
      "x": 1216,
@@ -4722,7 +4836,7 @@
      ]
     },
     {
-     "id": 46,
+     "id": 52,
      "name": "",
      "type": "enemy",
      "x": 1792,
@@ -4741,7 +4855,7 @@
      ]
     },
     {
-     "id": 47,
+     "id": 53,
      "name": "",
      "type": "enemy",
      "x": 2336,
@@ -4760,7 +4874,7 @@
      ]
     },
     {
-     "id": 48,
+     "id": 54,
      "name": "",
      "type": "enemy",
      "x": 2688,
@@ -4779,7 +4893,7 @@
      ]
     },
     {
-     "id": 49,
+     "id": 55,
      "name": "",
      "type": "blimp",
      "x": 320,
@@ -4803,7 +4917,7 @@
      ]
     },
     {
-     "id": 50,
+     "id": 56,
      "name": "",
      "type": "blimp",
      "x": 1920,
@@ -4827,7 +4941,7 @@
      ]
     },
     {
-     "id": 51,
+     "id": 57,
      "name": "",
      "type": "spawner",
      "x": 480,
@@ -4861,7 +4975,7 @@
      ]
     },
     {
-     "id": 52,
+     "id": 58,
      "name": "",
      "type": "spawner",
      "x": 1280,
@@ -4895,7 +5009,7 @@
      ]
     },
     {
-     "id": 53,
+     "id": 59,
      "name": "",
      "type": "spawner",
      "x": 2240,
@@ -4929,7 +5043,7 @@
      ]
     },
     {
-     "id": 54,
+     "id": 60,
      "name": "",
      "type": "checkpoint",
      "x": 720,
@@ -4941,7 +5055,7 @@
      "point": true
     },
     {
-     "id": 55,
+     "id": 61,
      "name": "",
      "type": "checkpoint",
      "x": 1696,
@@ -4953,7 +5067,7 @@
      "point": true
     },
     {
-     "id": 56,
+     "id": 62,
      "name": "",
      "type": "checkpoint",
      "x": 2240,
@@ -4965,7 +5079,7 @@
      "point": true
     },
     {
-     "id": 57,
+     "id": 63,
      "name": "",
      "type": "exit",
      "x": 2800,

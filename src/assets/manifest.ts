@@ -89,6 +89,10 @@ export const ASSETS: readonly Asset[] = [
   sheet('enemies', 'tank', 'tank.png', 128, 64, 4, 10, true),
   // M4.2: the bipedal walker (faces right in the art), 7 walk frames
   sheet('enemies', 'bipedal-walk', 'bipedal-walk.png', 80, 64, 7, 8, true),
+  // M5.1: the spitting snake (Level 3): idle, then rearing back and striking as it spits
+  sheet('enemies', 'snake-idle', 'snake-idle.png', 36, 21, 4, 6, true),
+  sheet('enemies', 'snake-strike', 'snake-strike.png', 36, 21, 4, 10, false),
+  sheet('effects', 'snake-spit', 'snake-spit.png', 7, 5, 2, 12, true),
   // M4.4: the Level 2 boss, the mech, 10 walk frames
   sheet('enemies', 'mech', 'mech.png', 96, 80, 10, 10, true),
 

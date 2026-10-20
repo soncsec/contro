@@ -11,6 +11,8 @@ Layouts are in LAYOUTS below. A layout gives the width in tiles and lists, in 16
              ("Ng" puts one on the ground under a walkway)
   flyers     (column, y px) alien flyers
   bipeds     bipedal walkers (M4.2) by tile column, always on the ground
+  snakes     spitting snakes (M5.1) by tile column, like walkers: on the walkway, raised
+             ledge or ground there ("Ng" for the ground under a walkway)
   blimps     (column, y px, carries, "left"|"right"): a blimp carrying a pickup ("machine-gun",
              "spread" or "health") that flies in from that edge of the screen once the column
              scrolls into view (M4.1)
@@ -233,7 +235,8 @@ LAYOUTS = {
         "exit": 165,
     },
     # 3-1: the alien base, the way into the hive. Bridges with gaps between them, raised
-    # bridges to climb, vent walkways over the gaps, and a bigger crowd than Level 2.
+    # bridges to climb, vent walkways over the gaps, and a bigger crowd than Level 2, with
+    # spitting snakes on the high ground.
     "base": {
         "width": 180,
         "tileset": "alien",
@@ -246,6 +249,8 @@ LAYOUTS = {
                     150, 160, 172],
         "flyers": [(40, 40), (76, 36), (112, 40), (146, 36), (168, 40)],
         "bipeds": [116],
+        # Spitting snakes (M5.1) on the raised bridges, spitting down at him.
+        "snakes": [22, 53, 61, 88, 123, 166],
         "spawners": [(30, 3, 900, "right"), (80, 4, 900, "right"), (140, 4, 900, "left")],
         "blimps": [(20, 44, "spread", "right"), (120, 44, "health", "right")],
         "checkpoints": [45, 106, 140],
@@ -355,6 +360,9 @@ def build(layout: dict) -> dict:
     for w in layout["walkers"]:
         col, ground = (int(w[:-1]), True) if isinstance(w, str) else (w, False)
         spawns.append(obj("enemy", col * TILE, surface(col, ground), enemy="alien-walker"))
+    for w in layout.get("snakes", []):
+        col, ground = (int(w[:-1]), True) if isinstance(w, str) else (w, False)
+        spawns.append(obj("enemy", col * TILE, surface(col, ground), enemy="spitting-snake"))
     for col in layout.get("bipeds", []):
         spawns.append(obj("enemy", col * TILE, surface(col, True), enemy="bipedal-walker"))
     for col, y in layout["flyers"]:

@@ -37,15 +37,21 @@ export class EnemyShots {
   fire(shot: EnemyShot): boolean {
     const orb = this.group.get(shot.x, shot.y) as Orb | null;
     if (!orb) return false;
+    const sheet = shot.sheet ?? 'enemy-shot';
+    orb.setTexture(sheet);
+    // Its own sheet faces right, so it turns to fly left; the round orb never needs to.
+    orb.setFlipX(shot.sheet !== undefined && shot.vx < 0);
     orb.setActive(true).setVisible(true);
     orb.body.enable = true;
     orb.body.reset(shot.x, shot.y);
-    orb.body.setSize(CORE, CORE, true);
+    // The orb's glowing core, or the whole of a small shot's own sprite.
+    const core = shot.sheet ? Math.min(orb.frame.width, orb.frame.height) : CORE;
+    orb.body.setSize(core, core, true);
     orb.body.setAllowGravity(shot.gravity === true);
     orb.body.setVelocity(shot.vx, shot.vy);
     orb.setData('lobbed', shot.gravity === true);
     orb.setData('burstAtY', shot.burstAtY ?? null);
-    orb.play(animKey('enemy-shot'));
+    orb.play(animKey(sheet));
     this.fired++;
     return true;
   }
