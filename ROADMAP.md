@@ -133,7 +133,7 @@ Owner decisions 2026-10-20, from mockups: **into the hive** (3-1 and 3-2 in the 
 - [ ] M5.5 Level 3 music
 - [ ] M5.6 Into-the-screen base stage (owner request 2026-10-20; ADR-C11): Level 3's third section, the alien base's core, **4 rooms**, between 3-2 and the hive (Level 3 becomes six sections, about 9–10 minutes, as the finale). Built in slices:
   - [x] M5.6a The base room scene: perspective projection and rules in `src/logic/base.ts` (unit tested), `BaseScene`, one playable room (3-3, after 3-2): the marine seen from behind moves along the near edge, jumps and crouches; his shots fly into the room (the spread fans out); walkers run out of the far end at him; 20 hits destroy the core, the barrier drops and the stage goes on. The room is the alien base's art drawn in perspective (`tools/art/base_room.py`); pause, cheats, continues, score, weapons and the campaign work as in the levels
-  - [ ] M5.6b The marine seen from behind, drawn by Claude (`tools/art/`); mockup shown to the owner before it ships
+  - [x] M5.6b The marine seen from behind, drawn by Claude (`tools/art/base_room.py`): the owner chose the refined version from a side-by-side mockup (2026-10-20), a pixel map in the side-view marine's own palette (cream helmet and backpack, burnt-orange suit, knee pads, purple boots, rifle over the right shoulder); 24×40, standing, two running steps, crouching
   - [ ] M5.6c Wall turrets and all 4 rooms as data; the fourth room's core is bigger and fights back harder
   - [ ] M5.6d Touch and gamepad checks, and the full Level 3 run in e2e
 

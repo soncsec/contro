@@ -71,7 +71,7 @@ export const ASSETS: readonly Asset[] = [
   sheet('player', 'marine-crouch-shoot', 'marine-crouch-shoot.png', 75, 48, 2, 12, true),
   sheet('player', 'marine-die', 'marine-die.png', 75, 48, 3, 8, false),
   // M5.6: the marine seen from behind in base rooms: standing, two running steps, crouching
-  sheet('player', 'marine-back', 'marine-back.png', 22, 38, 4, 8, true),
+  sheet('player', 'marine-back', 'marine-back.png', 24, 40, 4, 8, true),
   // Derived: arms and rifle raised 45° (tools/art/aim.py)
   sheet('player', 'marine-aim-diag', 'marine-aim-diag.png', 75, 48, 4, 6, true),
   sheet('player', 'marine-shoot-diag', 'marine-shoot-diag.png', 75, 48, 2, 12, true),
