@@ -68,3 +68,34 @@ test("4-2's exit leads into the base's core, an into-the-screen base stage", asy
   const base = await page.evaluate(() => window.__contro?.base());
   expect(base?.section).toBe('hive-core');
 });
+
+test('after the base core comes 4-4, inside the hive: indoors, flesh ledges and snakes', async ({
+  page,
+}) => {
+  const watched = watchPage(page);
+  await page.goto('./');
+  await expect.poll(async () => (await title(page))?.ready, { timeout: 15_000 }).toBe(true);
+  await page.evaluate(() => window.__contro?.startLevel('hive-core'));
+  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Base');
+  // THRU through every room of the base core.
+  while ((await sceneKey(page)) === 'Base') {
+    await page.keyboard.press('Escape');
+    const paused = await page
+      .waitForFunction(() => window.__contro?.pauseMenu() === 'RESUME', null, { timeout: 5_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!paused) break;
+    for (const k of ['KeyT', 'KeyH', 'KeyR', 'KeyU']) await page.keyboard.press(k);
+    await page.waitForTimeout(2500);
+  }
+  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  await expect.poll(async () => (await level(page)).level).toBe('hive-3');
+  await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
+  const s = await level(page);
+  expect(s.label).toBe('4-4');
+  expect(s.scenery).toEqual([]); // indoors: the hive's flesh wall
+  expect(s.player.feetY).toBe(132); // the crest's top at 128, feet 4 px into it
+  expect(s.enemies.filter((e) => e.type === 'spitting-snake')).toHaveLength(7);
+  expect(s.enemies.filter((e) => e.type === 'bipedal-walker')).toHaveLength(0);
+  expect(watched.errors).toEqual([]);
+});

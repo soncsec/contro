@@ -21,8 +21,8 @@ Layouts are in LAYOUTS below. A layout gives the width in tiles and lists, in 16
   checkpoints, start, exit: columns
   boss       optional (type, column): a boss fight in an arena, the map's last screen (20 tiles)
   tileset    "steelworks" (default), "rust" (tools/art/rust.py, the same rows, 18 columns) or
-             "neon" (tools/art/neon.py, Level 2, 20 columns) or "alien" (tools/art/alien.py,
-             Level 3's alien base, 20 columns)
+             "neon" (tools/art/neon.py, Level 2, 20 columns), "alien" (tools/art/alien.py,
+             Level 3's alien base, 20 columns) or "tissue" (tools/art/tissue.py, inside the hive)
   scenery    the outdoor skyline: "industrial" (default), "neon" (Synth City) or "alien"
              (the alien base's back wall and structures)
   indoor     True for a section inside the steelworks: the piped wall fills the space above the
@@ -47,6 +47,8 @@ TILESETS = {  # name -> (image under assets/levels/, columns, how far feet stand
     "neon": ("neon/tileset.png", 20, 2),
     # Level 3's alien base (tools/art/alien.py): the bridge's planks start at the tile's top.
     "alien": ("alien/tileset.png", 20, 2),
+    # Level 3 inside the hive (tools/art/tissue.py): the crest's top is 4 px into the tile.
+    "tissue": ("tissue/tileset.png", 20, 4),
 }
 HEIGHT = 11  # 176 px
 FLOOR_ROW = 8  # top row of the ground
@@ -276,6 +278,26 @@ LAYOUTS = {
         "spawners": [(28, 3, 900, "right"), (84, 4, 900, "left"), (136, 4, 900, "right")],
         "blimps": [(40, 40, "machine-gun", "right"), (118, 40, "health", "right")],
         "checkpoints": [56, 108, 154],
+        "start": 3,
+        "exit": 165,
+    },
+    # 3-4: the hive's mouth, indoors in living tissue. Flesh ledges to climb, gaps under
+    # walkways, spitting snakes on the ledges; creatures only (no machines in here).
+    "hive3": {
+        "width": 170,
+        "tileset": "tissue",
+        "indoor": True,
+        "floor": [(0, 28), (31, 58), (61, 90), (93, 120), (123, 146), (149, 170)],
+        "blocks": [(12, 20, 6), (40, 48, 6), (48, 54, 5), (70, 78, 6), (100, 108, 6),
+                   (108, 114, 4), (130, 138, 6), (156, 162, 6)],
+        "walkways": [(25, 8, 5), (55, 8, 5), (87, 8, 5), (117, 8, 5), (143, 8, 5)],
+        "walkers": [6, 18, 23, 26, "27g", 36, 52, 57, "61g", 66, 82, 86, 89, "93g", 96, 104, 120,
+                    "124g", 128, 140, 146, "149g", 154, 165],
+        "flyers": [(30, 40), (64, 36), (98, 40), (132, 36), (160, 40)],
+        "snakes": [16, 44, 51, 74, 111, 134, 159],
+        "spawners": [(20, 3, 1000, "right"), (80, 4, 900, "left"), (126, 4, 900, "right")],
+        "blimps": [(36, 40, "spread", "right"), (110, 40, "health", "right")],
+        "checkpoints": [34, 96, 150],
         "start": 3,
         "exit": 165,
     },
