@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, sceneKey, title, watchPage } from './watch';
+import { level, sceneKey, title, walkThroughExit, watchPage } from './watch';
 
 /**
  * Level 3, the hive (M5.2). It starts in the alien base (owner chose "into the hive",
