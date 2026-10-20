@@ -11,7 +11,7 @@
  "tilewidth": 16,
  "tileheight": 16,
  "nextlayerid": 20,
- "nextobjectid": 66,
+ "nextobjectid": 67,
  "layers": [
   {
    "id": 10,
@@ -4576,6 +4576,25 @@
      "id": 51,
      "name": "",
      "type": "enemy",
+     "x": 1424,
+     "y": 136,
+     "width": 0,
+     "height": 0,
+     "rotation": 0,
+     "visible": true,
+     "point": true,
+     "properties": [
+      {
+       "name": "enemy",
+       "type": "string",
+       "value": "bipedal-walker"
+      }
+     ]
+    },
+    {
+     "id": 52,
+     "name": "",
+     "type": "enemy",
      "x": 416,
      "y": 44,
      "width": 0,
@@ -4592,7 +4611,7 @@
      ]
     },
     {
-     "id": 52,
+     "id": 53,
      "name": "",
      "type": "enemy",
      "x": 800,
@@ -4611,7 +4630,7 @@
      ]
     },
     {
-     "id": 53,
+     "id": 54,
      "name": "",
      "type": "enemy",
      "x": 1152,
@@ -4630,7 +4649,7 @@
      ]
     },
     {
-     "id": 54,
+     "id": 55,
      "name": "",
      "type": "enemy",
      "x": 1600,
@@ -4649,7 +4668,7 @@
      ]
     },
     {
-     "id": 55,
+     "id": 56,
      "name": "",
      "type": "enemy",
      "x": 1952,
@@ -4668,7 +4687,7 @@
      ]
     },
     {
-     "id": 56,
+     "id": 57,
      "name": "",
      "type": "enemy",
      "x": 2336,
@@ -4687,7 +4706,7 @@
      ]
     },
     {
-     "id": 57,
+     "id": 58,
      "name": "",
      "type": "blimp",
      "x": 576,
@@ -4711,7 +4730,7 @@
      ]
     },
     {
-     "id": 58,
+     "id": 59,
      "name": "",
      "type": "blimp",
      "x": 1920,
@@ -4735,7 +4754,7 @@
      ]
     },
     {
-     "id": 59,
+     "id": 60,
      "name": "",
      "type": "spawner",
      "x": 704,
@@ -4769,7 +4788,7 @@
      ]
     },
     {
-     "id": 60,
+     "id": 61,
      "name": "",
      "type": "spawner",
      "x": 1760,
@@ -4803,7 +4822,7 @@
      ]
     },
     {
-     "id": 61,
+     "id": 62,
      "name": "",
      "type": "spawner",
      "x": 2400,
@@ -4837,7 +4856,7 @@
      ]
     },
     {
-     "id": 62,
+     "id": 63,
      "name": "",
      "type": "checkpoint",
      "x": 896,
@@ -4849,7 +4868,7 @@
      "point": true
     },
     {
-     "id": 63,
+     "id": 64,
      "name": "",
      "type": "checkpoint",
      "x": 1600,
@@ -4861,7 +4880,7 @@
      "point": true
     },
     {
-     "id": 64,
+     "id": 65,
      "name": "",
      "type": "checkpoint",
      "x": 2320,
@@ -4873,7 +4892,7 @@
      "point": true
     },
     {
-     "id": 65,
+     "id": 66,
      "name": "",
      "type": "exit",
      "x": 2640,

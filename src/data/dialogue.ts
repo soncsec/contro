@@ -1,7 +1,7 @@
 /**
  * Dialogue cards shown between levels (PROJECT.md: minimal text, owner decision 2026-10-17).
- * The story thread (drafted for the owner, 2026-10-18): the hive is taking over human
- * machines, which is why the marine fights a tank and a mech. The owner may edit any line.
+ * The story thread: the hive is taking over human machines, which is why the marine fights a
+ * tank and a mech. Drafted by Claude 2026-10-18; Level 1's cards approved by the owner 2026-10-19.
  * tests/unit/dialogue.test.ts checks every card fits on screen.
  */
 export interface Speaker {
