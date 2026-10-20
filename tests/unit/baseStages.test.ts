@@ -42,6 +42,30 @@ describe('base stages (M5.6)', () => {
     }
   });
 
+  it('the base core has 4 rooms; turrets fit on the far wall; the last core is bigger and fires back', () => {
+    const core = BASE_STAGES['hive-core'];
+    expect(core?.rooms).toHaveLength(4); // owner decision 2026-10-20
+    for (const room of core?.rooms ?? []) {
+      for (const t of room.turrets ?? []) {
+        expect(t.hp).toBeGreaterThan(0);
+        expect(t.x).toBeGreaterThanOrEqual(0);
+        expect(t.x).toBeLessThanOrEqual(2 * BASE.projection.centerX);
+        expect(t.h).toBeGreaterThan(0);
+        expect(t.h).toBeLessThan(BASE.roomHeight);
+        expect(t.everyMs).toBeGreaterThan(0);
+        expect(t.count).toBeGreaterThan(0);
+      }
+    }
+    const rooms = core?.rooms ?? [];
+    const last = rooms[rooms.length - 1];
+    expect(last?.core.fire).toBeDefined();
+    expect(rooms.slice(0, -1).every((r) => r.core.fire === undefined)).toBe(true);
+    // Each room is at least as tough as the one before, and the last core is the biggest.
+    const hp = rooms.map((r) => r.core.hp);
+    expect([...hp].sort((a, b) => a - b)).toEqual(hp);
+    expect(last?.core.halfWidth).toBe(Math.max(...rooms.map((r) => r.core.halfWidth)));
+  });
+
   it('the room art matches the projection: the far wall fits the screen', () => {
     const room = ASSETS.find((a) => a.key === 'base-room');
     expect(room).toMatchObject({ width: 320, height: 176 });

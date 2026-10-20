@@ -120,6 +120,7 @@ ASSETS = [
     ("assets/levels/base/room.png", "Warped/Environments/alien-environment/PNG/layers", "base:room"),
     ("assets/levels/base/core.png", "", "base:core"),
     ("assets/levels/base/barrier.png", "", "base:barrier"),
+    ("assets/levels/base/turret.png", "", "base:turret"),
     ("assets/player/marine-back.png", "", "base:marine"),
     ("assets/levels/corridor/catwalk.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "draw:catwalk"),
     ("assets/levels/corridor/tileset.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "copy"),
@@ -214,6 +215,9 @@ def build() -> list[tuple[str, str, str]]:
         elif how == "base:barrier":
             png.write(str(dest), base_room.barrier())
             rows.append((out, "—", "*drawn by Claude* (`tools/art/base_room.py`): the electric barrier, 2 frames"))
+        elif how == "base:turret":
+            png.write(str(dest), base_room.turret())
+            rows.append((out, "—", "*drawn by Claude* (`tools/art/base_room.py`): a wall turret, 2 frames (eye dark, then lit as it fires)"))
         elif how == "base:marine":
             png.write(str(dest), base_room.marine_back())
             rows.append((out, "—", "*drawn by Claude* (`tools/art/base_room.py`): the marine seen from behind, in the space marine's colours: standing, two running steps, crouching"))

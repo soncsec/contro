@@ -191,9 +191,29 @@ export function stepWalker(
   return { walker: { ...w, x, z }, contact, gone: z <= 0 };
 }
 
-/** One room: its core and the walkers that come out of the far end. */
+/** A gun on the far wall: a turret, or a core that fights back (M5.6c). */
+export interface ShooterSpec {
+  /** Where it fires from: across the room, and height on the far wall. */
+  x: number;
+  h: number;
+  /** The first shot after this long, then one volley every `everyMs`. */
+  firstMs: number;
+  everyMs: number;
+  /** Shots per volley, fanned this far apart where they arrive (1 and 0 for one shot). */
+  count: number;
+  spreadPx: number;
+}
+
+/** One room: its core, the turrets on its far wall, and the walkers that come out. */
 export interface BaseRoom {
-  core: { hp: number; halfWidth: number };
+  core: {
+    hp: number;
+    halfWidth: number;
+    /** The last room's core fires back (M5.6c). */
+    fire?: ShooterSpec;
+  };
+  /** Wall turrets (M5.6c): a few hits destroy one. */
+  turrets?: readonly (ShooterSpec & { hp: number })[];
   walkers: {
     /** The first comes out after this long, then one every `everyMs`, `count` in all. */
     firstMs: number;
@@ -242,4 +262,68 @@ export function hitCore(r: RoomState, damage: number): RoomState {
   if (r.clearedMs !== null) return r;
   const coreHp = Math.max(0, r.coreHp - damage);
   return { ...r, coreHp, clearedMs: coreHp === 0 ? 0 : null };
+}
+
+/** A gun's countdown to its next volley. */
+export interface ShooterState {
+  nextMs: number;
+}
+
+export const initialShooter = (spec: ShooterSpec): ShooterState => ({ nextMs: spec.firstMs });
+
+/** A shot fired out of the room at him: from the far wall at (x0, h0) to x1 at the near edge. */
+export interface IncomingShot {
+  x0: number;
+  h0: number;
+  x1: number;
+  z: number;
+}
+
+export interface IncomingTuning {
+  /** Depth covered per second (towards him). */
+  depthSpeed: number;
+  halfWidth: number;
+  /** Height it arrives at, at the near edge: crouching ducks under it. */
+  arriveH: number;
+}
+
+/** Counts down; on time, fires a volley aimed at `aimX` (fanned for more than one shot). */
+export function stepShooter(
+  s: ShooterState,
+  spec: ShooterSpec,
+  aimX: number,
+  dtMs: number,
+): { shooter: ShooterState; shots: IncomingShot[] } {
+  const nextMs = s.nextMs - Math.max(0, dtMs);
+  if (nextMs > 0) return { shooter: { nextMs }, shots: [] };
+  const shots = Array.from({ length: spec.count }, (_, i) => ({
+    x0: spec.x,
+    h0: spec.h,
+    x1: aimX + (i - (spec.count - 1) / 2) * spec.spreadPx,
+    z: 1,
+  }));
+  // Never more than one volley a frame, even after a long stall.
+  return { shooter: { nextMs: Math.max(nextMs + spec.everyMs, 0) }, shots };
+}
+
+/** Where an incoming shot is at depth z: across, and its height. */
+export function incomingAt(s: IncomingShot, t: IncomingTuning, z = s.z): { x: number; h: number } {
+  return { x: s.x1 + (s.x0 - s.x1) * z, h: t.arriveH + (s.h0 - t.arriveH) * z };
+}
+
+/**
+ * Moves it towards him. On the frame it reaches the near edge it hits him if he is where it
+ * was aimed and isn't crouching; then it is gone.
+ */
+export function stepIncoming(
+  s: IncomingShot,
+  m: BaseMarine,
+  marineHalfWidth: number,
+  dtMs: number,
+  t: IncomingTuning,
+): { shot: IncomingShot; hit: boolean; gone: boolean } {
+  const z = s.z - (t.depthSpeed * Math.max(0, dtMs)) / 1000;
+  const reached = s.z > 0 && z <= 0;
+  const hit = reached && !m.crouching && Math.abs(s.x1 - m.x) <= t.halfWidth + marineHalfWidth;
+  return { shot: { ...s, z }, hit, gone: z <= 0 };
 }
