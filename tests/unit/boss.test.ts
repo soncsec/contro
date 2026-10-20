@@ -11,6 +11,8 @@ import {
   stepBoss,
   type BossState,
   type BossTuning,
+  hoverBob,
+  swoopEnd,
 } from '../../src/logic/boss';
 
 const T: BossTuning = {
@@ -204,5 +206,29 @@ describe('turning (the mech sends a shockwave when it turns)', () => {
     const range = { min: 100, max: 200 };
     expect(stepBoss(fighting, 150, range, 16, t).turned).toBe(false);
     expect(stepBoss(fighting, 100, range, 16, t).turned).toBe(true);
+  });
+});
+
+describe('the demon (M5.3): hovering and swooping', () => {
+  it('bobs around its hover height', () => {
+    expect(hoverBob(0, 6, 2000)).toBeCloseTo(0, 10);
+    expect(hoverBob(500, 6, 2000)).toBeCloseTo(-6, 10); // a quarter of the way: highest
+    expect(hoverBob(1500, 6, 2000)).toBeCloseTo(6, 10);
+    expect(hoverBob(1234, 6, 0)).toBe(0);
+  });
+
+  it('a swoop ends as far past the marine as it started, so it dips lowest over him', () => {
+    expect(swoopEnd(300, 200, { min: 50, max: 350 })).toBe(100);
+    expect(swoopEnd(100, 200, { min: 50, max: 350 })).toBe(300);
+    // Kept to its range.
+    expect(swoopEnd(300, 60, { min: 50, max: 350 })).toBe(50);
+  });
+
+  it('a dive is the leap arc turned upside down: down to its lowest halfway, back up', () => {
+    const from = { x: 300, y: 80 };
+    const to = { x: 100, y: 80 };
+    const mid = leapArc(from, to, 500, 1000, -60);
+    expect(mid).toMatchObject({ x: 200, y: 140, done: false });
+    expect(leapArc(from, to, 1000, 1000, -60)).toMatchObject({ x: 100, y: 80, done: true });
   });
 });

@@ -5,7 +5,7 @@ import type { BossTuning } from '../logic/boss';
  * Bosses that level maps may place (ARCHITECTURE.md ADR-C03), with their phases and attacks.
  * tests/unit/bosses.test.ts checks every entry against the asset manifest and the rules.
  */
-export const BOSS_TYPES = ['tank', 'mech'] as const;
+export const BOSS_TYPES = ['tank', 'mech', 'demon'] as const;
 export type BossType = (typeof BOSS_TYPES)[number];
 
 export interface BossStats {
@@ -34,12 +34,22 @@ export interface BossStats {
     /** Lands up to this far either side of the marine (seeded RNG). */
     spread: number;
   };
-  /** The mech's spread: `count` shots from the muzzle, aimed at the marine, fanned out. */
-  spreadShot?: { shotSpeed: number; count: number; spreadDeg: number };
+  /**
+   * The mech's (and demon's) spread: `count` shots from the muzzle, aimed at the marine,
+   * fanned out; `sheet` is the shot's own sprite (the default orb if missing).
+   */
+  spreadShot?: { shotSpeed: number; count: number; spreadDeg: number; sheet?: string };
   /** A shot rolling along the floor, to jump over; `height` px above the feet. */
-  shockwave?: { speed: number; height: number };
+  shockwave?: { speed: number; height: number; sheet?: string };
   /** The mech's leap onto the marine: time in the air and how high it rises. */
   leap?: { durationMs: number; height: number };
+  /**
+   * The demon hovers (M5.3): its feet stay `height` px above the floor, bobbing `bobPx` up and
+   * down every `bobMs`. Shoot it diagonally up.
+   */
+  hover?: { height: number; bobPx: number; bobMs: number };
+  /** The demon's swoop: a dive across the arena taking `durationMs`, `dip` px down at its lowest. */
+  swoop?: { durationMs: number; dip: number };
   contactDamage: number;
   points: number;
   /** Big explosions while it blows up, and the time between them. */
@@ -136,5 +146,59 @@ export const BOSSES: Readonly<Record<BossType, BossStats>> = {
     contactDamage: 1,
     points: 8000,
     explosions: { effect: 'ground-explosion', everyMs: 300 },
+  },
+  // Level 3's boss (M5.3; owner approved the design 2026-10-20): the Gothicvania demon in
+  // hive colours, hovering over the hive's heart. It spits a fan of three acid globs and every
+  // so often breathes a wave of acid along the floor (jump it); below half health it is faster
+  // and swoops across the arena, lowest where the marine stands (the path marked first).
+  demon: {
+    name: 'THE HIVE',
+    sheet: 'demon',
+    frame: { width: 160, height: 128 },
+    // The cloaked body spans x 35–95 and rows 40–125 (the wings above and right don't count).
+    body: { width: 60, height: 84, offsetX: 35, offsetY: 40 },
+    facesLeftInArt: true,
+    // The skull's mouth (the globs come from here); the hatch is unused.
+    muzzle: [56, 55],
+    hatch: [56, 55],
+    drive: { min: 140, max: 280 },
+    startBeyond: 90,
+    tuning: {
+      // About two minutes with dodging: the last and hardest boss.
+      hp: 200,
+      introSpeed: 50,
+      phases: [
+        {
+          fromHpShare: 1,
+          driveSpeed: 22,
+          attacks: [
+            { kind: 'spread', cooldownMs: 2000, firstDelayMs: 1000 },
+            { kind: 'wave', cooldownMs: 6000, firstDelayMs: 3500 },
+          ],
+        },
+        {
+          fromHpShare: 0.5,
+          driveSpeed: 34,
+          attacks: [
+            { kind: 'spread', cooldownMs: 1600, firstDelayMs: 800 },
+            { kind: 'wave', cooldownMs: 4000, firstDelayMs: 2500 },
+            { kind: 'swoop', cooldownMs: 5000, firstDelayMs: 1500 },
+          ],
+        },
+      ],
+      dyingMs: 3000,
+    },
+    spreadShot: { shotSpeed: 95, count: 3, spreadDeg: 15, sheet: 'acid-glob' },
+    // Low enough to jump over; it rolls along the floor from under the demon towards him.
+    shockwave: { speed: 110, height: 8, sheet: 'acid-wave' },
+    // Its feet 36 px above the floor: low enough that its skull stays on screen (the art is
+    // 128 px tall at native size), high enough that forward shots pass under it: shoot it
+    // diagonally up, and don't stand right under it.
+    hover: { height: 36, bobPx: 4, bobMs: 2400 },
+    // Down to the floor at its lowest: jump or get clear.
+    swoop: { durationMs: 1400, dip: 32 },
+    contactDamage: 1,
+    points: 15000,
+    explosions: { effect: 'ground-explosion', everyMs: 250 },
   },
 };

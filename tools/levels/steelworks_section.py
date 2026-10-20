@@ -325,6 +325,28 @@ LAYOUTS = {
         "start": 3,
         "exit": 175,
     },
+    # 3-6: the hive's heart. A last gauntlet over flesh ledges and gaps, then the heart's
+    # chamber, the map's last screen, where the demon waits (M5.3).
+    "heart": {
+        "width": 150,
+        "tileset": "tissue",
+        "indoor": True,
+        "floor": [(0, 26), (29, 52), (55, 78), (81, 104), (107, 150)],
+        "blocks": [(10, 16, 6), (16, 22, 4), (38, 44, 6), (44, 48, 4), (64, 70, 6), (70, 74, 4),
+                   (90, 96, 6), (96, 100, 4)],
+        "walkways": [(23, 8, 5), (49, 8, 5), (75, 8, 5), (101, 8, 5)],
+        "walkers": [6, 13, 19, "24g", 32, 41, 46, "50g", 58, 67, 72, "76g", 84, 93, 98, "102g",
+                    110, 116, 122],
+        "flyers": [(30, 36), (60, 32), (90, 36), (118, 40)],
+        "snakes": [20, 46, 72, 98],
+        "spawners": [(30, 4, 900, "right"), (82, 4, 850, "left"), (112, 3, 900, "right")],
+        "blimps": [(34, 40, "spread", "right"), (112, 40, "health", "right")],
+        # The last screen is the demon's chamber (M5.3); the exit opens once it is destroyed.
+        "boss": ("demon", 146),
+        "checkpoints": [56, 108],
+        "start": 3,
+        "exit": 146,
+    },
 }
 
 

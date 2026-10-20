@@ -97,6 +97,10 @@ export const ASSETS: readonly Asset[] = [
   sheet('effects', 'snake-spit', 'snake-spit.png', 7, 5, 2, 12, true),
   // M4.4: the Level 2 boss, the mech, 10 walk frames
   sheet('enemies', 'mech', 'mech.png', 96, 80, 10, 10, true),
+  // M5.3: Level 3's boss, the demon in hive colours, and its acid globs and wave
+  sheet('enemies', 'demon', 'demon.png', 160, 128, 6, 6, true),
+  sheet('effects', 'acid-glob', 'acid-glob.png', 8, 8, 2, 10, true),
+  sheet('effects', 'acid-wave', 'acid-wave.png', 24, 16, 2, 8, true),
 
   // Effects
   sheet('effects', 'bullet', 'bullet.png', 10, 4, 2, 12, true),
@@ -257,6 +261,11 @@ export const LEVELS: readonly LevelAsset[] = [
   {
     key: 'hive-4',
     path: 'assets/levels/hive-4.tmj',
+    tilesets: { tissue: 'tissue-tileset' },
+  },
+  {
+    key: 'hive-5',
+    path: 'assets/levels/hive-5.tmj',
     tilesets: { tissue: 'tissue-tileset' },
   },
 ];

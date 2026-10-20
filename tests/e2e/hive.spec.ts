@@ -116,3 +116,13 @@ test("4-4 leads straight into 4-5, the hive's gut: two levels, the most snakes y
   expect(snakes).toHaveLength(7);
   expect(snakes.every((e) => e.feetY < 128)).toBe(true); // up on the ledges, above the floor
 });
+
+test("4-5 leads straight into 4-6, the hive's heart, where the demon waits", async ({ page }) => {
+  await openSection(page, 'hive-4');
+  const exit = await walkThroughExit(page);
+  expect(exit.scene).toBe('Level');
+  await expect.poll(async () => (await level(page)).level).toBe('hive-5');
+  const s = await level(page);
+  expect(s.label).toBe('4-6');
+  expect(s.boss).toMatchObject({ type: 'demon', mode: 'waiting' });
+});
