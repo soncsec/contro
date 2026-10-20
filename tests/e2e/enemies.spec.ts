@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, startGame, waitGameTime, watchPage } from './watch';
+import { level, startGame, title, waitGameTime, watchPage } from './watch';
 
 async function openLevel(page: Page): Promise<void> {
   await startGame(page);
@@ -80,3 +80,52 @@ test('bullets pass through a dead alien', async ({ page }) => {
   expect(later.bullets.active).toBe(0);
   expect(later.enemies[1]?.hp).toBe(3);
 });
+
+// Walkers the map puts up on a walkway stay up there; they used to drop through it to the
+// floor below (or down a pit), because only the marine collided with walkways.
+interface MapObject {
+  type: string;
+  x: number;
+  y: number;
+  width: number;
+  properties?: { name: string; value: unknown }[];
+}
+
+/** Indexes (in spawn order) and deck tops of the alien walkers a map stands on a walkway. */
+async function walkersOnWalkways(
+  page: Page,
+  key: string,
+): Promise<{ index: number; deckY: number }[]> {
+  // The map as the game loads it, from our own origin.
+  const response = await page.request.get(`assets/levels/${key}.tmj`);
+  expect(response.ok()).toBe(true);
+  const map = (await response.json()) as { layers: { name: string; objects?: MapObject[] }[] };
+  const objects = (name: string) => map.layers.find((l) => l.name === name)?.objects ?? [];
+  const decks = objects('collision').filter((o) => o.type === 'platform');
+  const enemies = objects('spawns').filter((o) => o.type === 'enemy');
+  const kind = (o: MapObject) => o.properties?.find((p) => p.name === 'enemy')?.value;
+  return enemies.flatMap((o, index) => {
+    const deck = decks.find((d) => d.y === o.y && o.x >= d.x && o.x <= d.x + d.width);
+    return kind(o) === 'alien-walker' && deck ? [{ index, deckY: deck.y }] : [];
+  });
+}
+
+for (const key of ['steelworks-1', 'hive-1']) {
+  test(`walkers placed on walkways in ${key} stay on them`, async ({ page }) => {
+    await page.goto('./');
+    const onDecks = await walkersOnWalkways(page, key);
+    expect(onDecks.length).toBeGreaterThan(0);
+    await expect.poll(async () => (await title(page))?.ready, { timeout: 15_000 }).toBe(true);
+    await page.evaluate((k) => window.__contro?.startLevel(k), key);
+    await expect
+      .poll(async () => (await level(page)).player.onFloor, { timeout: 15_000 })
+      .toBe(true);
+    // Half a second in: long enough to have fallen, too short to have patrolled off an end.
+    const start = await level(page);
+    const later = await waitGameTime(page, start.timeMs, 500);
+    for (const { index, deckY } of onDecks) {
+      expect(later.enemies[index]?.alive).toBe(true);
+      expect(later.enemies[index]?.feetY).toBe(deckY);
+    }
+  });
+}
