@@ -23,6 +23,7 @@ import neon  # noqa: E402
 import props  # noqa: E402
 import rust  # noqa: E402
 import steelworks  # noqa: E402
+import tissue  # noqa: E402
 import png  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
@@ -108,6 +109,8 @@ ASSETS = [
     ("assets/levels/alien/tileset.png", "Warped/Environments/alien-environment/PNG/layers", "alien"),
     ("assets/levels/alien/back.png", "Warped/Environments/alien-environment/PNG/layers/background.png", "copy"),
     ("assets/levels/alien/structures.png", "Warped/Environments/alien-environment/PNG/layers/back-structures.png", "copy"),
+    # Level 3, inside the hive (owner chose "into the hive", 2026-10-20): the living-tissue tileset
+    ("assets/levels/tissue/tileset.png", "Gothicvania/Environments/Living-Tissue-Platform-Files/PNG/layers", "tissue"),
     # M5.6: the into-the-screen base room (ADR-C11; owner approved the mockup 2026-10-20)
     ("assets/levels/base/room.png", "Warped/Environments/alien-environment/PNG/layers", "base:room"),
     ("assets/levels/base/core.png", "", "base:core"),
@@ -213,6 +216,9 @@ def build() -> list[tuple[str, str, str]]:
         elif how == "base:marine":
             png.write(str(dest), base_room.marine_back())
             rows.append((out, "—", "*drawn by Claude* (`tools/art/base_room.py`): the marine seen from behind, in the space marine's colours: standing, two running steps, crouching"))
+        elif how == "tissue":
+            png.write(str(dest), tissue.build(str(source / "tileset.png"), str(source / "bakground.png")))
+            rows.append((out, f"{src}/tileset.png, bakground.png", "*derived*: the ledge's crest, veined flesh and ends cut and repeated as floor, under-floor, walkway and pits; the background repeated as the wall; pixels unchanged (`tools/art/tissue.py`)"))
         elif how == "alien":
             png.write(str(dest), alien.build(str(source / "tileset.png"), str(source / "background.png"), str(source / "back-structures.png")))
             rows.append((out, f"{src}/tileset.png, background.png, back-structures.png", "*derived*: the long bridge's deck and arches and the vent platform and truss cut and repeated as floor, under-floor and walkway; the background and back structures flattened as the wall; pixels unchanged (`tools/art/alien.py`)"))
