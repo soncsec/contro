@@ -12,6 +12,7 @@ import { GameSound } from '../systems/GameSound';
 import { PlayerInput } from '../systems/PlayerInput';
 import { TouchControls } from '../systems/TouchControls';
 import { SaveStore } from '../systems/SaveStore';
+import { sceneFor } from '../data/baseStages';
 
 const TEXT = { fontFamily: FONT.family, fontSize: FONT.size } as const;
 const COLORS = {
@@ -189,7 +190,7 @@ export class TitleScene extends Phaser.Scene {
           const { cards, nextLevel } = campaignStart(CAMPAIGN, this.level);
           const [card, ...more] = cards;
           if (card) this.scene.start('Dialogue', { card, more, nextLevel });
-          else this.scene.start('Level', { level: nextLevel });
+          else if (nextLevel) this.scene.start(sceneFor(nextLevel), { level: nextLevel });
         });
         break;
       case 'CONTROLS':

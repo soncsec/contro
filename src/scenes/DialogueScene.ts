@@ -5,6 +5,7 @@ import { DIALOGUE, SPEAKERS, type DialogueId } from '../data/dialogue';
 import { GameSound } from '../systems/GameSound';
 import { PlayerInput } from '../systems/PlayerInput';
 import type { RunState } from './LevelScene';
+import { sceneFor } from '../data/baseStages';
 
 export interface DialogueSceneData {
   card: DialogueId;
@@ -125,7 +126,7 @@ export class DialogueScene extends Phaser.Scene {
         const next: DialogueSceneData = { card, more, nextLevel: this.nextLevel, ...run };
         this.scene.restart(next);
       } else if (this.nextLevel) {
-        this.scene.start('Level', { level: this.nextLevel, ...run });
+        this.scene.start(sceneFor(this.nextLevel), { level: this.nextLevel, ...run });
       } else {
         this.scene.start('End', { score: this.run?.score ?? 0 });
       }

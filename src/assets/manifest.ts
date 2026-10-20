@@ -70,6 +70,8 @@ export const ASSETS: readonly Asset[] = [
   sheet('player', 'marine-crouch', 'marine-crouch.png', 75, 48, 3, 20, false),
   sheet('player', 'marine-crouch-shoot', 'marine-crouch-shoot.png', 75, 48, 2, 12, true),
   sheet('player', 'marine-die', 'marine-die.png', 75, 48, 3, 8, false),
+  // M5.6: the marine seen from behind in base rooms: standing, two running steps, crouching
+  sheet('player', 'marine-back', 'marine-back.png', 22, 38, 4, 8, true),
   // Derived: arms and rifle raised 45° (tools/art/aim.py)
   sheet('player', 'marine-aim-diag', 'marine-aim-diag.png', 75, 48, 4, 6, true),
   sheet('player', 'marine-shoot-diag', 'marine-shoot-diag.png', 75, 48, 2, 12, true),
@@ -144,6 +146,10 @@ export const ASSETS: readonly Asset[] = [
   image('levels', 'alien-tileset', 'alien/tileset.png', 320, 368),
   image('levels', 'alien-back', 'alien/back.png', 192, 176),
   image('levels', 'alien-structures', 'alien/structures.png', 416, 176),
+  // M5.6: the into-the-screen base room (ADR-C11): the room, its core and electric barrier
+  image('levels', 'base-room', 'base/room.png', 320, 176),
+  sheet('levels', 'base-core', 'base/core.png', 28, 28, 2, 4, true),
+  sheet('levels', 'base-barrier', 'base/barrier.png', 96, 72, 2, 8, true),
 ];
 
 /** Key of a sheet's default animation. */

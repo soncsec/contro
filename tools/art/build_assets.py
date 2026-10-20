@@ -15,6 +15,7 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import aim  # noqa: E402
 import alien  # noqa: E402
+import base_room  # noqa: E402
 import blimp  # noqa: E402
 import catwalk  # noqa: E402
 import letters  # noqa: E402
@@ -107,6 +108,11 @@ ASSETS = [
     ("assets/levels/alien/tileset.png", "Warped/Environments/alien-environment/PNG/layers", "alien"),
     ("assets/levels/alien/back.png", "Warped/Environments/alien-environment/PNG/layers/background.png", "copy"),
     ("assets/levels/alien/structures.png", "Warped/Environments/alien-environment/PNG/layers/back-structures.png", "copy"),
+    # M5.6: the into-the-screen base room (ADR-C11; owner approved the mockup 2026-10-20)
+    ("assets/levels/base/room.png", "Warped/Environments/alien-environment/PNG/layers", "base:room"),
+    ("assets/levels/base/core.png", "", "base:core"),
+    ("assets/levels/base/barrier.png", "", "base:barrier"),
+    ("assets/player/marine-back.png", "", "base:marine"),
     ("assets/levels/corridor/catwalk.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "draw:catwalk"),
     ("assets/levels/corridor/tileset.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "copy"),
     # Level 1 Industrial (owner chose option B, teal steelworks, 2026-10-18)
@@ -191,6 +197,18 @@ def build() -> list[tuple[str, str, str]]:
         elif how == "props":
             png.write(str(dest), props.build(str(source)))
             rows.append((out, f"{src}/cryo-pod.png, server-gabinetes.png, small-terminal.png", "*derived*: three props placed on a 16 px grid, bottom-aligned, pixels unchanged (`tools/art/props.py`)"))
+        elif how == "base:room":
+            png.write(str(dest), base_room.room(str(source / "background.png"), str(source / "back-structures.png")))
+            rows.append((out, f"{src}/background.png, back-structures.png", "*derived*: the alien base's background and back structures drawn in perspective as the room's side walls and far wall; floor and ceiling shaded in their colours (`tools/art/base_room.py`)"))
+        elif how == "base:core":
+            png.write(str(dest), base_room.core())
+            rows.append((out, "—", "*drawn by Claude* (`tools/art/base_room.py`): the far wall's glowing core, 2 frames"))
+        elif how == "base:barrier":
+            png.write(str(dest), base_room.barrier())
+            rows.append((out, "—", "*drawn by Claude* (`tools/art/base_room.py`): the electric barrier, 2 frames"))
+        elif how == "base:marine":
+            png.write(str(dest), base_room.marine_back())
+            rows.append((out, "—", "*drawn by Claude* (`tools/art/base_room.py`): the marine seen from behind, in the space marine's colours: standing, two running steps, crouching"))
         elif how == "alien":
             png.write(str(dest), alien.build(str(source / "tileset.png"), str(source / "background.png"), str(source / "back-structures.png")))
             rows.append((out, f"{src}/tileset.png, background.png, back-structures.png", "*derived*: the long bridge's deck and arches and the vent platform and truss cut and repeated as floor, under-floor and walkway; the background and back structures flattened as the wall; pixels unchanged (`tools/art/alien.py`)"))
