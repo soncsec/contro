@@ -18,6 +18,7 @@ import blimp  # noqa: E402
 import catwalk  # noqa: E402
 import letters  # noqa: E402
 import neon  # noqa: E402
+import props  # noqa: E402
 import rust  # noqa: E402
 import steelworks  # noqa: E402
 import png  # noqa: E402
@@ -87,6 +88,7 @@ ASSETS = [
     ("assets/effects/pickup-health.png", "", "draw:letter-+"),
     # Level 2, the Neon District (owner chose option A, 2026-10-19): tileset and skyline
     ("assets/levels/neon/tileset.png", "Warped/Environments", "neon"),
+    ("assets/levels/corridor/props.png", "Warped/Environments/cyberpunk-detective-props/PNG", "props"),
     ("assets/levels/neon/sky.png", "Warped/Environments/Synth City/city skyline/Layers/back.png", "copy"),
     ("assets/levels/neon/buildings.png", "Warped/Environments/Synth City/city skyline/Layers/buildings.png", "copy"),
     ("assets/levels/neon/front.png", "Warped/Environments/Synth City/city skyline/Layers/front.png", "copy"),
@@ -163,6 +165,9 @@ def build() -> list[tuple[str, str, str]]:
             letter = how.split("-", 1)[1]
             png.write(str(dest), letters.build(letter))
             rows.append((out, "—", f"*drawn by Claude* (`tools/art/letters.py`): the {letter} pickup, in the style of Press Start 2P (owner approved 2026-10-19)"))
+        elif how == "props":
+            png.write(str(dest), props.build(str(source)))
+            rows.append((out, f"{src}/cryo-pod.png, server-gabinetes.png, small-terminal.png", "*derived*: three props placed on a 16 px grid, bottom-aligned, pixels unchanged (`tools/art/props.py`)"))
         elif how == "neon":
             png.write(str(dest), neon.build(str(source / "sci-fi-interior-platform/PNG/tile-set-sci-fi-interior-platform.png"), str(source / "Scifi lab Files/layers")))
             rows.append((out, f"{src}/sci-fi-interior-platform/PNG/tile-set-sci-fi-interior-platform.png, Scifi lab Files/layers/*.png", "*derived*: the platform tiles' ledge strip and lattice cut and repeated as floor, face and walkway; the lab's three layers flattened as the wall; pit tiles *drawn by Claude* in the lattice's colours (`tools/art/neon.py`)"))

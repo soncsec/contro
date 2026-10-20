@@ -213,6 +213,8 @@ export class LevelScene extends Phaser.Scene {
       return tileset;
     });
     map.createLayer('background', tilesets);
+    // Props (M4.3: the corridor's cryo pods, server racks…), then catwalks and pit edges.
+    if (map.getLayer('props')) map.createLayer('props', tilesets);
     // Catwalks and pit edges, drawn over the room.
     if (map.getLayer('platforms')) map.createLayer('platforms', tilesets);
 

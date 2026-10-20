@@ -119,6 +119,8 @@ export const ASSETS: readonly Asset[] = [
   image('levels', 'corridor-tileset', 'corridor/tileset.png', 512, 608),
   // Drawn by Claude: catwalks and pit edges in the corridor's colours (tools/art/catwalk.py)
   image('levels', 'corridor-catwalk', 'corridor/catwalk.png', 48, 48),
+  // Level 2: cyberpunk props on a 16 px grid (tools/art/props.py)
+  image('levels', 'corridor-props', 'corridor/props.png', 192, 96),
   // Level 1 art: industrial skyline (parallax, back to front) and the steelworks tileset
   image('levels', 'industrial-sky', 'industrial/sky.png', 272, 160),
   image('levels', 'industrial-far', 'industrial/far.png', 213, 142),
@@ -190,6 +192,15 @@ export const LEVELS: readonly LevelAsset[] = [
     key: 'neon-1',
     path: 'assets/levels/neon-1.tmj',
     tilesets: { neon: 'neon-tileset' },
+  },
+  {
+    key: 'neon-2',
+    path: 'assets/levels/neon-2.tmj',
+    tilesets: {
+      corridor: 'corridor-tileset',
+      catwalk: 'corridor-catwalk',
+      props: 'corridor-props',
+    },
   },
 ];
 
