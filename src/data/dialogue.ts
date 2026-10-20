@@ -46,6 +46,16 @@ export const DIALOGUE = {
     speaker: 'hive',
     lines: ['Every step brings you', 'deeper into us, marine.'],
   },
+  // Before level 3 (approved with the story draft, 2026-10-19).
+  'level-3-intro': {
+    speaker: 'commander',
+    lines: ['This is the nest.', 'Burn it out. No one', 'is coming after you.'],
+  },
+  // The ending, after level 3's last section (approved with the story draft, 2026-10-19).
+  'level-3-end': {
+    speaker: 'marine',
+    lines: ['Hive is silent.', 'Steelworks, city, nest:', 'all clear. Going home.'],
+  },
   // After level 1's last section, once the tank is destroyed.
   'level-1-end': {
     speaker: 'commander',

@@ -136,6 +136,10 @@ export const ASSETS: readonly Asset[] = [
   image('levels', 'neon-sky', 'neon/sky.png', 288, 192),
   image('levels', 'neon-buildings', 'neon/buildings.png', 288, 192),
   image('levels', 'neon-front', 'neon/front.png', 288, 192),
+  // Level 3, the alien base (owner chose "into the hive", 2026-10-20): tileset and back wall
+  image('levels', 'alien-tileset', 'alien/tileset.png', 320, 368),
+  image('levels', 'alien-back', 'alien/back.png', 192, 176),
+  image('levels', 'alien-structures', 'alien/structures.png', 416, 176),
 ];
 
 /** Key of a sheet's default animation. */
@@ -222,6 +226,11 @@ export const LEVELS: readonly LevelAsset[] = [
       catwalk: 'corridor-catwalk',
       props: 'corridor-props',
     },
+  },
+  {
+    key: 'hive-1',
+    path: 'assets/levels/hive-1.tmj',
+    tilesets: { alien: 'alien-tileset' },
   },
 ];
 

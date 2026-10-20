@@ -12,7 +12,7 @@
 | M2 Core feel | Done (feel signed off by the owner 2026-10-18) |
 | M3 Level 1 Industrial (vertical slice) | In progress |
 | M4 Level 2 Cyberpunk Corridor | Done: live 2026-10-20 (mech eased after the owner's first play) |
-| M5 Level 3 Alien Hive | Not started |
+| M5 Level 3 Alien Hive | In progress |
 | M6 Polish and v1.0 release | Not started |
 
 ## Risks driving this order
@@ -124,9 +124,11 @@
 
 **Demonstrable result:** the full game is playable to the ending.
 
-- [ ] M5.1 Alien enemies for Level 3
-- [ ] M5.2 Level 3: **at least 5 varied sections, about 5–8 minutes including the boss**, including **multi-level ground** (the alien tileset's ledges) and a change of scenery (e.g. the another-world art)
-- [ ] M5.3 Alien boss (Gothicvania art, recolored)
+Owner decisions 2026-10-20, from mockups: **into the hive** (3-1 and 3-2 in the alien base, 3-3 to 3-5 inside the living-tissue hive, ending in the boss's chamber), the **demon in hive colours** as the boss, and the **spitting snake** as Level 3's new creature (the alien walkers, flyers, runners and bipedal walkers stay).
+
+- [ ] M5.1 The spitting snake (`Warped/Characters/Grotto-escape-2-snake`): sits on ledges and spits at the marine, like a turret; two hits. Rules in `src/logic/`, unit tested
+- [ ] M5.2 Level 3: **at least 5 varied sections, about 5–8 minutes including the boss**, including **multi-level ground**, built one section per PR like Levels 1 and 2. Tileset `tools/art/alien.py` (the alien base's bridges, same rows as the steelworks tileset). **3-1 The alien base** done: 180 tiles of bridges with five gaps between them, raised bridges, four vent walkways over the gaps, 19 walkers, 5 flyers, runners, a bipedal walker, two blimps (spread, health), in front of the base's back wall and structures; Level 3's intro card and the ending card (both approved with the story draft, 2026-10-19); Level 2's music until M5.5
+- [ ] M5.3 Alien boss: the Gothicvania demon, recoloured in hive colours (acid green wings and flames), in the hive's chamber at the end of 3-5
 - [ ] M5.4 Ending and credits screens
 - [ ] M5.5 Level 3 music
 

@@ -37,7 +37,7 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 | Controls | Keyboard, **gamepad** (standard mapping) and **phone touch controls** (on-screen buttons on touch screens; owner approved 2026-10-18). Default keys: arrows or WASD to move, jump, fire, aim-up modifier, pause. Final key layout settled in M1/M2 play-tests |
 | Health | **Health bar** with several hits per life, brief invulnerability after a hit, **mid-level checkpoints**, and a small number of lives with continue from the last checkpoint (owner decision 2026-10-17). Exact numbers live in `src/config/tuning.ts` |
 | Enemies | Walking alien, flying alien, bipedal walker, alien creatures; enemy shots. **Enemies also run in from the edges of the screen**, as in Contra, including a fast one-hit **runner** variant of the walking alien (owner left it to Claude, 2026-10-18; roadmap M3.14) |
-| Bosses | Level 1: **tank**. Level 2: **mech**. Level 3: an alien boss using **Gothicvania boss art (dragon or demon), recolored** to fit (owner approved 2026-10-17). Each with a health bar, phases and attack patterns |
+| Bosses | Level 1: **tank**. Level 2: **mech**. Level 3: an alien boss using **Gothicvania boss art, recolored** to fit (owner approved 2026-10-17): the **demon, in hive colours** (acid green wings and flames; owner chose it from mockups, 2026-10-20). Each with a health bar, phases and attack patterns |
 | Weapons | Default rifle fires **one shot per press** (no auto-fire when held; owner request 2026-10-17, issue #21). **On touch screens, holding the on-screen FIRE button auto-fires** (owner approved 2026-10-18), since tapping glass fast is tiring; keys and gamepad keep one shot per press. Plus **two weapon pickups: a machine gun** that auto-fires while fire is held, and a **spread gun** firing three bullets in a fan, **dropped by a blimp** the marine shoots down (one shot), as in Contra's pods; a pickup lasts until he loses a life (owner decisions 2026-10-19). Blimps can also carry a **full-health restore** (a red cross); **every section has two blimps**, one weapon and one health (owner requests 2026-10-19) |
 | Hazards | Pits and one-way platforms. No slopes in v1. In corridor levels, platforms are **catwalks drawn by Claude** in the corridor's colours (owner chose option C of three mockups, 2026-10-17). Down + jump drops through a catwalk; falling into a pit costs a life. **Bullets and enemy shots pass through all terrain** (walls, floors and catwalks), as in Contra: a marine behind a wall can shoot up at an enemy, and cover protects nobody (owner request 2026-10-18, roadmap M3.12) |
 | Double jump | **One extra jump in mid-air** (owner request 2026-10-17, roadmap M2.8). Restored on landing; also usable after walking off a ledge. Not in classic Contra; added for the platforming |
@@ -71,11 +71,11 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 | Use | Source (`legacy/`) |
 |---|---|
 | Player | `Warped/Characters/space-marine-lite` (75×48 frames) plus Claude-derived aim frames |
-| Enemies | `Warped/Characters/alien-walking-enemy`, `alien-flying-enemy`, `bipedal-Unit` |
-| Bosses | `Warped/Characters/tank-unit`, `mech-unit`, `Gothicvania/Characters/Grotto-escape-2-boss-dragon` or `demon-Files` |
+| Enemies | `Warped/Characters/alien-walking-enemy`, `alien-flying-enemy`, `bipedal-Unit`; Level 3 adds the `Grotto-escape-2-snake` as a spitting snake (owner chose it from a lineup of five creatures, 2026-10-20) |
+| Bosses | `Warped/Characters/tank-unit`, `mech-unit`, `Gothicvania/Characters/demon-Files` (recoloured) |
 | Level 1 Industrial | **The Steelworks** (owner chose option B of three mockups, 2026-10-18): teal steel floor, raised ledges and scaffold walkways from `Warped/Environments/bulkhead-walls/v1`, under the `parallax-industrial-web` skyline outdoors; one or two rust factory rooms from `bulkhead-walls/v2` (option C) for variety |
 | Level 2 Cyberpunk Corridor | `Warped/Environments/cyberpunk-corridor-files`, props from `cyberpunk-detective-props` |
-| Level 3 Alien Hive | `Warped/Environments/alien-environment` |
+| Level 3 Alien Hive | **Into the hive** (owner chose it from mockups, 2026-10-20): the first two sections in the alien base (`Warped/Environments/alien-environment`: mossy bridges on trusses), the last three inside the hive (`Gothicvania/Environments/Living-Tissue-Platform-Files`: flesh walls and fangs), ending in the boss's chamber |
 | Portraits | `Warped/Misc/Warped Portraits Files` (4 portraits, 48×48) |
 | Effects | `Explosions and Magic/*`, marine bullets and impacts |
 
@@ -91,4 +91,3 @@ It is built from the Ansimuz "Legacy Collection" pixel-art pack (mainly the Warp
 
 - Default key layout (M1/M2 play-test).
 - Phone touch controls: button layout (M3.11). **Landscape only** (owner decision 2026-10-18): held upright, the game asks the player to turn the phone.
-- Level 3 boss art: dragon or demon (M5).

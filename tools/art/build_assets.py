@@ -14,6 +14,7 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import aim  # noqa: E402
+import alien  # noqa: E402
 import blimp  # noqa: E402
 import catwalk  # noqa: E402
 import letters  # noqa: E402
@@ -94,6 +95,10 @@ ASSETS = [
     ("assets/levels/neon/sky.png", "Warped/Environments/Synth City/city skyline/Layers/back.png", "copy"),
     ("assets/levels/neon/buildings.png", "Warped/Environments/Synth City/city skyline/Layers/buildings.png", "copy"),
     ("assets/levels/neon/front.png", "Warped/Environments/Synth City/city skyline/Layers/front.png", "copy"),
+    # Level 3, the alien base (owner chose "into the hive", 2026-10-20): tileset and back wall
+    ("assets/levels/alien/tileset.png", "Warped/Environments/alien-environment/PNG/layers", "alien"),
+    ("assets/levels/alien/back.png", "Warped/Environments/alien-environment/PNG/layers/background.png", "copy"),
+    ("assets/levels/alien/structures.png", "Warped/Environments/alien-environment/PNG/layers/back-structures.png", "copy"),
     ("assets/levels/corridor/catwalk.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "draw:catwalk"),
     ("assets/levels/corridor/tileset.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "copy"),
     # Level 1 Industrial (owner chose option B, teal steelworks, 2026-10-18)
@@ -170,6 +175,9 @@ def build() -> list[tuple[str, str, str]]:
         elif how == "props":
             png.write(str(dest), props.build(str(source)))
             rows.append((out, f"{src}/cryo-pod.png, server-gabinetes.png, small-terminal.png", "*derived*: three props placed on a 16 px grid, bottom-aligned, pixels unchanged (`tools/art/props.py`)"))
+        elif how == "alien":
+            png.write(str(dest), alien.build(str(source / "tileset.png"), str(source / "background.png"), str(source / "back-structures.png")))
+            rows.append((out, f"{src}/tileset.png, background.png, back-structures.png", "*derived*: the long bridge's deck and arches and the vent platform and truss cut and repeated as floor, under-floor and walkway; the background and back structures flattened as the wall; pixels unchanged (`tools/art/alien.py`)"))
         elif how == "neon":
             png.write(str(dest), neon.build(str(source / "sci-fi-interior-platform/PNG/tile-set-sci-fi-interior-platform.png"), str(source / "Scifi lab Files/layers")))
             rows.append((out, f"{src}/sci-fi-interior-platform/PNG/tile-set-sci-fi-interior-platform.png, Scifi lab Files/layers/*.png", "*derived*: the platform tiles' ledge strip and lattice cut and repeated as floor, face and walkway; the lab's three layers flattened as the wall; pit tiles *drawn by Claude* in the lattice's colours (`tools/art/neon.py`)"))
