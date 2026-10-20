@@ -114,6 +114,13 @@ flowchart LR
 - **Alternatives:** one very long map per level (a single huge Tiled file: slow to edit and review, one tileset per map, so no changes of scenery); separate levels with a card after each section (breaks the flow and makes "level 1" meaningless).
 - **Tradeoffs:** more map files, but each stays small, reviewable and testable, and scenery can change between sections. Score, lives and health carry across sections the same way they now do across rooms.
 
+### ADR-C11: Into-the-screen base rooms — *Accepted 2026-10-20*
+
+- **Context:** the owner wants a Contra-style base stage, where the view turns into the screen: the marine, seen from behind, fights through rooms towards the far wall. It goes in Level 3, between the alien base and the hive, with 4 rooms (owner decisions 2026-10-20). The side-scrolling level scene can't show this.
+- **Decision:** a second kind of section, a **base stage**, played by its own scene (`BaseScene`). The room is drawn in fixed perspective: the floor, walls and far wall, with the marine at the bottom. He moves left and right along the near edge, jumps and crouches, and his shots fly into the room, shrinking with distance. Walkers come out of the far end and run at him, wall turrets fire, and the far wall's **core** drops the electric barrier when destroyed, so he walks on into the next room. Depth is a number (0 near, 1 far) projected to the screen by pure functions. The rules (projection, moving, shots and hits by depth, turrets, the core, room order) go in `src/logic/` with unit tests. The rooms are data in `src/data/`, validated by tests. The campaign lists a base stage as a section like any other, so cards, checkpoints, score, lives, health, weapons, cheats, sound, saves and the HUD carry over. The marine seen from behind is drawn by Claude by a script in `tools/art/`, shown to the owner as a mockup first. The room uses the alien base's own art, drawn in perspective. No new dependencies.
+- **Alternatives:** true 3D (a new dependency and a different look); a side-scrolling section dressed to look deeper (not what the owner asked for); faking depth inside `LevelScene` (mixes two very different kinds of play in one scene).
+- **Tradeoffs:** one more scene to keep consistent with the level scene, but sharing the HUD, input, sound and campaign keeps that small. Hits are worked out by depth and lane instead of Arcade physics overlaps, which keeps them simple and unit tested.
+
 ## 4. Code structure
 
 ```

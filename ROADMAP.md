@@ -10,7 +10,7 @@
 | M0 Setup | Done (M0.4 dropped 2026-10-19) |
 | M1 Walking skeleton (to production) | Done: live at games.soncrant.com/contro/ |
 | M2 Core feel | Done (feel signed off by the owner 2026-10-18) |
-| M3 Level 1 Industrial (vertical slice) | In progress |
+| M3 Level 1 Industrial (vertical slice) | Done (the owner beat Level 1, 2026-10-20) |
 | M4 Level 2 Cyberpunk Corridor | Done: live 2026-10-20 (mech eased after the owner's first play) |
 | M5 Level 3 Alien Hive | In progress |
 | M6 Polish and v1.0 release | Not started |
@@ -131,6 +131,11 @@ Owner decisions 2026-10-20, from mockups: **into the hive** (3-1 and 3-2 in the 
 - [ ] M5.3 Alien boss: the Gothicvania demon, recoloured in hive colours (acid green wings and flames), in the hive's chamber at the end of 3-5
 - [ ] M5.4 Ending and credits screens
 - [ ] M5.5 Level 3 music
+- [ ] M5.6 Into-the-screen base stage (owner request 2026-10-20; ADR-C11): Level 3's third section, the alien base's core, **4 rooms**, between 3-2 and the hive (Level 3 becomes six sections, about 9–10 minutes, as the finale). Built in slices:
+  - [ ] M5.6a The base room scene: perspective projection and rules in `src/logic/` (unit tested), one playable room with a placeholder marine, the core and barrier, walkers out of the far end; joins the campaign as a section
+  - [ ] M5.6b The marine seen from behind, drawn by Claude (`tools/art/`); mockup shown to the owner before it ships
+  - [ ] M5.6c Wall turrets and all 4 rooms as data; the fourth room's core is bigger and fights back harder
+  - [ ] M5.6d Touch and gamepad checks, and the full Level 3 run in e2e
 
 **Acceptance criteria:** the owner beats the game; every level's data passes validation.
 
