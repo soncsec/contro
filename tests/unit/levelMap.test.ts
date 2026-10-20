@@ -514,3 +514,22 @@ describe('Level 1 blimps (owner request 2026-10-19)', () => {
     },
   );
 });
+
+describe('bipedal walkers in Level 1 (owner request 2026-10-19)', () => {
+  it.each([
+    ['steelworks-1', 0],
+    ['steelworks-2', 1],
+    ['steelworks-3', 0],
+    ['steelworks-4', 1],
+    ['steelworks-5', 0],
+  ])('%s has %i', (key, count) => {
+    const level = LEVELS.find((l) => l.key === key);
+    const { enemies } = readLevelLayout(
+      readJson(`${PUBLIC_DIR}/${level?.path ?? ''}`),
+      ENEMY_TYPES,
+      BOSS_TYPES,
+      PICKUPS,
+    );
+    expect(enemies.filter((e) => e.enemy === 'bipedal-walker')).toHaveLength(count);
+  });
+});

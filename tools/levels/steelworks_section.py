@@ -10,6 +10,7 @@ Layouts are in LAYOUTS below. A layout gives the width in tiles and lists, in 16
   walkers    alien walkers by tile column; they stand on the walkway or ground there
              ("Ng" puts one on the ground under a walkway)
   flyers     (column, y px) alien flyers
+  bipeds     bipedal walkers (M4.2) by tile column, always on the ground
   blimps     (column, y px, carries, "left"|"right"): a blimp carrying a pickup ("machine-gun",
              "spread" or "health") that flies in from that edge of the screen once the column
              scrolls into view (M4.1)
@@ -88,6 +89,7 @@ LAYOUTS = {
         "flyers": [(40, 40), (70, 36), (108, 30), (138, 40), (158, 44)],
         "spawners": [(50, 3, 1100, "right"), (120, 4, 900, "right")],
         "blimps": [(36, 44, "spread", "right"), (128, 44, "health", "right")],
+        "bipeds": [96],
         "checkpoints": [46, 95, 144],
         "start": 3,
         "exit": 165,
@@ -126,6 +128,7 @@ LAYOUTS = {
         "flyers": [(26, 44), (50, 36), (72, 40), (100, 34), (122, 44), (146, 38)],
         "spawners": [(44, 3, 1000, "right"), (110, 3, 1000, "right"), (150, 3, 1200, "left")],
         "blimps": [(36, 48, "machine-gun", "right"), (120, 52, "health", "right")],
+        "bipeds": [89],
         "checkpoints": [56, 100, 145],
         "start": 3,
         "exit": 165,
@@ -255,6 +258,8 @@ def build(layout: dict) -> dict:
     for w in layout["walkers"]:
         col, ground = (int(w[:-1]), True) if isinstance(w, str) else (w, False)
         spawns.append(obj("enemy", col * TILE, surface(col, ground), enemy="alien-walker"))
+    for col in layout.get("bipeds", []):
+        spawns.append(obj("enemy", col * TILE, surface(col, True), enemy="bipedal-walker"))
     for col, y in layout["flyers"]:
         spawns.append(obj("enemy", col * TILE, y, enemy="alien-flyer"))
     for col, y, carries, side in layout.get("blimps", []):
