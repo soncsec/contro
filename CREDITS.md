@@ -61,6 +61,7 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/levels/base/room.png` | `Warped/Environments/alien-environment/PNG/layers/background.png, back-structures.png` | *derived*: the alien base's background and back structures drawn in perspective as the room's side walls and far wall; floor and ceiling shaded in their colours (`tools/art/base_room.py`) |
 | `assets/levels/base/core.png` | `—` | *drawn by Claude* (`tools/art/base_room.py`): the far wall's glowing core, 2 frames |
 | `assets/levels/base/barrier.png` | `—` | *drawn by Claude* (`tools/art/base_room.py`): the electric barrier, 2 frames |
+| `assets/levels/base/turret.png` | `—` | *drawn by Claude* (`tools/art/base_room.py`): a wall turret, 2 frames (eye dark, then lit as it fires) |
 | `assets/player/marine-back.png` | `—` | *drawn by Claude* (`tools/art/base_room.py`): the marine seen from behind, in the space marine's colours: standing, two running steps, crouching |
 | `assets/levels/corridor/catwalk.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png` | *drawn by Claude* (`tools/art/catwalk.py`): catwalk and pit tiles in this tileset's colours, pit edges reuse its floor pixels |
 | `assets/levels/corridor/tileset.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png` | unchanged |

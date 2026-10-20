@@ -291,6 +291,14 @@ export const BASE = {
     halfWidth: 14,
     height: 30,
   },
+  /** Shots fired out of the room at him by turrets and the last core (M5.6c). */
+  incoming: {
+    /** About 1.25 s from the far wall to the near edge: time to step aside or crouch. */
+    depthSpeed: 0.8,
+    halfWidth: 4,
+    arriveH: 22,
+  },
+  turret: { halfWidth: 24, points: 300 },
   /** The core's centre, above the far wall's floor (near-edge pixels), and its points. */
   coreHeight: 120,
   corePoints: 1000,

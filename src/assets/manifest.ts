@@ -152,6 +152,7 @@ export const ASSETS: readonly Asset[] = [
   image('levels', 'base-room', 'base/room.png', 320, 176),
   sheet('levels', 'base-core', 'base/core.png', 28, 28, 2, 4, true),
   sheet('levels', 'base-barrier', 'base/barrier.png', 96, 72, 2, 8, true),
+  sheet('levels', 'base-turret', 'base/turret.png', 16, 14, 2, 4, false),
 ];
 
 /** Key of a sheet's default animation. */

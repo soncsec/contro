@@ -18,14 +18,21 @@ import { Hud } from '../entities/Hud';
 import {
   fireShots,
   hitCore,
+  incomingAt,
   initialMarine,
   initialRoom,
+  initialShooter,
   project,
   shotX,
+  stepIncoming,
   stepMarine,
   stepRoom,
+  stepShooter,
   stepShot,
   stepWalker,
+  type IncomingShot,
+  type ShooterSpec,
+  type ShooterState,
   type BaseMarine,
   type BaseShot,
   type BaseWalker,
@@ -70,6 +77,9 @@ export interface BaseSnapshot {
   shots: { active: number; fired: number };
   walkers: { x: number; z: number }[];
   walkersSent: number;
+  /** Wall turrets still standing in this room, and shots fired out at him (M5.6c). */
+  turrets: number;
+  incoming: { active: number; fired: number };
   score: { score: number; best: number };
   cheats: CheatState;
   exiting: boolean;
@@ -81,6 +91,18 @@ const P = BASE.projection;
 const WALKER = ENEMIES['alien-walker'];
 /** Screen y of the far wall's middle, where the core and barrier sit. */
 const FAR_WALL_MID = project(P.centerX, 1, BASE.coreHeight, P);
+/** The core sprite is drawn for a core this wide (half width, near-edge pixels). */
+const CORE_DRAWN_HALF_WIDTH = 40;
+/** How long a turret's eye stays lit after it fires. */
+const TURRET_FLASH_MS = 150;
+
+/** A gun on the far wall, while the room lasts: its spec, hits left and countdown. */
+interface Gun {
+  spec: ShooterSpec;
+  hp: number;
+  shooter: ShooterState;
+  flashMs: number;
+}
 
 /**
  * An into-the-screen base stage (ADR-C11, M5.6): its rooms in order, each with a core to
@@ -112,6 +134,11 @@ export class BaseScene extends Phaser.Scene {
   private label = '';
   /** He moved along the near edge this frame (for the running frames). */
   private running = false;
+  /** This room's wall turrets and, in the last room, the core's own gun (M5.6c). */
+  private turrets: Gun[] = [];
+  private coreGun: Gun | null = null;
+  private incoming: IncomingShot[] = [];
+  private incomingFired = 0;
 
   private controls!: PlayerInput;
   private hud!: Hud;
@@ -121,6 +148,8 @@ export class BaseScene extends Phaser.Scene {
   private barrier!: Phaser.GameObjects.Sprite;
   private shotSprites!: Phaser.GameObjects.Group;
   private walkerSprites!: Phaser.GameObjects.Group;
+  private incomingSprites!: Phaser.GameObjects.Group;
+  private turretSprites: Phaser.GameObjects.Sprite[] = [];
 
   constructor() {
     super('Base');
@@ -146,6 +175,7 @@ export class BaseScene extends Phaser.Scene {
     this.marine = initialMarine(P.centerX);
     this.shots = [];
     this.shotsFired = 0;
+    this.incomingFired = 0;
     this.walkers = [];
     this.walkersSent = 0;
     this.elapsedMs = 0;
@@ -163,6 +193,12 @@ export class BaseScene extends Phaser.Scene {
       .play('base-barrier');
     this.walkerSprites = this.add.group({ defaultKey: WALKER.walkSheet, maxSize: 16 });
     this.shotSprites = this.add.group({ defaultKey: 'bullet', maxSize: 16 });
+    this.incomingSprites = this.add.group({ defaultKey: 'enemy-shot', maxSize: 16 });
+    // Enough turret sprites for the busiest room; each room shows the ones it has.
+    const most = Math.max(...this.stage.rooms.map((r) => r.turrets?.length ?? 0), 0);
+    this.turretSprites = Array.from({ length: most }, () =>
+      this.add.sprite(0, 0, 'base-turret', 0).setVisible(false),
+    );
     this.marineSprite = this.add.sprite(0, 0, 'marine-back', 0).setOrigin(0.5, 1).setDepth(5);
     this.effects = new Effects(this);
     this.controls = new PlayerInput(this);
@@ -238,6 +274,7 @@ export class BaseScene extends Phaser.Scene {
     }
 
     this.stepRoomAndWalkers(deltaMs);
+    this.stepGuns(deltaMs);
     this.stepShots(deltaMs, stats.damage);
     if (this.room.clearedMs !== null && this.room.clearedMs >= BASE.clearMs) this.nextRoom();
     this.hud.update(
@@ -258,6 +295,41 @@ export class BaseScene extends Phaser.Scene {
     this.room = initialRoom(room);
     this.rng = createRng(BASE.seed + index);
     this.walkers = [];
+    this.incoming = [];
+    const gun = (spec: ShooterSpec, hp: number): Gun => ({
+      spec,
+      hp,
+      shooter: initialShooter(spec),
+      flashMs: 0,
+    });
+    this.turrets = (room.turrets ?? []).map((t) => gun(t, t.hp));
+    this.coreGun = room.core.fire ? gun(room.core.fire, room.core.hp) : null;
+  }
+
+  /** The wall turrets and the last core fire at him; their shots fly out of the room. */
+  private stepGuns(deltaMs: number): void {
+    const live = this.room.clearedMs === null && this.health.deadMs === null;
+    // Invisible (cheat): they can't see him to aim.
+    const aim = live && !this.cheats.invisible ? this.marine.x : null;
+    for (const gun of [...this.turrets, ...(this.coreGun ? [this.coreGun] : [])]) {
+      gun.flashMs = Math.max(0, gun.flashMs - deltaMs);
+      if (gun.hp <= 0 || aim === null) continue;
+      const r = stepShooter(gun.shooter, gun.spec, aim, deltaMs);
+      gun.shooter = r.shooter;
+      if (r.shots.length > 0) {
+        this.incoming.push(...r.shots);
+        this.incomingFired += r.shots.length;
+        gun.flashMs = TURRET_FLASH_MS;
+        GameSound.play('sfx-enemy-shot');
+      }
+    }
+    const next: IncomingShot[] = [];
+    for (const shot of this.incoming) {
+      const s = stepIncoming(shot, this.marine, BASE.marine.halfWidth, deltaMs, BASE.incoming);
+      if (s.hit) this.hurt();
+      if (!s.gone) next.push(s.shot);
+    }
+    this.incoming = next;
   }
 
   private get roomData() {
@@ -293,10 +365,20 @@ export class BaseScene extends Phaser.Scene {
         z: w.z,
         halfWidth: BASE.walker.halfWidth,
       }));
+      // Turrets on the far wall: one in front of the core shields it until it is destroyed.
+      const turrets = coreUp ? this.turrets.filter((t) => t.hp > 0) : [];
+      for (const t of turrets) {
+        targets.push({ x: t.spec.x, z: 1, halfWidth: BASE.turret.halfWidth });
+      }
       if (coreUp) targets.push({ x: P.centerX, z: 1, halfWidth: this.roomData.core.halfWidth });
       const s = stepShot(shot, deltaMs, targets, BASE.shot);
       if (s.hit >= 0 && s.hit < this.walkers.length) {
         this.hitWalker(s.hit, damage);
+        continue;
+      }
+      const turret = turrets[s.hit - this.walkers.length];
+      if (s.hit >= 0 && turret) {
+        this.hitTurret(turret, damage);
         continue;
       }
       if (s.hit >= 0) {
@@ -324,7 +406,19 @@ export class BaseScene extends Phaser.Scene {
     this.addScore(WALKER.points);
   }
 
-  /** The core blew up: the barrier drops, the room's walkers go with it. */
+  private hitTurret(gun: Gun, damage: number): void {
+    const at = project(gun.spec.x, 1, gun.spec.h, P);
+    gun.hp = Math.max(0, gun.hp - damage);
+    if (gun.hp > 0) {
+      this.effects.play('hit', at.x, at.y);
+      return;
+    }
+    this.effects.play('enemy-death', at.x, at.y);
+    GameSound.play('sfx-enemy-die');
+    this.addScore(BASE.turret.points);
+  }
+
+  /** The core blew up: the barrier drops, the room's walkers and turrets go with it. */
   private onCoreDestroyed(): void {
     GameSound.play('sfx-boss-blast');
     this.effects.play('ground-explosion', FAR_WALL_MID.x, FAR_WALL_MID.y);
@@ -332,7 +426,13 @@ export class BaseScene extends Phaser.Scene {
       const at = project(w.x, w.z, BASE.walker.height / 2, P);
       this.effects.play(WALKER.deathEffect, at.x, at.y);
     }
+    for (const t of this.turrets.filter((g) => g.hp > 0)) {
+      const at = project(t.spec.x, 1, t.spec.h, P);
+      this.effects.play('enemy-death', at.x, at.y);
+      t.hp = 0;
+    }
     this.walkers = [];
+    this.incoming = [];
     this.addScore(BASE.corePoints);
   }
 
@@ -448,7 +548,8 @@ export class BaseScene extends Phaser.Scene {
   /** Places every sprite where the rules put it this frame. */
   private draw(): void {
     const cleared = this.room.clearedMs !== null;
-    this.core.setVisible(!cleared);
+    // A bigger core is drawn bigger (the last room's): the sprite is drawn for a 40 px one.
+    this.core.setVisible(!cleared).setScale(this.roomData.core.halfWidth / CORE_DRAWN_HALF_WIDTH);
     this.barrier.setVisible(!cleared);
 
     const m = project(this.marine.x, 0, this.marine.h, P);
@@ -467,6 +568,22 @@ export class BaseScene extends Phaser.Scene {
         .setPosition(at.x, at.y)
         .setScale(Math.max(0.5, at.scale))
         .setDepth(3 - s.z);
+    });
+    this.turretSprites.forEach((sprite, i) => {
+      const gun = this.turrets[i];
+      sprite.setVisible(gun !== undefined && gun.hp > 0);
+      if (!gun) return;
+      const at = project(gun.spec.x, 1, gun.spec.h, P);
+      sprite.setPosition(Math.round(at.x), Math.round(at.y)).setFrame(gun.flashMs > 0 ? 1 : 0);
+    });
+    this.layout(this.incomingSprites, this.incoming, (sprite, shot) => {
+      const { x, h } = incomingAt(shot, BASE.incoming);
+      const at = project(x, shot.z, h, P);
+      sprite
+        .setPosition(at.x, at.y)
+        .setScale(Math.max(0.4, at.scale))
+        .setDepth(4 - shot.z);
+      if (!sprite.anims.isPlaying) sprite.play('enemy-shot');
     });
     this.layout(this.walkerSprites, this.walkers, (sprite, w) => {
       const feet = project(w.x, w.z, 0, P);
@@ -519,6 +636,8 @@ export class BaseScene extends Phaser.Scene {
       shots: { active: this.shots.length, fired: this.shotsFired },
       walkers: this.walkers.map((w) => ({ x: Math.round(w.x), z: Math.round(w.z * 100) / 100 })),
       walkersSent: this.walkersSent,
+      turrets: this.turrets.filter((t) => t.hp > 0).length,
+      incoming: { active: this.incoming.length, fired: this.incomingFired },
       score: { score: this.score.score, best: this.score.best },
       cheats: this.cheats,
       exiting: this.exiting,
