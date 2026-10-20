@@ -207,6 +207,11 @@ export const LEVELS: readonly LevelAsset[] = [
     path: 'assets/levels/neon-3.tmj',
     tilesets: { neon: 'neon-tileset' },
   },
+  {
+    key: 'neon-4',
+    path: 'assets/levels/neon-4.tmj',
+    tilesets: { neon: 'neon-tileset' },
+  },
 ];
 
 /**

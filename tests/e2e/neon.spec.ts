@@ -60,10 +60,21 @@ test('3-2 leads straight into 3-3, with no card', async ({ page }) => {
   expect(s.enemies.filter((e) => e.type === 'bipedal-walker')).toHaveLength(2);
 });
 
+test('3-3 leads straight into 3-4, the lab, indoors', async ({ page }) => {
+  await openSection(page, 'neon-3');
+  const exit = await walkThroughExit(page);
+  expect(exit.scene).toBe('Level');
+  await expect.poll(async () => (await level(page)).level).toBe('neon-4');
+  const s = await level(page);
+  expect(s.label).toBe('3-4');
+  expect(s.scenery).toEqual([]); // indoors: the lab's own wall
+  expect(s.enemies.filter((e) => e.type === 'bipedal-walker')).toHaveLength(2);
+});
+
 test('the last section built so far ends the game with its card, then the end screen', async ({
   page,
 }) => {
-  await openSection(page, 'neon-3');
+  await openSection(page, 'neon-4');
   const exit = await walkThroughExit(page);
   expect(exit.scene).toBe('Dialogue');
   expect(await page.evaluate(() => window.__contro?.dialogue())).toMatchObject({
