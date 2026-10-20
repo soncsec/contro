@@ -136,10 +136,16 @@ test('shooting a turret destroys it', async ({ page }) => {
   await openBase(page);
   await cheat(page, 'IRON', 'INVINCIBLE ON');
   await skipTo(page, 2);
-  // The left turret sits at x 70: run under it, then fire into the room.
-  await page.keyboard.down('ArrowLeft');
-  await expect.poll(async () => (await base(page)).marine.x).toBeLessThan(80);
-  await page.keyboard.up('ArrowLeft');
+  // The left turret sits at x 70: step left in short taps until he stands under it (holding
+  // the key until a poll notices would carry him past it to the wall).
+  for (let i = 0; i < 40 && (await base(page)).marine.x > 85; i++) {
+    await page.keyboard.down('ArrowLeft');
+    await page.waitForTimeout(80);
+    await page.keyboard.up('ArrowLeft');
+  }
+  const x = (await base(page)).marine.x;
+  expect(x).toBeGreaterThan(50);
+  expect(x).toBeLessThanOrEqual(85);
   await expect
     .poll(
       async () => {
@@ -172,6 +178,5 @@ test('after the fourth room the stage ends and the level goes on', async ({ page
   await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBe('RESUME');
   for (const k of ['KeyT', 'KeyH', 'KeyR', 'KeyU']) await page.keyboard.press(k);
   // The next section or, while the core is Level 3's last section, its card.
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).not.toBe('Base');
-  expect(['Level', 'Dialogue']).toContain(await sceneKey(page));
+  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toMatch(/^(Level|Dialogue)$/);
 });
