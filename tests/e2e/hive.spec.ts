@@ -77,24 +77,31 @@ test('after the base core comes 4-4, inside the hive: indoors, flesh ledges and 
   await expect.poll(async () => (await title(page))?.ready, { timeout: 15_000 }).toBe(true);
   await page.evaluate(() => window.__contro?.startLevel('hive-core'));
   await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Base');
-  // THRU through every room of the base core.
-  while ((await sceneKey(page)) === 'Base') {
+  // THRU through every room of the base core. A pause press that lands while a room fades
+  // out is ignored, so retry until the stage is left.
+  for (let i = 0; i < 20 && (await sceneKey(page)) === 'Base'; i++) {
     await page.keyboard.press('Escape');
     const paused = await page
-      .waitForFunction(() => window.__contro?.pauseMenu() === 'RESUME', null, { timeout: 5_000 })
+      .waitForFunction(() => window.__contro?.pauseMenu() === 'RESUME', null, { timeout: 3_000 })
       .then(() => true)
       .catch(() => false);
-    if (!paused) break;
-    for (const k of ['KeyT', 'KeyH', 'KeyR', 'KeyU']) await page.keyboard.press(k);
-    await page.waitForTimeout(2500);
+    if (paused) for (const k of ['KeyT', 'KeyH', 'KeyR', 'KeyU']) await page.keyboard.press(k);
+    await page.waitForTimeout(paused ? 2500 : 500);
   }
   await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
   await expect.poll(async () => (await level(page)).level).toBe('hive-3');
   await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
+  // Feet on the crest (its top at 128, feet 4 px in), read on a frame he stands on it: a
+  // walker near the start can knock him into the air between two readings.
+  await expect
+    .poll(async () => {
+      const now = await level(page);
+      return now.player.onFloor ? now.player.feetY : null;
+    })
+    .toBe(132);
   const s = await level(page);
   expect(s.label).toBe('4-4');
   expect(s.scenery).toEqual([]); // indoors: the hive's flesh wall
-  expect(s.player.feetY).toBe(132); // the crest's top at 128, feet 4 px into it
   expect(s.enemies.filter((e) => e.type === 'spitting-snake')).toHaveLength(7);
   expect(s.enemies.filter((e) => e.type === 'bipedal-walker')).toHaveLength(0);
   expect(watched.errors).toEqual([]);
