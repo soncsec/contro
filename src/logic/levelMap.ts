@@ -4,7 +4,8 @@
  *
  * Map contract:
  * - orthogonal, finite, 16×16 tiles, one or more embedded tilesets with consecutive gids
- * - tile layer "background", and optionally a "platforms" tile layer (catwalks, pit edges)
+ * - tile layer "background", and optionally a "platforms" tile layer (catwalks, pit edges) and a
+ *   "props" tile layer (scenery drawn over the room and under the catwalks; no collision)
  * - object layer "collision": rectangles of type "solid" or "platform"
  * - object layer "spawns": one "player-start" point, one "exit" rectangle,
  *   "enemy" points with an `enemy` string property naming a known enemy type,
@@ -26,7 +27,7 @@ import type { Spawner } from './spawner';
 
 export const TILE_SIZE = 16;
 export const REQUIRED_TILE_LAYERS = ['background'] as const;
-export const OPTIONAL_TILE_LAYERS = ['platforms'] as const;
+export const OPTIONAL_TILE_LAYERS = ['platforms', 'props'] as const;
 export const COLLISION_TYPES = ['solid', 'platform'] as const;
 export type CollisionType = (typeof COLLISION_TYPES)[number];
 

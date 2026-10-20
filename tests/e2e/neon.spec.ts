@@ -30,10 +30,29 @@ test('3-1 the rooftops loads under the city skyline, with the marine on the roof
   expect(watched.foreignRequests).toEqual([]);
 });
 
+test('3-1 leads straight into 3-2, with no card', async ({ page }) => {
+  await openSection(page, 'neon-1');
+  const exit = await walkThroughExit(page);
+  expect(exit.scene).toBe('Level');
+  await expect.poll(async () => (await level(page)).level).toBe('neon-2');
+  expect((await level(page)).label).toBe('3-2');
+});
+
+test('3-2 the corridor loads with its props, catwalks and a bipedal walker', async ({ page }) => {
+  const watched = watchPage(page);
+  await openSection(page, 'neon-2');
+  const s = await level(page);
+  expect(s.label).toBe('3-2');
+  expect(s.scenery).toEqual([]); // indoors: the corridor's own wall
+  expect(s.player.feetY).toBe(160);
+  expect(s.enemies.filter((e) => e.type === 'bipedal-walker')).toHaveLength(1);
+  expect(watched.errors).toEqual([]);
+});
+
 test('the last section built so far ends the game with its card, then the end screen', async ({
   page,
 }) => {
-  await openSection(page, 'neon-1');
+  await openSection(page, 'neon-2');
   const exit = await walkThroughExit(page);
   expect(exit.scene).toBe('Dialogue');
   expect(await page.evaluate(() => window.__contro?.dialogue())).toMatchObject({
