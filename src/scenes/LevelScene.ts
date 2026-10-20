@@ -219,7 +219,8 @@ export class LevelScene extends Phaser.Scene {
     if (map.getLayer('platforms')) map.createLayer('platforms', tilesets);
 
     // Collision rectangles become invisible static bodies. Catwalks (platforms) only block
-    // from above, and only the marine stands on them: bullets, orbs and enemies pass through.
+    // from above. The marine and the enemies that walk stand on them; bullets, orbs and
+    // flyers pass through.
     const solids = this.physics.add.staticGroup();
     const platforms = this.physics.add.staticGroup();
     for (const c of this.layout.colliders) {
@@ -278,6 +279,10 @@ export class LevelScene extends Phaser.Scene {
       this.addScore(ENEMIES[type].points);
     });
     this.physics.add.collider(this.enemies.group, solids);
+    // Walkers the map puts on a walkway stay on it (flyers fly through).
+    this.physics.add.collider(this.enemies.group, platforms, undefined, (enemy) =>
+      this.enemies.standsOnPlatforms(enemy as Phaser.GameObjects.GameObject),
+    );
     this.physics.add.overlap(this.bullets.group, this.enemies.group, (bullet, enemy) => {
       const tip = this.bullets.absorb(bullet as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody);
       if (!tip) return;
