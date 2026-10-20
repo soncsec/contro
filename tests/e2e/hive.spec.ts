@@ -99,3 +99,20 @@ test('after the base core comes 4-4, inside the hive: indoors, flesh ledges and 
   expect(s.enemies.filter((e) => e.type === 'bipedal-walker')).toHaveLength(0);
   expect(watched.errors).toEqual([]);
 });
+
+test("4-4 leads straight into 4-5, the hive's gut: two levels, the most snakes yet", async ({
+  page,
+}) => {
+  await openSection(page, 'hive-3');
+  const exit = await walkThroughExit(page);
+  expect(exit.scene).toBe('Level');
+  await expect.poll(async () => (await level(page)).level).toBe('hive-4');
+  await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
+  const s = await level(page);
+  expect(s.label).toBe('4-5');
+  expect(s.widthPx).toBe(180 * 16);
+  expect(s.scenery).toEqual([]);
+  const snakes = s.enemies.filter((e) => e.type === 'spitting-snake');
+  expect(snakes).toHaveLength(7);
+  expect(snakes.every((e) => e.feetY < 128)).toBe(true); // up on the ledges, above the floor
+});
