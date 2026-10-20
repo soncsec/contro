@@ -11,6 +11,7 @@ Outputs (all used by build_assets.py):
   room(...)          320×176 room without the core and barrier
   core()             2 frames 28×28: the far wall's glowing core, pulsing
   barrier()          2 frames 96×72: the electric barrier in front of the far wall
+  turret()           2 frames 16×14: a wall turret, its eye dark and then lit as it fires
   marine_back()      4 frames 24×40: standing, two running steps, crouching
 """
 import math
@@ -120,6 +121,30 @@ def barrier() -> png.Image:
                 dots = (y * 7 + x * 3 + phase * 5) % 23 == 0
                 if wave or dots:
                     f[y][x] = (120, 230, 255, 200)
+        frames.append(f)
+    return png.strip(frames)
+
+
+def turret() -> png.Image:
+    """A wall turret drawn by Claude in the room's steel colours: housing, barrel and red eye."""
+    frames = []
+    for lit in (False, True):
+        f = [[CLEAR] * 16 for _ in range(14)]
+        for y in range(14):
+            for x in range(16):
+                inside = 1 <= x <= 14 and 1 <= y <= 10
+                edge = inside and (x in (1, 14) or y in (1, 10))
+                if edge:
+                    f[y][x] = (22, 26, 30, 255)
+                elif inside:
+                    f[y][x] = (92, 102, 108, 255) if y < 5 else (66, 74, 80, 255)
+        for y in range(10, 14):  # the barrel, pointing out of the wall at him
+            for x in range(6, 10):
+                f[y][x] = (40, 44, 48, 255) if x in (6, 9) else (120, 128, 132, 255)
+        eye = (255, 236, 120, 255) if lit else (200, 50, 40, 255)
+        for y in range(4, 7):
+            for x in range(6, 10):
+                f[y][x] = eye
         frames.append(f)
     return png.strip(frames)
 
