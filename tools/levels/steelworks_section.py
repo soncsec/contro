@@ -10,8 +10,9 @@ Layouts are in LAYOUTS below. A layout gives the width in tiles and lists, in 16
   walkers    alien walkers by tile column; they stand on the walkway or ground there
              ("Ng" puts one on the ground under a walkway)
   flyers     (column, y px) alien flyers
-  blimps     (column, y px, weapon, "left"|"right"): a weapon blimp that flies in from that
-             edge of the screen once the column scrolls into view (M4.1)
+  blimps     (column, y px, carries, "left"|"right"): a blimp carrying a pickup ("machine-gun",
+             "spread" or "health") that flies in from that edge of the screen once the column
+             scrolls into view (M4.1)
   spawners   (column, count, every ms, "left"|"right"): runners sent in from that edge of the
              screen once the column scrolls into view (M3.14); the column must be ground
   checkpoints, start, exit: columns
@@ -68,6 +69,7 @@ LAYOUTS = {
         "walkers": [14, 26, "38g", 55, 70, "80g", 86, 110, 122, 132, 152, 168],
         "flyers": [(44, 50), (92, 40), (136, 44), (160, 50)],
         "spawners": [(40, 3, 1200, "right"), (104, 3, 1000, "right"), (150, 2, 1500, "left")],
+        "blimps": [(30, 48, "machine-gun", "right"), (120, 52, "health", "right")],
         "checkpoints": [50, 102, 144],
         "start": 3,
         "exit": 175,
@@ -85,6 +87,7 @@ LAYOUTS = {
         "walkers": [10, 24, 32, "33g", 45, 52, 62, 75, 86, 100, "104g", 116, 125, 134, 147, 162],
         "flyers": [(40, 40), (70, 36), (108, 30), (138, 40), (158, 44)],
         "spawners": [(50, 3, 1100, "right"), (120, 4, 900, "right")],
+        "blimps": [(36, 44, "spread", "right"), (128, 44, "health", "right")],
         "checkpoints": [46, 95, 144],
         "start": 3,
         "exit": 165,
@@ -103,7 +106,7 @@ LAYOUTS = {
                     132, 150],
         "flyers": [(30, 40), (58, 30), (84, 36), (112, 40), (140, 34)],
         "spawners": [(34, 2, 1200, "left"), (90, 4, 900, "right"), (130, 3, 1000, "right")],
-        "blimps": [(44, 48, "machine-gun", "right")],
+        "blimps": [(44, 48, "machine-gun", "right"), (110, 44, "health", "right")],
         "checkpoints": [34, 80, 116],
         "start": 3,
         "exit": 155,
@@ -122,6 +125,7 @@ LAYOUTS = {
                     140, 148, 156, 164],
         "flyers": [(26, 44), (50, 36), (72, 40), (100, 34), (122, 44), (146, 38)],
         "spawners": [(44, 3, 1000, "right"), (110, 3, 1000, "right"), (150, 3, 1200, "left")],
+        "blimps": [(36, 48, "machine-gun", "right"), (120, 52, "health", "right")],
         "checkpoints": [56, 100, 145],
         "start": 3,
         "exit": 165,
@@ -141,7 +145,7 @@ LAYOUTS = {
                     110, 120, "124g", 131, 137, 146, 152],
         "flyers": [(30, 40), (60, 36), (86, 30), (100, 40), (124, 34), (150, 40)],
         "spawners": [(40, 4, 900, "right"), (100, 4, 900, "right"), (130, 3, 1000, "left")],
-        "blimps": [(112, 48, "spread", "right")],
+        "blimps": [(60, 44, "spread", "right"), (136, 48, "health", "right")],
         # The last screen is the tank's arena (M3.3); the exit opens once it is destroyed.
         "boss": ("tank", 176),
         "checkpoints": [53, 102, 142],
@@ -253,8 +257,8 @@ def build(layout: dict) -> dict:
         spawns.append(obj("enemy", col * TILE, surface(col, ground), enemy="alien-walker"))
     for col, y in layout["flyers"]:
         spawns.append(obj("enemy", col * TILE, y, enemy="alien-flyer"))
-    for col, y, weapon, side in layout.get("blimps", []):
-        spawns.append(obj("blimp", col * TILE, y, weapon=weapon, **{"from": side}))
+    for col, y, carries, side in layout.get("blimps", []):
+        spawns.append(obj("blimp", col * TILE, y, carries=carries, **{"from": side}))
     for col, count, every, side in layout.get("spawners", []):
         spawns.append(obj("spawner", col * TILE, surface(col, True), enemy="alien-runner",
                           count=count, every=every, **{"from": side}))

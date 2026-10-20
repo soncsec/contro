@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HEALTH } from '../../src/config/tuning';
 import {
+  restoreHealth,
   fallDeath,
   initialHealth,
   respawnPoint,
@@ -155,5 +156,17 @@ describe('fallDeath', () => {
 
   it('then respawns like any death', () => {
     expect(stepHealth(fallDeath(fresh()), 1200, HEALTH).event).toBe('respawn');
+  });
+});
+
+describe('restoreHealth (the red cross pickup)', () => {
+  it('fills health back up, keeping lives', () => {
+    const hurt = { ...initialHealth(HEALTH), hp: 1, lives: 2 };
+    expect(restoreHealth(hurt, HEALTH)).toMatchObject({ hp: HEALTH.maxHp, lives: 2 });
+  });
+
+  it('does nothing for a marine who has died', () => {
+    const dead = { ...initialHealth(HEALTH), hp: 0, deadMs: 100 };
+    expect(restoreHealth(dead, HEALTH)).toBe(dead);
   });
 });

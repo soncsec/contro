@@ -107,3 +107,8 @@ export function fallDeath(s: HealthState): HealthState {
   if (s.deadMs !== null) return s;
   return { ...s, hp: 0, invulnerableMs: 0, stunMs: 0, deadMs: 0 };
 }
+
+/** A health pickup (M4.1): back to full health. Lives and timers are unchanged. */
+export function restoreHealth(s: HealthState, t: HealthTuning): HealthState {
+  return s.deadMs === null ? { ...s, hp: t.maxHp } : s;
+}

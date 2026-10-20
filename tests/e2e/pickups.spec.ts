@@ -14,11 +14,11 @@ async function openLevel(page: Page): Promise<void> {
 }
 
 /** Sends a blimp, shoots it down, and walks into the letter. Resolves once it is collected. */
-async function collect(page: Page, weapon: 'machine-gun' | 'spread'): Promise<void> {
+async function collect(page: Page, carries: 'machine-gun' | 'spread' | 'health'): Promise<void> {
   const s = await level(page);
   // Blimp hull centre at the barrel's height: forward shots start about 25 px above the feet.
   await page.evaluate(({ w, y }) => window.__contro?.spawnBlimp(w, y), {
-    w: weapon,
+    w: carries,
     y: s.player.feetY - 26,
   });
   await expect.poll(async () => (await level(page)).blimps.length).toBe(1);
@@ -39,11 +39,9 @@ async function collect(page: Page, weapon: 'machine-gun' | 'spread'): Promise<vo
     .poll(async () => (await level(page)).pickups[0]?.onFloor ?? false, { timeout: 15_000 })
     .toBe(true);
   await page.keyboard.down('ArrowRight');
-  await expect
-    .poll(async () => (await level(page)).player.weapon, { timeout: 30_000 })
-    .toBe(weapon);
+  await expect.poll(async () => (await level(page)).pickups.length, { timeout: 30_000 }).toBe(0);
   await page.keyboard.up('ArrowRight');
-  expect((await level(page)).pickups).toEqual([]);
+  if (carries !== 'health') expect((await level(page)).player.weapon).toBe(carries);
 }
 
 test('shooting down a blimp drops its letter; walking into M gives the machine gun', async ({
@@ -97,14 +95,16 @@ test('Level 1 section 1-3 sends a machine-gun blimp once its point is in view', 
   page,
 }) => {
   await page.goto('./');
-  await expect.poll(() => page.evaluate(() => window.__contro?.title()?.ready)).toBe(true);
+  await expect
+    .poll(() => page.evaluate(() => window.__contro?.title()?.ready), { timeout: 15_000 })
+    .toBe(true);
   await page.evaluate(() => window.__contro?.startLevel('steelworks-3'));
   await expect.poll(async () => (await level(page)).player.onFloor, { timeout: 15_000 }).toBe(true);
   expect((await level(page)).blimps).toEqual([]);
   // The blimp point is at column 44 (x 704): stand where it is on screen.
   await page.evaluate(() => window.__contro?.teleportPlayer(600));
   await expect
-    .poll(async () => (await level(page)).blimps.map((b) => b.weapon), { timeout: 15_000 })
+    .poll(async () => (await level(page)).blimps.map((b) => b.carries), { timeout: 15_000 })
     .toEqual(['machine-gun']);
 });
 
@@ -121,4 +121,30 @@ test('a blimp nobody shoots flies across and off the screen, and is gone', async
   // ...then off the left edge, gone for good: no letter is left behind.
   await expect.poll(async () => (await level(page)).blimps.length, { timeout: 60_000 }).toBe(0);
   expect((await level(page)).pickups).toEqual([]);
+});
+
+test('a health blimp drops a red cross that restores full health (owner request)', async ({
+  page,
+}) => {
+  await openLevel(page);
+  for (let i = 0; i < 2; i++) {
+    await page.evaluate(() => window.__contro?.hurtPlayer(1));
+    const now = await level(page);
+    await waitGameTime(page, now.timeMs, 1600); // past the invulnerability
+  }
+  expect((await level(page)).player.hp).toBe(2);
+  // IRON (invincible) from here, so the training corridor's walkers can't hurt him on his way
+  // to the cross: the test is about the pickup, not dodging.
+  await page.keyboard.press('Escape');
+  await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBe('RESUME');
+  for (const k of ['KeyI', 'KeyR', 'KeyO', 'KeyN']) await page.keyboard.press(k);
+  await expect
+    .poll(() => page.evaluate(() => window.__contro?.cheatMessage() ?? null))
+    .toBe('INVINCIBLE ON');
+  await page.keyboard.press('Escape');
+  await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBeNull();
+  await collect(page, 'health');
+  const after = await level(page);
+  expect(after.player.hp).toBe(4);
+  expect(after.player.weapon).toBe('rifle'); // health doesn't change the weapon
 });

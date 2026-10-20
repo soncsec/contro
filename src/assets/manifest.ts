@@ -99,6 +99,8 @@ export const ASSETS: readonly Asset[] = [
   // M4.1: weapon pickups, the letter itself (drawn by Claude)
   image('effects', 'pickup-machine-gun', 'pickup-machine-gun.png', 20, 20),
   image('effects', 'pickup-spread', 'pickup-spread.png', 20, 20),
+  // Health: a red cross in the same style (owner chose it 2026-10-19)
+  image('effects', 'pickup-health', 'pickup-health.png', 20, 20),
   sheet('effects', 'enemy-death', 'enemy-death.png', 48, 48, 8, 14, false),
   sheet('effects', 'hit', 'hit.png', 31, 32, 3, 14, false),
   sheet('effects', 'ground-explosion', 'ground-explosion.png', 112, 128, 9, 14, false),

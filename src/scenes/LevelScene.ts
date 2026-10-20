@@ -39,13 +39,7 @@ import { RunnerSpawners } from '../systems/RunnerSpawners';
 import { GameSound } from '../systems/GameSound';
 import type { MusicKey } from '../assets/manifest';
 import { Blimps, type BlimpSnapshot, type PickupSnapshot } from '../entities/Blimps';
-import {
-  BLIMP,
-  PICKUP_WEAPONS,
-  WEAPON_TYPES,
-  type PickupWeapon,
-  type WeaponType,
-} from '../data/weapons';
+import { BLIMP, PICKUPS, WEAPON_TYPES, type PickupKind, type WeaponType } from '../data/weapons';
 import { nextWeapon } from '../logic/pickups';
 import { SaveStore } from '../systems/SaveStore';
 
@@ -191,7 +185,7 @@ export class LevelScene extends Phaser.Scene {
       this.cache.tilemap.get(level.key)?.data,
       ENEMY_TYPES,
       BOSS_TYPES,
-      PICKUP_WEAPONS,
+      PICKUPS,
     );
     const { widthPx, heightPx } = this.layout;
 
@@ -348,9 +342,11 @@ export class LevelScene extends Phaser.Scene {
     this.physics.add.collider(this.blimps.pickupGroup, solids);
     this.physics.add.overlap(this.player.sprite, this.blimps.pickupGroup, (_player, pickup) => {
       if (this.player.dead) return;
-      const weapon = this.blimps.collect(pickup as Phaser.GameObjects.GameObject);
-      if (!weapon) return;
-      this.player.weaponType = weapon;
+      const carries = this.blimps.collect(pickup as Phaser.GameObjects.GameObject);
+      if (!carries) return;
+      // A health pickup restores full health (owner request 2026-10-19); a letter is a weapon.
+      if (carries === 'health') this.player.restoreHealth();
+      else this.player.weaponType = carries;
       GameSound.play('sfx-extra-life');
     });
 
@@ -536,10 +532,10 @@ export class LevelScene extends Phaser.Scene {
     this.bossFight?.damage(damage);
   }
 
-  /** Test hook: send a blimp carrying `weapon` across from the right edge of the view. */
-  spawnBlimp(weapon: PickupWeapon, y: number): void {
+  /** Test hook: send a blimp carrying `carries` across from the right edge of the view. */
+  spawnBlimp(carries: PickupKind, y: number): void {
     const left = this.cameras.main.scrollX;
-    this.blimps.launch(weapon, y, 'right', { left, right: left + GAME_WIDTH });
+    this.blimps.launch(carries, y, 'right', { left, right: left + GAME_WIDTH });
   }
 
   /** Test hook: put an enemy on the ground at x, as a map would. */

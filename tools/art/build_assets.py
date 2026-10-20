@@ -83,6 +83,7 @@ ASSETS = [
     ("assets/enemies/blimp-left.png", "", "draw:blimp-left"),
     ("assets/effects/pickup-machine-gun.png", "", "draw:letter-M"),
     ("assets/effects/pickup-spread.png", "", "draw:letter-S"),
+    ("assets/effects/pickup-health.png", "", "draw:letter-+"),
     ("assets/levels/corridor/catwalk.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "draw:catwalk"),
     ("assets/levels/corridor/tileset.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "copy"),
     # Level 1 Industrial (owner chose option B, teal steelworks, 2026-10-18)

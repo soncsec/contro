@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { ASSETS, LEVELS } from '../../src/assets/manifest';
 import { BOSS_TYPES } from '../../src/data/bosses';
 import { ENEMY_TYPES } from '../../src/data/enemies';
-import { PICKUP_WEAPONS } from '../../src/data/weapons';
+import { PICKUPS } from '../../src/data/weapons';
 import { readLevelLayout, validateLevelMap } from '../../src/logic/levelMap';
 
 const PUBLIC_DIR = `${process.cwd()}/public`;
@@ -74,12 +74,7 @@ const layer = (map: Record<string, unknown>, name: string): Layer =>
 describe('level maps in public/assets', () => {
   it.each(LEVELS)('$key is valid', (level) => {
     expect(
-      validateLevelMap(
-        readJson(`${PUBLIC_DIR}/${level.path}`),
-        ENEMY_TYPES,
-        BOSS_TYPES,
-        PICKUP_WEAPONS,
-      ),
+      validateLevelMap(readJson(`${PUBLIC_DIR}/${level.path}`), ENEMY_TYPES, BOSS_TYPES, PICKUPS),
     ).toEqual([]);
   });
 
@@ -101,7 +96,7 @@ describe('level maps in public/assets', () => {
       readJson(`${PUBLIC_DIR}/${level.path}`),
       ENEMY_TYPES,
       BOSS_TYPES,
-      PICKUP_WEAPONS,
+      PICKUPS,
     );
     for (const layer of layout.parallax) {
       expect(ASSETS.find((a) => a.key === layer.key)?.kind).toBe('image');
@@ -113,7 +108,7 @@ describe('level maps in public/assets', () => {
       readJson(`${PUBLIC_DIR}/${level.path}`),
       ENEMY_TYPES,
       BOSS_TYPES,
-      PICKUP_WEAPONS,
+      PICKUPS,
     );
     expect(layout.heightPx).toBe(176);
   });
@@ -392,37 +387,37 @@ describe('blimps (M4.1)', () => {
     return map;
   };
 
-  it('reads a blimp and the weapon it carries', () => {
-    const map = withBlimp({ weapon: 'spread', from: 'left' });
-    expect(validateLevelMap(map, ENEMY_TYPES, BOSS_TYPES, PICKUP_WEAPONS)).toEqual([]);
-    expect(readLevelLayout(map, ENEMY_TYPES, BOSS_TYPES, PICKUP_WEAPONS).blimps).toEqual([
-      { x: 32, y: 40, weapon: 'spread', from: 'left' },
+  it('reads a blimp and what it carries', () => {
+    const map = withBlimp({ carries: 'spread', from: 'left' });
+    expect(validateLevelMap(map, ENEMY_TYPES, BOSS_TYPES, PICKUPS)).toEqual([]);
+    expect(readLevelLayout(map, ENEMY_TYPES, BOSS_TYPES, PICKUPS).blimps).toEqual([
+      { x: 32, y: 40, carries: 'spread', from: 'left' },
     ]);
   });
 
-  it('rejects an unknown weapon, a bad side, or a rectangle', () => {
+  it('rejects an unknown pickup, a bad side, or a rectangle', () => {
     expect(
       validateLevelMap(
-        withBlimp({ weapon: 'rifle', from: 'right' }),
+        withBlimp({ carries: 'rifle', from: 'right' }),
         ENEMY_TYPES,
         BOSS_TYPES,
-        PICKUP_WEAPONS,
+        PICKUPS,
       ),
-    ).toEqual(['spawn 5: unknown weapon "rifle"']);
+    ).toEqual(['spawn 5: unknown pickup "rifle"']);
     expect(
       validateLevelMap(
-        withBlimp({ weapon: 'spread', from: 'up' }),
+        withBlimp({ carries: 'spread', from: 'up' }),
         ENEMY_TYPES,
         BOSS_TYPES,
-        PICKUP_WEAPONS,
+        PICKUPS,
       ),
     ).toEqual(['spawn 5: from must be "left" or "right"']);
     expect(
       validateLevelMap(
-        withBlimp({ weapon: 'spread', from: 'left' }, { point: false, width: 8, height: 8 }),
+        withBlimp({ carries: 'spread', from: 'left' }, { point: false, width: 8, height: 8 }),
         ENEMY_TYPES,
         BOSS_TYPES,
-        PICKUP_WEAPONS,
+        PICKUPS,
       ),
     ).toEqual(['spawn 5: blimp must be a point']);
   });
@@ -502,4 +497,20 @@ describe('boss fights', () => {
       'a boss fight needs exactly one "boss" and one "arena"',
     ]);
   });
+});
+
+describe('Level 1 blimps (owner request 2026-10-19)', () => {
+  it.each(LEVELS.filter((l) => l.key.startsWith('steelworks-')))(
+    '$key has two blimps, one carrying health',
+    (level) => {
+      const { blimps } = readLevelLayout(
+        readJson(`${PUBLIC_DIR}/${level.path}`),
+        ENEMY_TYPES,
+        BOSS_TYPES,
+        PICKUPS,
+      );
+      expect(blimps).toHaveLength(2);
+      expect(blimps.filter((b) => b.carries === 'health')).toHaveLength(1);
+    },
+  );
 });
