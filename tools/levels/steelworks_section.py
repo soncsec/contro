@@ -185,6 +185,25 @@ LAYOUTS = {
         "start": 3,
         "exit": 175,
     },
+    # 2-3: back out on the rooftops, now on two levels: a high route of raised roofs and
+    # walkways over a low route with gaps, rejoining before the exit.
+    "skyline": {
+        "width": 170,
+        "tileset": "neon",
+        "scenery": "neon",
+        "floor": [(0, 30), (33, 60), (63, 96), (99, 130), (133, 170)],
+        "blocks": [(10, 18, 6), (18, 30, 4), (40, 48, 6), (48, 58, 4), (70, 78, 6), (78, 94, 4),
+                   (106, 114, 6), (114, 128, 4), (142, 150, 6)],
+        "walkways": [(30, 10, 3), (58, 12, 3), (94, 12, 3), (128, 10, 3)],
+        "walkers": [8, 22, "24g", 36, 52, "54g", 66, 84, "86g", 102, 120, "122g", 138, 156],
+        "flyers": [(40, 36), (88, 32), (124, 36), (160, 44)],
+        "bipeds": [66, 138],
+        "spawners": [(34, 3, 1000, "right"), (100, 3, 1000, "left"), (140, 3, 1100, "right")],
+        "blimps": [(46, 40, "machine-gun", "right"), (118, 40, "health", "right")],
+        "checkpoints": [36, 102, 136],
+        "start": 3,
+        "exit": 165,
+    },
 }
 
 

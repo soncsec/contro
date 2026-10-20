@@ -49,10 +49,21 @@ test('3-2 the corridor loads with its props, catwalks and a bipedal walker', asy
   expect(watched.errors).toEqual([]);
 });
 
+test('3-2 leads straight into 3-3, with no card', async ({ page }) => {
+  await openSection(page, 'neon-2');
+  const exit = await walkThroughExit(page);
+  expect(exit.scene).toBe('Level');
+  await expect.poll(async () => (await level(page)).level).toBe('neon-3');
+  const s = await level(page);
+  expect(s.label).toBe('3-3');
+  expect(s.scenery).toEqual(['neon-sky', 'neon-buildings', 'neon-front']);
+  expect(s.enemies.filter((e) => e.type === 'bipedal-walker')).toHaveLength(2);
+});
+
 test('the last section built so far ends the game with its card, then the end screen', async ({
   page,
 }) => {
-  await openSection(page, 'neon-2');
+  await openSection(page, 'neon-3');
   const exit = await walkThroughExit(page);
   expect(exit.scene).toBe('Dialogue');
   expect(await page.evaluate(() => window.__contro?.dialogue())).toMatchObject({
