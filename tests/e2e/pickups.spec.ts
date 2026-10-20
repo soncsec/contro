@@ -44,11 +44,28 @@ async function collect(page: Page, carries: 'machine-gun' | 'spread' | 'health')
   if (carries !== 'health') expect((await level(page)).player.weapon).toBe(carries);
 }
 
+/**
+ * Turns on IRON (invincible) from the pause screen. The training corridor's walkers can reach
+ * the marine while a slow machine runs a test, and a hit stuns him so a fire press is ignored;
+ * tests about weapons and pickups, not dodging, switch it on first.
+ */
+async function iron(page: Page): Promise<void> {
+  await page.keyboard.press('Escape');
+  await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBe('RESUME');
+  for (const k of ['KeyI', 'KeyR', 'KeyO', 'KeyN']) await page.keyboard.press(k);
+  await expect
+    .poll(() => page.evaluate(() => window.__contro?.cheatMessage() ?? null))
+    .toBe('INVINCIBLE ON');
+  await page.keyboard.press('Escape');
+  await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBeNull();
+}
+
 test('shooting down a blimp drops its letter; walking into M gives the machine gun', async ({
   page,
 }) => {
   const watched = watchPage(page);
   await openLevel(page);
+  await iron(page);
   expect((await level(page)).player.weapon).toBe('rifle');
   const before = (await level(page)).score.score;
   await collect(page, 'machine-gun');
@@ -70,6 +87,7 @@ test('shooting down a blimp drops its letter; walking into M gives the machine g
 
 test('the spread fires three bullets per press', async ({ page }) => {
   await openLevel(page);
+  await iron(page);
   await collect(page, 'spread');
   const before = await level(page);
   await waitGameTime(page, before.timeMs, 400);
@@ -135,16 +153,8 @@ test('a health blimp drops a red cross that restores full health (owner request)
     await waitGameTime(page, now.timeMs, 1600); // past the invulnerability
   }
   expect((await level(page)).player.hp).toBe(2);
-  // IRON (invincible) from here, so the training corridor's walkers can't hurt him on his way
-  // to the cross: the test is about the pickup, not dodging.
-  await page.keyboard.press('Escape');
-  await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBe('RESUME');
-  for (const k of ['KeyI', 'KeyR', 'KeyO', 'KeyN']) await page.keyboard.press(k);
-  await expect
-    .poll(() => page.evaluate(() => window.__contro?.cheatMessage() ?? null))
-    .toBe('INVINCIBLE ON');
-  await page.keyboard.press('Escape');
-  await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBeNull();
+  // IRON from here, so the walkers can't hurt him on his way to the cross.
+  await iron(page);
   await collect(page, 'health');
   const after = await level(page);
   expect(after.player.hp).toBe(4);
