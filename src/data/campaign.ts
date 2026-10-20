@@ -35,8 +35,8 @@ export const STORY_LEVELS: readonly CampaignLevel<DialogueId>[] = [
     sections: ['hive-1', 'hive-2', 'hive-core', 'hive-3', 'hive-4'],
     introCard: 'level-3-intro',
     endCard: 'level-3-end',
-    // Level 2's loop until Level 3's own music is chosen (M5.5).
-    music: 'music-level-2',
+    // ansimuz's "Gothicvania Ghost Town" (M5.5; owner approved 2026-10-20).
+    music: 'music-level-3',
   },
 ];
 
