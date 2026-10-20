@@ -17,6 +17,7 @@ import aim  # noqa: E402
 import blimp  # noqa: E402
 import catwalk  # noqa: E402
 import letters  # noqa: E402
+import neon  # noqa: E402
 import rust  # noqa: E402
 import steelworks  # noqa: E402
 import png  # noqa: E402
@@ -84,6 +85,11 @@ ASSETS = [
     ("assets/effects/pickup-machine-gun.png", "", "draw:letter-M"),
     ("assets/effects/pickup-spread.png", "", "draw:letter-S"),
     ("assets/effects/pickup-health.png", "", "draw:letter-+"),
+    # Level 2, the Neon District (owner chose option A, 2026-10-19): tileset and skyline
+    ("assets/levels/neon/tileset.png", "Warped/Environments", "neon"),
+    ("assets/levels/neon/sky.png", "Warped/Environments/Synth City/city skyline/Layers/back.png", "copy"),
+    ("assets/levels/neon/buildings.png", "Warped/Environments/Synth City/city skyline/Layers/buildings.png", "copy"),
+    ("assets/levels/neon/front.png", "Warped/Environments/Synth City/city skyline/Layers/front.png", "copy"),
     ("assets/levels/corridor/catwalk.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "draw:catwalk"),
     ("assets/levels/corridor/tileset.png", "Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png", "copy"),
     # Level 1 Industrial (owner chose option B, teal steelworks, 2026-10-18)
@@ -157,6 +163,9 @@ def build() -> list[tuple[str, str, str]]:
             letter = how.split("-", 1)[1]
             png.write(str(dest), letters.build(letter))
             rows.append((out, "—", f"*drawn by Claude* (`tools/art/letters.py`): the {letter} pickup, in the style of Press Start 2P (owner approved 2026-10-19)"))
+        elif how == "neon":
+            png.write(str(dest), neon.build(str(source / "sci-fi-interior-platform/PNG/tile-set-sci-fi-interior-platform.png"), str(source / "Scifi lab Files/layers")))
+            rows.append((out, f"{src}/sci-fi-interior-platform/PNG/tile-set-sci-fi-interior-platform.png, Scifi lab Files/layers/*.png", "*derived*: the platform tiles' ledge strip and lattice cut and repeated as floor, face and walkway; the lab's three layers flattened as the wall; pit tiles *drawn by Claude* in the lattice's colours (`tools/art/neon.py`)"))
         elif how == "draw:catwalk":
             png.write(str(dest), catwalk.build(str(source)))
             rows.append((out, src, "*drawn by Claude* (`tools/art/catwalk.py`): catwalk and pit tiles in this tileset's colours, pit edges reuse its floor pixels"))

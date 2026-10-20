@@ -57,17 +57,17 @@ test('Level 1 plays from START through all five sections and the tank to the end
   expect(Math.max(...fps)).toBeGreaterThan(0);
   await page.evaluate(() => window.__contro?.hurtBoss(1000));
 
-  // Its card, then the end screen with the run's score, then the title.
+  // Its card, then the Level 2 card (M3.7's goal), then Level 2 with the score carried on.
   await expect.poll(() => sceneKey(page), { timeout: 60_000 }).toBe('Dialogue');
-  expect(await page.evaluate(() => window.__contro?.dialogue()?.card)).toBe('level-1-end');
-  await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
-  await page.keyboard.press('KeyX');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('End');
-  const end = await page.evaluate(() => window.__contro?.end());
-  expect(end?.score).toBeGreaterThanOrEqual(6000); // 1000 added + 5000 for the tank
-  await expect.poll(() => page.evaluate(() => window.__contro?.end()?.ready)).toBe(true);
-  await page.keyboard.press('KeyX');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Title');
+  for (const card of ['level-1-end', 'level-2-intro']) {
+    await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.card)).toBe(card);
+    await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
+    await page.keyboard.press('KeyX');
+  }
+  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  const next = await level(page);
+  expect(next.level).toBe('neon-1');
+  expect(next.score.score).toBeGreaterThanOrEqual(6000); // 1000 added + 5000 for the tank
   expect(watched.errors).toEqual([]);
   expect(watched.foreignRequests).toEqual([]);
 });

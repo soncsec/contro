@@ -36,6 +36,16 @@ export const DIALOGUE = {
     speaker: 'ops',
     lines: ['Training complete.', 'Report to the steelworks.'],
   },
+  // Before level 2 (approved with the story draft, 2026-10-19).
+  'level-2-intro': {
+    speaker: 'ops',
+    lines: ['Signal traced to the', 'city corridors. Go.'],
+  },
+  // After level 2's last section.
+  'level-2-end': {
+    speaker: 'hive',
+    lines: ['Every step brings you', 'deeper into us, marine.'],
+  },
   // After level 1's last section, once the tank is destroyed.
   'level-1-end': {
     speaker: 'commander',

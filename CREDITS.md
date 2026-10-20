@@ -45,6 +45,10 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/effects/pickup-machine-gun.png` | `—` | *drawn by Claude* (`tools/art/letters.py`): the M pickup, in the style of Press Start 2P (owner approved 2026-10-19) |
 | `assets/effects/pickup-spread.png` | `—` | *drawn by Claude* (`tools/art/letters.py`): the S pickup, in the style of Press Start 2P (owner approved 2026-10-19) |
 | `assets/effects/pickup-health.png` | `—` | *drawn by Claude* (`tools/art/letters.py`): the + pickup, in the style of Press Start 2P (owner approved 2026-10-19) |
+| `assets/levels/neon/tileset.png` | `Warped/Environments/sci-fi-interior-platform/PNG/tile-set-sci-fi-interior-platform.png, Scifi lab Files/layers/*.png` | *derived*: the platform tiles' ledge strip and lattice cut and repeated as floor, face and walkway; the lab's three layers flattened as the wall; pit tiles *drawn by Claude* in the lattice's colours (`tools/art/neon.py`) |
+| `assets/levels/neon/sky.png` | `Warped/Environments/Synth City/city skyline/Layers/back.png` | unchanged |
+| `assets/levels/neon/buildings.png` | `Warped/Environments/Synth City/city skyline/Layers/buildings.png` | unchanged |
+| `assets/levels/neon/front.png` | `Warped/Environments/Synth City/city skyline/Layers/front.png` | unchanged |
 | `assets/levels/corridor/catwalk.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png` | *drawn by Claude* (`tools/art/catwalk.py`): catwalk and pit tiles in this tileset's colours, pit edges reuse its floor pixels |
 | `assets/levels/corridor/tileset.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png` | unchanged |
 | `assets/levels/steelworks/tileset.png` | `Warped/Environments/bulkhead-walls/v1/layers/bulkhead-walls-back.png, bulkhead-walls-platform.png, cols.png, bulkhead-walls-pipes.png` | *derived*: ceiling cropped off, wall and floor stacked with the scaffold walkway and a copy of the wall with the columns and pipes layered on, pixels unchanged; plus pit tiles *drawn by Claude* in the floor's colours (`tools/art/steelworks.py`) |
