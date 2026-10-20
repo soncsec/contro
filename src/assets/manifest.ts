@@ -242,6 +242,11 @@ export const LEVELS: readonly LevelAsset[] = [
     path: 'assets/levels/hive-1.tmj',
     tilesets: { alien: 'alien-tileset' },
   },
+  {
+    key: 'hive-2',
+    path: 'assets/levels/hive-2.tmj',
+    tilesets: { alien: 'alien-tileset' },
+  },
 ];
 
 /**
