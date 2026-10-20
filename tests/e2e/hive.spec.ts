@@ -58,18 +58,13 @@ test('4-2 is deeper in the base, on two levels, with snakes up high and two bipe
   expect(watched.errors).toEqual([]);
 });
 
-test('the last section so far ends the game with the ending card, then the end screen', async ({
-  page,
-}) => {
+test("4-2's exit leads into the base's core, an into-the-screen base stage", async ({ page }) => {
   await openSection(page, 'hive-2');
-  const exit = await walkThroughExit(page);
-  expect(exit.scene).toBe('Dialogue');
-  expect(await page.evaluate(() => window.__contro?.dialogue())).toMatchObject({
-    card: 'level-3-end',
-    more: [],
-    nextLevel: null,
-  });
-  await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
-  await page.keyboard.press('KeyX');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('End');
+  const { exitX } = await level(page);
+  await page.evaluate((x) => window.__contro?.teleportPlayer(x), exitX - 20);
+  await page.keyboard.down('ArrowRight');
+  await expect.poll(() => sceneKey(page), { timeout: 30_000 }).toBe('Base');
+  await page.keyboard.up('ArrowRight');
+  const base = await page.evaluate(() => window.__contro?.base());
+  expect(base?.section).toBe('hive-core');
 });

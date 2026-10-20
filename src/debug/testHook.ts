@@ -8,7 +8,9 @@ import type { ContinueScene } from '../scenes/ContinueScene';
 import type { DialogueScene } from '../scenes/DialogueScene';
 import type { EndScene } from '../scenes/EndScene';
 import type { PauseScene } from '../scenes/PauseScene';
+import type { BaseScene, BaseSnapshot } from '../scenes/BaseScene';
 import type { LevelScene, LevelSnapshot } from '../scenes/LevelScene';
+import { sceneFor } from '../data/baseStages';
 import type { TitleScene } from '../scenes/TitleScene';
 
 /**
@@ -24,6 +26,8 @@ export interface TestHook {
   previewPageCount(): number | null;
   /** Level state, or null if no level is running. */
   level(): LevelSnapshot | null;
+  /** Base stage state (M5.6), or null if no base stage is running. */
+  base(): BaseSnapshot | null;
   /** The title screen's state, or null if it isn't showing. */
   title(): ReturnType<TitleScene['snapshot']> | null;
   /** The highlighted pause-menu option, or null if the game isn't paused. */
@@ -76,12 +80,13 @@ export function installTestHook(game: Phaser.Game): void {
     startLevel: (key, continues) => {
       if (continues !== undefined && !(Number.isInteger(continues) && continues >= 0))
         throw new Error(`startLevel needs a whole number of continues, got ${String(continues)}`);
+      const target = sceneFor(key);
       for (const scene of game.scene.getScenes(false)) {
-        if (scene.scene.key !== 'Level' && scene.scene.isActive()) scene.scene.stop();
+        if (scene.scene.key !== target && scene.scene.isActive()) scene.scene.stop();
       }
       const run =
         continues === undefined ? {} : { run: { score: 0, lives: HEALTH.lives, continues } };
-      game.scene.start('Level', { level: key, ...run });
+      game.scene.start(target, { level: key, ...run });
     },
     scene: () => game.scene.getScenes(true)[0]?.scene.key ?? null,
     fps: () => Math.round(game.loop.actualFps),
@@ -95,6 +100,10 @@ export function installTestHook(game: Phaser.Game): void {
         ? (game.scene.getScene('AssetPreview') as AssetPreviewScene).pageCount
         : null,
     level: () => level()?.snapshot() ?? null,
+    base: () =>
+      game.scene.isActive('Base') || game.scene.isPaused('Base')
+        ? (game.scene.getScene('Base') as BaseScene).snapshot()
+        : null,
     title: () =>
       game.scene.isActive('Title') ? (game.scene.getScene('Title') as TitleScene).snapshot() : null,
     cheatMessage: () =>

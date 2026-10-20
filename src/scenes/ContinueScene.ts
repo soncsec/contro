@@ -6,6 +6,7 @@ import { formatScore } from '../logic/score';
 import { GameSound } from '../systems/GameSound';
 import { PlayerInput } from '../systems/PlayerInput';
 import type { LevelSceneData } from './LevelScene';
+import { sceneFor } from '../data/baseStages';
 
 export interface ContinueSceneData {
   /** The section the marine died in: continuing restarts it. */
@@ -132,7 +133,7 @@ export class ContinueScene extends Phaser.Scene {
         level: this.info.level,
         run: { score: 0, lives: HEALTH.lives, continues: useContinue(this.info.left) },
       };
-      this.scene.start('Level', data);
+      this.scene.start(sceneFor(this.info.level), data);
     });
   }
 
