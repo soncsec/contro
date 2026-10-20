@@ -204,6 +204,25 @@ LAYOUTS = {
         "start": 3,
         "exit": 165,
     },
+    # 2-4: the lab, indoors among the cryo tanks. Long floors broken by pits with walkways
+    # over them, stepped platforms, and the densest crowd of the level before the corridor
+    # that leads to the boss.
+    "lab": {
+        "width": 170,
+        "tileset": "neon",
+        "indoor": True,
+        "floor": [(0, 40), (43, 80), (83, 118), (121, 170)],
+        "blocks": [(24, 32, 6), (60, 66, 6), (66, 72, 5), (100, 108, 6), (140, 146, 6), (146, 152, 4)],
+        "walkways": [(36, 10, 5), (76, 10, 5), (114, 10, 5), (156, 8, 5)],
+        "walkers": [12, 20, 38, "45g", 50, 58, 78, "85g", 90, 112, "116g", 126, 134, 160],
+        "flyers": [(30, 40), (70, 36), (110, 40), (150, 36)],
+        "bipeds": [52, 128],
+        "spawners": [(30, 3, 900, "right"), (88, 3, 900, "left"), (130, 4, 900, "right")],
+        "blimps": [(22, 40, "spread", "right"), (104, 40, "health", "right")],
+        "checkpoints": [45, 85, 123],
+        "start": 3,
+        "exit": 165,
+    },
 }
 
 
