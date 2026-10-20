@@ -14,6 +14,7 @@ import {
   RIFLE_DAMAGE,
   SCORING,
 } from '../config/tuning';
+import { sceneFor } from '../data/baseStages';
 import { BOSS_TYPES } from '../data/bosses';
 import { CAMPAIGN } from '../data/campaign';
 import { ENEMIES, ENEMY_TYPES, type EnemyType } from '../data/enemies';
@@ -380,7 +381,7 @@ export class LevelScene extends Phaser.Scene {
     this.elapsedMs += deltaMs;
     const input = this.controls.frame();
     if (input.pressed.pause && !this.exiting && !this.gameOver && !this.player.dead) {
-      this.scene.launch('Pause', { level: this.levelKey });
+      this.scene.launch('Pause', { level: this.levelKey, scene: 'Level' });
       this.scene.pause();
       return;
     }
@@ -465,7 +466,7 @@ export class LevelScene extends Phaser.Scene {
       const [card, ...more] = cards;
       const run = this.run();
       if (card) this.scene.start('Dialogue', { card, more, nextLevel, run });
-      else if (nextLevel) this.scene.start('Level', { level: nextLevel, run });
+      else if (nextLevel) this.scene.start(sceneFor(nextLevel), { level: nextLevel, run });
       else this.scene.start('End', { score: run.score });
     });
   }

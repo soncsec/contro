@@ -30,8 +30,9 @@ export const STORY_LEVELS: readonly CampaignLevel<DialogueId>[] = [
     stage: 3,
     name: 'THE HIVE',
     // Built one section at a time (M5.2; owner chose "into the hive", 2026-10-20: two
-    // sections in the alien base, then three inside the hive).
-    sections: ['hive-1'],
+    // sections in the alien base, the base's core as an into-the-screen base stage (M5.6),
+    // then three inside the hive).
+    sections: ['hive-1', 'hive-core'],
     introCard: 'level-3-intro',
     endCard: 'level-3-end',
     // Level 2's loop until Level 3's own music is chosen (M5.5).

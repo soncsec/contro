@@ -5,6 +5,7 @@ import { integerZoom } from './logic/scaling';
 import { installFullscreenKey } from './systems/Fullscreen';
 import { TouchControls } from './systems/TouchControls';
 import { AssetPreviewScene } from './scenes/AssetPreviewScene';
+import { BaseScene } from './scenes/BaseScene';
 import { ContinueScene } from './scenes/ContinueScene';
 import { DialogueScene } from './scenes/DialogueScene';
 import { EndScene } from './scenes/EndScene';
@@ -41,6 +42,7 @@ export const game = new Phaser.Game({
     PreloadScene,
     TitleScene,
     LevelScene,
+    BaseScene,
     PauseScene,
     DialogueScene,
     ContinueScene,

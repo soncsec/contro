@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { level, sceneKey, title, walkThroughExit, watchPage } from './watch';
+import { level, sceneKey, title, watchPage } from './watch';
 
 /**
  * Level 3, the hive (M5.2). It starts in the alien base (owner chose "into the hive",
@@ -34,18 +34,13 @@ test('4-1 the alien base loads in front of its back wall, with the marine on a b
   expect(watched.foreignRequests).toEqual([]);
 });
 
-test('the last section so far ends the game with the ending card, then the end screen', async ({
-  page,
-}) => {
+test("4-1's exit leads into the base's core, an into-the-screen base stage", async ({ page }) => {
   await openSection(page, 'hive-1');
-  const exit = await walkThroughExit(page);
-  expect(exit.scene).toBe('Dialogue');
-  expect(await page.evaluate(() => window.__contro?.dialogue())).toMatchObject({
-    card: 'level-3-end',
-    more: [],
-    nextLevel: null,
-  });
-  await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
-  await page.keyboard.press('KeyX');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('End');
+  const { exitX } = await level(page);
+  await page.evaluate((x) => window.__contro?.teleportPlayer(x), exitX - 20);
+  await page.keyboard.down('ArrowRight');
+  await expect.poll(() => sceneKey(page), { timeout: 30_000 }).toBe('Base');
+  await page.keyboard.up('ArrowRight');
+  const base = await page.evaluate(() => window.__contro?.base());
+  expect(base?.section).toBe('hive-core');
 });

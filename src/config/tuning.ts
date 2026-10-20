@@ -257,3 +257,45 @@ export const TOUCH = {
    */
   autoFireMs: 160,
 } as const;
+
+/**
+ * Into-the-screen base rooms (ADR-C11, M5.6). Positions are in near-edge pixels across the
+ * room and depth 0 (near) to 1 (far wall); see src/logic/base.ts. tools/art/base_room.py
+ * draws the room with the same projection.
+ */
+export const BASE = {
+  projection: { centerX: 160, nearFloorY: 176, farFloorY: 104, farScale: 0.3 },
+  /** The room's height at the near edge (its far wall is farScale of this). */
+  roomHeight: 240,
+  marine: {
+    speed: 90,
+    minX: 24,
+    maxX: 296,
+    jumpSpeed: 260,
+    gravity: 900,
+    halfWidth: 9,
+  },
+  shot: {
+    /** A shot crosses the room in about 0.7 s. */
+    depthSpeed: 1.4,
+    height: 26,
+    crouchHeight: 14,
+    halfWidth: 3,
+    /** Sideways drift per unit of depth for each step of the spread's fan. */
+    spreadDrift: 70,
+  },
+  walker: {
+    /** About 3.3 s from the far wall to the near edge. */
+    depthSpeed: 0.3,
+    steerSpeed: 14,
+    halfWidth: 14,
+    height: 30,
+  },
+  /** The core's centre, above the far wall's floor (near-edge pixels), and its points. */
+  coreHeight: 120,
+  corePoints: 1000,
+  /** Time from the core blowing up to walking on into the next room. */
+  clearMs: 1500,
+  /** The run's seed for walker lanes; each room adds its number. */
+  seed: 31,
+} as const;

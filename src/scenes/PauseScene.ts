@@ -4,10 +4,18 @@ import { ACTION_CHEATS, CheatMatcher, WORD_CHEATS, type CheatId } from '../logic
 import { stepMenu } from '../logic/menu';
 import { GameSound } from '../systems/GameSound';
 import { PlayerInput } from '../systems/PlayerInput';
-import type { LevelScene } from './LevelScene';
+import type { RunState } from './LevelScene';
 
 export interface PauseSceneData {
   level: string;
+  /** The scene paused underneath: a side-scrolling level, or a base stage (M5.6). */
+  scene?: 'Level' | 'Base';
+}
+
+/** What the pause menu needs from the scene it paused. */
+interface PausedPlay extends Phaser.Scene {
+  applyCheat(id: CheatId): string;
+  readonly startingRun: RunState | null;
 }
 
 export const PAUSE_OPTIONS = ['RESUME', 'RESTART ROOM', 'SOUND'] as const;
@@ -33,6 +41,7 @@ const LINE = 14;
  */
 export class PauseScene extends Phaser.Scene {
   private level!: string;
+  private under: 'Level' | 'Base' = 'Level';
   private controls!: PlayerInput;
   private index = 0;
   private items: Phaser.GameObjects.Text[] = [];
@@ -47,6 +56,7 @@ export class PauseScene extends Phaser.Scene {
 
   init(data: PauseSceneData): void {
     this.level = data.level;
+    this.under = data.scene ?? 'Level';
     this.index = 0;
     this.items = [];
     this.actionCodes = new CheatMatcher(ACTION_CHEATS);
@@ -122,8 +132,8 @@ export class PauseScene extends Phaser.Scene {
 
   private cheat(id: CheatId | null): void {
     if (!id) return;
-    const level = this.scene.get('Level') as LevelScene;
-    this.lastCheat = level.applyCheat(id);
+    const play = this.scene.get(this.under) as PausedPlay;
+    this.lastCheat = play.applyCheat(id);
     this.message.setText(this.lastCheat);
     // Room skip takes effect straight away: back to the game, which leaves the room.
     if (id === 'skip-room') this.resume();
@@ -140,14 +150,14 @@ export class PauseScene extends Phaser.Scene {
     }
     this.scene.stop();
     // Restart with the score and lives this room was entered with.
-    const level = this.scene.get('Level') as LevelScene;
-    const run = level.startingRun;
-    level.scene.restart({ level: this.level, ...(run ? { run } : {}) });
+    const play = this.scene.get(this.under) as PausedPlay;
+    const run = play.startingRun;
+    play.scene.restart({ level: this.level, ...(run ? { run } : {}) });
   }
 
   private resume(): void {
     this.scene.stop();
-    this.scene.resume('Level');
+    this.scene.resume(this.under);
   }
 
   private render(): void {

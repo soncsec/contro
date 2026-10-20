@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ASSETS, LEVELS } from '../../src/assets/manifest';
+import { BASE_STAGES } from '../../src/data/baseStages';
 import {
   CAMPAIGN,
   CAMPAIGN_LEVELS,
@@ -20,11 +21,15 @@ import {
   validateCardText,
 } from '../../src/logic/campaign';
 
-const levelKeys = LEVELS.map((l) => l.key);
+// A section is a map (LEVELS) or an into-the-screen base stage (BASE_STAGES, M5.6).
+const levelKeys = [...LEVELS.map((l) => l.key), ...Object.keys(BASE_STAGES)];
 const cardIds = Object.keys(DIALOGUE);
 
 describe('campaign data', () => {
-  const storyMaps = LEVELS.filter((l) => !l.testOnly).map((l) => l.key);
+  const storyMaps = [
+    ...LEVELS.filter((l) => !l.testOnly).map((l) => l.key),
+    ...Object.keys(BASE_STAGES),
+  ];
   const testMaps = LEVELS.filter((l) => l.testOnly).map((l) => l.key);
 
   it.each([
