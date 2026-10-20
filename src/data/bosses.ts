@@ -105,7 +105,10 @@ export const BOSSES: Readonly<Record<BossType, BossStats>> = {
     drive: { min: 150, max: 270 },
     startBeyond: 70,
     tuning: {
-      hp: 150,
+      // Eased a little after the owner's first play ("very hard but fun", 2026-10-20): it is
+      // the middle boss, so Level 3's boss stays the hardest. Was 150 hits, spread 1.4 s and
+      // leap 3.2 s in the second half.
+      hp: 120,
       introSpeed: 40,
       phases: [
         {
@@ -119,8 +122,8 @@ export const BOSSES: Readonly<Record<BossType, BossStats>> = {
           driveSpeed: 36,
           shockwaveOnTurn: true,
           attacks: [
-            { kind: 'spread', cooldownMs: 1400, firstDelayMs: 600 },
-            { kind: 'leap', cooldownMs: 3200, firstDelayMs: 1500 },
+            { kind: 'spread', cooldownMs: 1700, firstDelayMs: 600 },
+            { kind: 'leap', cooldownMs: 4000, firstDelayMs: 1500 },
           ],
         },
       ],
