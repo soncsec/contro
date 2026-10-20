@@ -85,20 +85,19 @@ SECTIONS.forEach((section, i) => {
         .toBe('fight');
       await page.evaluate(() => window.__contro?.hurtBoss(1000));
       await expect.poll(() => sceneKey(page), { timeout: 60_000 }).toBe('Dialogue');
-      // The last level so far: after its card comes the end screen, then the title (M3.4).
+      // Its card, then Level 2's intro card, then Level 2 (the Neon District, M4.3).
       expect(await page.evaluate(() => window.__contro?.dialogue())).toMatchObject({
         card: 'level-1-end',
-        more: [],
-        nextLevel: null,
+        more: ['level-2-intro'],
+        nextLevel: 'neon-1',
       });
-      await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
-      await page.keyboard.press('KeyX');
-      await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('End');
-      const end = await page.evaluate(() => window.__contro?.end());
-      expect(end?.score).toBeGreaterThanOrEqual(5000); // the tank alone is worth 5000
-      await expect.poll(() => page.evaluate(() => window.__contro?.end()?.ready)).toBe(true);
-      await page.keyboard.press('KeyX');
-      await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Title');
+      for (const card of ['level-1-end', 'level-2-intro']) {
+        await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.card)).toBe(card);
+        await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
+        await page.keyboard.press('KeyX');
+      }
+      await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+      expect((await level(page)).level).toBe('neon-1');
     });
   }
 });

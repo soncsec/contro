@@ -127,6 +127,11 @@ export const ASSETS: readonly Asset[] = [
   image('levels', 'steelworks-tileset', 'steelworks/tileset.png', 352, 368),
   // Level 1 rust factory rooms (option C, for variety)
   image('levels', 'rust-tileset', 'rust/tileset.png', 288, 368),
+  // Level 2, the Neon District (owner chose option A, 2026-10-19): tileset and Synth City skyline
+  image('levels', 'neon-tileset', 'neon/tileset.png', 320, 368),
+  image('levels', 'neon-sky', 'neon/sky.png', 288, 192),
+  image('levels', 'neon-buildings', 'neon/buildings.png', 288, 192),
+  image('levels', 'neon-front', 'neon/front.png', 288, 192),
 ];
 
 /** Key of a sheet's default animation. */
@@ -180,6 +185,11 @@ export const LEVELS: readonly LevelAsset[] = [
     key: 'steelworks-5',
     path: 'assets/levels/steelworks-5.tmj',
     tilesets: { rust: 'rust-tileset' },
+  },
+  {
+    key: 'neon-1',
+    path: 'assets/levels/neon-1.tmj',
+    tilesets: { neon: 'neon-tileset' },
   },
 ];
 

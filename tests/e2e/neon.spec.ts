@@ -1,0 +1,50 @@
+import { expect, test, type Page } from '@playwright/test';
+import { level, sceneKey, title, walkThroughExit, watchPage } from './watch';
+
+/**
+ * Level 2, the Neon District (M4.3). In the e2e build the training corridor is level 1, so the
+ * Neon District is level 3 here.
+ */
+test.describe.configure({ timeout: 120_000 });
+
+async function openSection(page: Page, key: string): Promise<void> {
+  await page.goto('./');
+  await expect.poll(async () => (await title(page))?.ready, { timeout: 15_000 }).toBe(true);
+  await page.evaluate((k) => window.__contro?.startLevel(k), key);
+  await expect.poll(async () => (await level(page)).level, { timeout: 15_000 }).toBe(key);
+  await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
+}
+
+test('3-1 the rooftops loads under the city skyline, with the marine on the roof', async ({
+  page,
+}) => {
+  const watched = watchPage(page);
+  await openSection(page, 'neon-1');
+  const s = await level(page);
+  expect(s.label).toBe('3-1');
+  expect(s.scenery).toEqual(['neon-sky', 'neon-buildings', 'neon-front']);
+  expect(s.player.feetY).toBe(130); // the roof's top edge at 128, feet 2 px into it
+  expect(s.widthPx).toBe(180 * 16);
+  expect(s.enemies.filter((e) => e.type === 'bipedal-walker')).toHaveLength(1);
+  expect(watched.errors).toEqual([]);
+  expect(watched.foreignRequests).toEqual([]);
+});
+
+test('the last section built so far ends the game with its card, then the end screen', async ({
+  page,
+}) => {
+  await openSection(page, 'neon-1');
+  const exit = await walkThroughExit(page);
+  expect(exit.scene).toBe('Dialogue');
+  expect(await page.evaluate(() => window.__contro?.dialogue())).toMatchObject({
+    card: 'level-2-end',
+    more: [],
+    nextLevel: null,
+  });
+  await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
+  await page.keyboard.press('KeyX');
+  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('End');
+  await expect.poll(() => page.evaluate(() => window.__contro?.end()?.ready)).toBe(true);
+  await page.keyboard.press('KeyX');
+  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Title');
+});

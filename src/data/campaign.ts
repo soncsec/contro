@@ -16,6 +16,16 @@ export const STORY_LEVELS: readonly CampaignLevel<DialogueId>[] = [
     endCard: 'level-1-end',
     music: 'music-level-1',
   },
+  {
+    stage: 2,
+    name: 'THE NEON DISTRICT',
+    // Built one section at a time (M4.3; scenery: owner chose option A, 2026-10-19).
+    sections: ['neon-1'],
+    introCard: 'level-2-intro',
+    endCard: 'level-2-end',
+    // Level 1's loop until Level 2's own music is chosen (M4.5).
+    music: 'music-level-1',
+  },
 ];
 
 /**

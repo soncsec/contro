@@ -18,7 +18,9 @@ Layouts are in LAYOUTS below. A layout gives the width in tiles and lists, in 16
              screen once the column scrolls into view (M3.14); the column must be ground
   checkpoints, start, exit: columns
   boss       optional (type, column): a boss fight in an arena, the map's last screen (20 tiles)
-  tileset    "steelworks" (default) or "rust" (tools/art/rust.py, the same rows, 18 columns)
+  tileset    "steelworks" (default), "rust" (tools/art/rust.py, the same rows, 18 columns) or
+             "neon" (tools/art/neon.py, Level 2, 20 columns)
+  scenery    the outdoor skyline: "industrial" (default) or "neon" (Synth City)
   indoor     True for a section inside the steelworks: the piped wall fills the space above the
              ground instead of the open sky and skyline
 
@@ -34,9 +36,11 @@ import pathlib
 import sys
 
 TILE = 16
-TILESETS = {  # name -> (image under assets/levels/, columns)
-    "steelworks": ("steelworks/tileset.png", 22),
-    "rust": ("rust/tileset.png", 18),
+TILESETS = {  # name -> (image under assets/levels/, columns, how far feet stand into the floor)
+    "steelworks": ("steelworks/tileset.png", 22, 8),
+    "rust": ("rust/tileset.png", 18, 8),
+    # Level 2 (tools/art/neon.py): the floor strip is flat on top, so feet stand near its edge.
+    "neon": ("neon/tileset.png", 20, 2),
 }
 HEIGHT = 11  # 176 px
 FLOOR_ROW = 8  # top row of the ground
@@ -52,11 +56,19 @@ DECK_HEIGHT = 6  # collider thickness of a one-way deck
 
 # Parallax: the industrial skyline, bottoms tucked just under the ground line.
 GROUND_Y = FLOOR_ROW * TILE
+SCENERY = {}  # name -> parallax layers, below
 PARALLAX = [  # (asset key, image file, image height, how far below the ground line it ends, factor)
     ("industrial-sky", "industrial/sky.png", 160, None, 0.0),
     ("industrial-far", "industrial/far.png", 142, 10, 0.15),
     ("industrial-mid", "industrial/mid.png", 150, 6, 0.3),
     ("industrial-near", "industrial/near.png", 104, 2, 0.5),
+]
+SCENERY["industrial"] = PARALLAX
+# Level 2's outdoor sections: the Synth City skyline (192 px tall), its bottom under the roofs.
+SCENERY["neon"] = [
+    ("neon-sky", "neon/sky.png", 192, 48, 0.0),
+    ("neon-buildings", "neon/buildings.png", 192, 48, 0.15),
+    ("neon-front", "neon/front.png", 192, 48, 0.3),
 ]
 
 LAYOUTS = {
@@ -155,13 +167,31 @@ LAYOUTS = {
         "start": 3,
         "exit": 175,
     },
+    # 2-1: the Neon District's rooftops, under the Synth City skyline. Four roofs with gaps to
+    # jump, raised blocks to climb, walkways over the gaps, and the first bipedal walker.
+    "rooftops": {
+        "width": 180,
+        "tileset": "neon",
+        "scenery": "neon",
+        "floor": [(0, 42), (45, 92), (95, 134), (136, 180)],
+        "blocks": [(20, 28, 6), (56, 64, 6), (64, 70, 4), (108, 116, 6), (150, 158, 6), (158, 164, 4)],
+        "walkways": [(36, 10, 5), (78, 12, 5), (124, 9, 6)],
+        "walkers": [14, 30, "40g", 52, 74, "84g", 100, 118, 128, 146, 168],
+        "flyers": [(48, 44), (96, 40), (140, 46)],
+        "bipeds": [108],
+        "spawners": [(36, 3, 1100, "right"), (100, 3, 1000, "right"), (152, 2, 1400, "left")],
+        "blimps": [(24, 48, "spread", "right"), (116, 52, "health", "right")],
+        "checkpoints": [47, 97, 138],
+        "start": 3,
+        "exit": 175,
+    },
 }
 
 
 def build(layout: dict) -> dict:
     width = layout["width"]
     tileset_name = layout.get("tileset", "steelworks")
-    tileset_image, COLUMNS = TILESETS[tileset_name]  # noqa: N806
+    tileset_image, COLUMNS, FEET_IN = TILESETS[tileset_name]  # noqa: N806
 
     def gid(row: int, col: int) -> int:
         return 1 + row * COLUMNS + col
@@ -278,7 +308,8 @@ def build(layout: dict) -> dict:
         spawns.append(obj("arena", (width - screen) * TILE, 0, screen * TILE, HEIGHT * TILE))
 
     image_layers = []
-    for i, (key, image, h, below, factor) in enumerate([] if layout.get("indoor") else PARALLAX):
+    scenery = [] if layout.get("indoor") else SCENERY[layout.get("scenery", "industrial")]
+    for i, (key, image, h, below, factor) in enumerate(scenery):
         offsety = 0 if below is None else GROUND_Y + below - h
         image_layers.append({"id": 10 + i, "name": key, "type": "imagelayer", "image": image,
                              "offsetx": 0, "offsety": offsety, "parallaxx": factor, "parallaxy": 1,

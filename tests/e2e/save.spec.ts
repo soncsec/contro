@@ -75,7 +75,7 @@ test('a save from a longer game never offers a level this build does not have', 
     SAVE_KEY,
   );
   await openTitle(page);
-  expect((await title(page))?.level).toBe(2);
+  expect((await title(page))?.level).toBe(3); // training, the steelworks, the Neon District
 });
 
 test('a cheated run does not unlock levels', async ({ page }) => {
