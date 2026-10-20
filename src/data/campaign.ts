@@ -23,8 +23,8 @@ export const STORY_LEVELS: readonly CampaignLevel<DialogueId>[] = [
     sections: ['neon-1', 'neon-2', 'neon-3', 'neon-4', 'neon-5'],
     introCard: 'level-2-intro',
     endCard: 'level-2-end',
-    // Level 1's loop until Level 2's own music is chosen (M4.5).
-    music: 'music-level-1',
+    // ansimuz's "Dark Happy World" (M4.5; owner approved 2026-10-19).
+    music: 'music-level-2',
   },
 ];
 

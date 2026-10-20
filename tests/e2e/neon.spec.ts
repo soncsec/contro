@@ -26,6 +26,10 @@ test('3-1 the rooftops loads under the city skyline, with the marine on the roof
   expect(s.player.feetY).toBe(130); // the roof's top edge at 128, feet 2 px into it
   expect(s.widthPx).toBe(180 * 16);
   expect(s.enemies.filter((e) => e.type === 'bipedal-walker')).toHaveLength(1);
+  // Level 2's own music (M4.5).
+  await expect
+    .poll(() => page.evaluate(() => window.__contro?.sound().music))
+    .toBe('music-level-2');
   expect(watched.errors).toEqual([]);
   expect(watched.foreignRequests).toEqual([]);
 });

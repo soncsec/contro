@@ -34,6 +34,9 @@ PACKS = {
                               "CC0", "6e77afa36edc7d0d82788e2722588f9719f2b39f46768dda309b3c6c75ebb825"),
     "boss_fight_2_files.zip": ("https://opengameart.org/content/boss-fight-2", "ansimuz (Luis Zuno)", "CC0",
                                "c53911291539b7ccd209515c88ccbd008baa7d8f9e496bc2aa4dd827b45fb61b"),
+    # Level 2's music (M4.5; owner approved 2026-10-19).
+    "dark-happy-world.zip": ("https://opengameart.org/content/dark-happy-world", "ansimuz (Luis Zuno)", "CC0",
+                             "c8f34eadc1f8beda5d1724f901ae7715daa158a67a33ae271cd5634bc50e151b"),
 }
 
 # key → (zip, file inside it, kind). Keys match SOUNDS in src/assets/manifest.ts.
@@ -53,6 +56,7 @@ SOUNDS = {
     "sfx-select": ("Digital_SFX_Set.zip", "phaserUp3.mp3", "sfx"),
     "music-level-1": ("cyber_runer_files.zip", "Cyber_runer_files/cyber_runner.ogg", "music"),
     "music-boss": ("boss_fight_2_files.zip", "Boss Fight 2 Files/Boss Fight 2.ogg", "music"),
+    "music-level-2": ("dark-happy-world.zip", "dark-happy-world/dark-happy-world.ogg", "music"),
 }
 
 MUSIC_OGG_QUALITY = "3"  # libvorbis -q:a (about 112 kbit/s): loops stay under 2 MB
