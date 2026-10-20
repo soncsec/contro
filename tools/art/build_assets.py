@@ -69,6 +69,8 @@ ASSETS = [
     ("assets/enemies/tank.png", "Warped/Characters/tank-unit/Spritesheet.png", "copy"),
     # M4.2: the bipedal walker, seven walk frames (owner approved the art 2026-10-19)
     ("assets/enemies/bipedal-walk.png", "Warped/Characters/bipedal-Unit/sprites", "pack:bipedal-unit*.png"),
+    # M4.4: the Level 2 boss, the mech, ten walk frames (design approved 2026-10-19)
+    ("assets/enemies/mech.png", "Warped/Characters/mech-unit/sprites", "pack:mech-unit-export*.png"),
     ("assets/effects/ground-explosion.png", "Explosions and Magic/Ground Explosion/spritesheet/explosion-animation.png", "copy"),
     ("assets/enemies/alien-flyer.png", "Warped/Characters/alien-flying-enemy/spritesheet.png", "copy"),
     ("assets/effects/enemy-shot.png", "Gothicvania/Misc/EnemyProjectile/spritesheet.png", "copy"),

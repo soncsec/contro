@@ -29,6 +29,7 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/effects/hit.png` | `Explosions and Magic/Hit/hit.png` | unchanged |
 | `assets/enemies/tank.png` | `Warped/Characters/tank-unit/Spritesheet.png` | unchanged |
 | `assets/enemies/bipedal-walk.png` | `Warped/Characters/bipedal-Unit/sprites/bipedal-unit1.png … bipedal-unit7.png` | 7 frames packed into a strip |
+| `assets/enemies/mech.png` | `Warped/Characters/mech-unit/sprites/mech-unit-export1.png … mech-unit-export10.png` | 10 frames packed into a strip |
 | `assets/effects/ground-explosion.png` | `Explosions and Magic/Ground Explosion/spritesheet/explosion-animation.png` | unchanged |
 | `assets/enemies/alien-flyer.png` | `Warped/Characters/alien-flying-enemy/spritesheet.png` | unchanged |
 | `assets/effects/enemy-shot.png` | `Gothicvania/Misc/EnemyProjectile/spritesheet.png` | unchanged |
@@ -101,6 +102,8 @@ Sound effects and music from CC0 packs, each approved by the owner (2026-10-19).
 | `assets/audio/music-level-1.m4a` | [cyber_runer_files.zip](https://opengameart.org/content/cyber-runner-music) `Cyber_runer_files/cyber_runner.ogg` by ansimuz (Luis Zuno), CC0 | AAC (M4A) copy for iPhone Safari, 112kbit/s |
 | `assets/audio/music-boss.ogg` | [boss_fight_2_files.zip](https://opengameart.org/content/boss-fight-2) `Boss Fight 2 Files/Boss Fight 2.ogg` by ansimuz (Luis Zuno), CC0 | re-encoded to OGG Vorbis (quality 3) |
 | `assets/audio/music-boss.m4a` | [boss_fight_2_files.zip](https://opengameart.org/content/boss-fight-2) `Boss Fight 2 Files/Boss Fight 2.ogg` by ansimuz (Luis Zuno), CC0 | AAC (M4A) copy for iPhone Safari, 112kbit/s |
+| `assets/audio/music-level-2.ogg` | [dark-happy-world.zip](https://opengameart.org/content/dark-happy-world) `dark-happy-world/dark-happy-world.ogg` by ansimuz (Luis Zuno), CC0 | re-encoded to OGG Vorbis (quality 3) |
+| `assets/audio/music-level-2.m4a` | [dark-happy-world.zip](https://opengameart.org/content/dark-happy-world) `dark-happy-world/dark-happy-world.ogg` by ansimuz (Luis Zuno), CC0 | AAC (M4A) copy for iPhone Safari, 112kbit/s |
 <!-- audio:end -->
 
 ## Libraries

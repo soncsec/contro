@@ -92,7 +92,7 @@ export class BossFight {
     for (const shot of r.shots) {
       if (enemyShots.fire(shot)) GameSound.play(shot.gravity ? 'sfx-mortar' : 'sfx-cannon');
     }
-    for (const at of r.landings) this.markLanding(at, stats.mortar.flightMs);
+    for (const at of r.landings) this.markLanding(at, at.ms);
     for (const e of r.explosions) {
       GameSound.play('sfx-boss-blast');
       effects.play(stats.explosions.effect, e.x, e.y, false, 6);

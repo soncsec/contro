@@ -3,13 +3,14 @@ import {
   arenaLocked,
   damageBoss,
   initialBoss,
+  leapArc,
   lobVelocity,
   phaseFor,
+  shellLanded,
   startBoss,
   stepBoss,
   type BossState,
   type BossTuning,
-  shellLanded,
 } from '../../src/logic/boss';
 
 const T: BossTuning = {
@@ -171,5 +172,37 @@ describe('shellLanded (M3.12: shells burst at their mark, not on terrain)', () =
 
   it('does not burst a shell that passes its landing height on the way up', () => {
     expect(shellLanded(150, -200, 140)).toBe(false);
+  });
+});
+
+describe('leapArc (the mech, M4.4)', () => {
+  const from = { x: 100, y: 160 };
+  const to = { x: 200, y: 160 };
+
+  it('starts at the start and lands on the target', () => {
+    expect(leapArc(from, to, 0, 1000, 60)).toEqual({ x: 100, y: 160, done: false });
+    expect(leapArc(from, to, 1000, 1000, 60)).toEqual({ x: 200, y: 160, done: true });
+    expect(leapArc(from, to, 1500, 1000, 60).done).toBe(true);
+  });
+
+  it('rises its full height half way', () => {
+    const mid = leapArc(from, to, 500, 1000, 60);
+    expect(mid.x).toBe(150);
+    expect(mid.y).toBe(100);
+  });
+});
+
+describe('turning (the mech sends a shockwave when it turns)', () => {
+  it('reports the frame it turns at an end of its range', () => {
+    const t = {
+      hp: 10,
+      introSpeed: 40,
+      dyingMs: 100,
+      phases: [{ fromHpShare: 1, driveSpeed: 20, shockwaveOnTurn: true, attacks: [] }],
+    };
+    const fighting = { ...initialBoss(t), mode: 'fight' as const, direction: -1 as const };
+    const range = { min: 100, max: 200 };
+    expect(stepBoss(fighting, 150, range, 16, t).turned).toBe(false);
+    expect(stepBoss(fighting, 100, range, 16, t).turned).toBe(true);
   });
 });
