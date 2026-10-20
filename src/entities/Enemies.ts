@@ -5,6 +5,7 @@ import { ENEMIES, type EnemyType } from '../data/enemies';
 import { bodyOffsetX, spriteYForFeet } from '../logic/body';
 import { applyDamage, initialPatrol, stepPatrol, type PatrolState } from '../logic/enemy';
 import { initialBiped, stepBiped, type BipedState } from '../logic/biped';
+import { initialSnake, stepSnake, type SnakeState } from '../logic/snake';
 import { runnerGone, stepRunner, type SpawnOrder } from '../logic/spawner';
 import {
   initialFlyer,
@@ -29,6 +30,8 @@ interface EnemyRecord {
   flyer: FlyerState | null;
   /** Bipedal walkers only (M4.2). */
   biped: BipedState | null;
+  /** Spitting snakes only (M5.1). */
+  snake: SnakeState | null;
   /** Facing as drawn: -1 left, 1 right. */
   direction: -1 | 1;
   flashMs: number;
@@ -58,6 +61,8 @@ export interface EnemyShot {
   gravity?: boolean;
   /** A lobbed shell bursts once it comes down to this height (its marked landing point). */
   burstAtY?: number;
+  /** Its own sprite sheet (the snake's glob, M5.1), drawn facing right; default the orb. */
+  sheet?: string;
 }
 
 /**
@@ -109,6 +114,7 @@ export class Enemies {
       flyer:
         flying && stats.flyer ? initialFlyer(stats.flyer, this.flyers++ * FLYER_STAGGER_MS) : null,
       biped: stats.biped ? initialBiped() : null,
+      snake: stats.snake ? initialSnake() : null,
       direction: -1,
       flashMs: 0,
       runner: false,
@@ -143,6 +149,7 @@ export class Enemies {
         patrol: initialPatrol(),
         flyer: null,
         biped: null,
+        snake: null,
         direction: order.direction,
         flashMs: 0,
         runner: true,
@@ -179,6 +186,9 @@ export class Enemies {
         if (shot) shots.push(shot);
       } else if (r.biped) {
         const shot = this.updateBiped(r, dtMs, player);
+        if (shot) shots.push(shot);
+      } else if (r.snake) {
+        const shot = this.updateSnake(r, dtMs, player);
         if (shot) shots.push(shot);
       } else {
         this.updateWalker(r, dtMs);
@@ -307,6 +317,34 @@ export class Enemies {
     const top = r.sprite.y - stats.frame.height / 2;
     const x = left + (flipped ? stats.frame.width - mx : mx);
     return { x, y: top + my, vx: r.direction * tuning.shotSpeed, vy: 0 };
+  }
+
+  /** Sits still, rears back and strikes as it spits a glob at the marine (M5.1). */
+  private updateSnake(r: EnemyRecord, dtMs: number, player: Point | null): EnemyShot | null {
+    const stats = ENEMIES[r.type];
+    const tuning = stats.snake;
+    if (!r.snake || !tuning) return null;
+    const before = r.snake.mode;
+    const step = stepSnake(r.snake, this.framePoint(r, tuning.mouth), player, dtMs, tuning);
+    r.snake = step.state;
+    this.setDirection(r, step.state.direction);
+    r.sprite.body.setVelocityX(0);
+    const mode = step.state.mode;
+    // Rearing back plays the strike once (its last frame lands as it spits); otherwise idle.
+    if (mode === 'windup' && before !== 'windup') r.sprite.play(animKey(tuning.strikeSheet));
+    else if (mode !== 'windup' && before === 'windup') r.sprite.play(animKey(stats.walkSheet));
+    if (!step.spit) return null;
+    const mouth = this.framePoint(r, tuning.mouth);
+    return { ...mouth, vx: step.spit.vx, vy: step.spit.vy, sheet: tuning.spitSheet };
+  }
+
+  /** World position of a point drawn at [x, y] in the frame facing right, as it faces now. */
+  private framePoint(r: EnemyRecord, [px, py]: readonly [number, number]): Point {
+    const stats = ENEMIES[r.type];
+    const flipped = stats.facesLeftInArt ? r.direction > 0 : r.direction < 0;
+    const left = r.sprite.x - stats.frame.width / 2;
+    const top = r.sprite.y - stats.frame.height / 2;
+    return { x: left + (flipped ? stats.frame.width - px : px), y: top + py };
   }
 
   private updateFlyer(r: EnemyRecord, dtMs: number, player: Point | null): EnemyShot | null {

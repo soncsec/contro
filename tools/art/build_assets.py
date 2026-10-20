@@ -44,6 +44,10 @@ PORTRAITS = "Warped/Misc/Warped Portraits Files/portraits with bg"
 #   how = "aimbare:<glob>" the same, with any muzzle flash removed
 #   how = "aimdown:<glob>" lower the arms and rifle 45° instead (M3.13), with no muzzle flash
 #   how = "rot45:<glob>:WxH" rotate each frame 45° up onto a W×H canvas (bullets, flashes)
+#   how = "pad:<glob>:WxH+X" place each frame on a W×H canvas, X px from its left, bottom
+#                          aligned, and pack them, so animations drawn at different sizes
+#                          share one frame size (and a body centred in the frame stays put
+#                          when the sprite flips)
 #   how = "draw:catwalk"   new tiles drawn by tools/art/catwalk.py in the colours of the source
 #   how = "steelworks"     crop and stack the bulkhead-walls v1 layers (tools/art/steelworks.py)
 #   how = "rust"           the bulkhead-walls v2 wall and floor, rust walkway (tools/art/rust.py)
@@ -66,6 +70,10 @@ ASSETS = [
     ("assets/effects/enemy-death.png", "Explosions and Magic/EnemyDeath/spritesheet.png", "copy"),
     ("assets/effects/air-jump-ring.png", "Explosions and Magic/Grotto-escape-2-FX/spritesheets/slash-circular.png", "copy"),
     ("assets/effects/hit.png", "Explosions and Magic/Hit/hit.png", "copy"),
+    # M5.1: the spitting snake (owner chose it for Level 3, 2026-10-20); idle and spit share a frame size
+    ("assets/enemies/snake-idle.png", "Warped/Characters/Grotto-escape-2-snake/sprites/idle", "pad:*.png:36x21+9"),
+    ("assets/enemies/snake-strike.png", "Warped/Characters/Grotto-escape-2-snake/sprites/shoot", "pad:*.png:36x21+9"),
+    ("assets/effects/snake-spit.png", "Warped/Characters/Grotto-escape-2-snake/spritesheets/spit.png", "copy"),
     # Level 1 boss (M3.3): the tank, and the big explosion it goes up in
     ("assets/enemies/tank.png", "Warped/Characters/tank-unit/Spritesheet.png", "copy"),
     # M4.2: the bipedal walker, seven walk frames (owner approved the art 2026-10-19)
@@ -133,6 +141,14 @@ def frame_number(path: pathlib.Path) -> int:
     return int(match.group(1))
 
 
+def pad(img: png.Image, w: int, h: int, left: int) -> png.Image:
+    """The frame on a clear w×h canvas, `left` px from its left edge, bottoms aligned."""
+    clear = (0, 0, 0, 0)
+    top = h - len(img)
+    right = w - left - len(img[0])
+    return [[clear] * w if y < top else [clear] * left + img[y - top] + [clear] * right for y in range(h)]
+
+
 muzzles: dict[str, list[tuple[int, int]]] = {}
 
 
@@ -187,7 +203,7 @@ def build() -> list[tuple[str, str, str]]:
         else:
             kind, pattern = how.split(":", 1)
             size = None
-            if kind.startswith("rot45"):
+            if kind.startswith("rot45") or kind == "pad":
                 pattern, size = pattern.rsplit(":", 1)
             frames = sorted(source.glob(pattern), key=frame_number)
             if not frames:
@@ -212,6 +228,12 @@ def build() -> list[tuple[str, str, str]]:
                     base = [cut_flash(i) for i in base]
                 images = [aim.rotate_whole(i, aim.DIAGONAL, (w, h)) for i in base]
                 note = f"*derived*: {len(frames)} frames rotated 45° up (`tools/art/aim.py`)"
+            elif kind == "pad":
+                assert size is not None
+                dims, left = size.split("+")
+                w, h = (int(v) for v in dims.split("x"))
+                images = [pad(i, w, h, int(left)) for i in images]
+                note = f"{len(frames)} frames placed on {w}×{h} canvases (pixels unchanged) and packed into a strip"
             else:
                 note = f"{len(frames)} frames packed into a strip"
             png.write(str(dest), png.strip(images))
