@@ -3,12 +3,16 @@ import {
   depthScale,
   fireShots,
   hitCore,
+  incomingAt,
   initialMarine,
+  initialShooter,
   initialRoom,
   project,
   shotX,
   stepMarine,
   stepRoom,
+  stepIncoming,
+  stepShooter,
   stepShot,
   stepWalker,
   type BaseInput,
@@ -190,5 +194,54 @@ describe('the room', () => {
     const r = initialRoom(ROOM);
     expect(stepRoom(r, ROOM, -50, createRng(1)).room.nextMs).toBe(1000);
     expect(stepMarine(initialMarine(100), { ...NONE, right: true }, -50, M).x).toBe(100);
+  });
+});
+
+describe('shooters and incoming shots (M5.6c)', () => {
+  const spec = { x: 60, h: 180, firstMs: 500, everyMs: 2000, count: 1, spreadPx: 0 };
+  const I = { depthSpeed: 0.8, halfWidth: 3, arriveH: 22 };
+
+  it('fires its first shot on time, aimed where he stands, then waits', () => {
+    let s = initialShooter(spec);
+    const first = stepShooter(s, spec, 200, 400);
+    expect(first.shots).toEqual([]);
+    const fired = stepShooter(first.shooter, spec, 200, 100);
+    expect(fired.shots).toEqual([{ x0: 60, h0: 180, x1: 200, z: 1 }]);
+    s = fired.shooter;
+    expect(stepShooter(s, spec, 200, 1999).shots).toEqual([]);
+    expect(stepShooter(s, spec, 200, 2000).shots).toHaveLength(1);
+  });
+
+  it('a volley fans out around him', () => {
+    const fan = { ...spec, count: 3, spreadPx: 40 };
+    const r = stepShooter(initialShooter(fan), fan, 160, 600);
+    expect(r.shots.map((s) => s.x1)).toEqual([120, 160, 200]);
+  });
+
+  it('never fires twice in one frame, even after a long stall', () => {
+    const r = stepShooter(initialShooter(spec), spec, 160, 10_000);
+    expect(r.shots).toHaveLength(1);
+    expect(r.shooter.nextMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it('a shot flies from the wall to where it was aimed, coming down to chest height', () => {
+    const shot = { x0: 60, h0: 180, x1: 200, z: 1 };
+    expect(incomingAt(shot, I)).toEqual({ x: 60, h: 180 });
+    expect(incomingAt(shot, I, 0)).toEqual({ x: 200, h: 22 });
+  });
+
+  it('hits him where it was aimed, unless he moved aside or crouched', () => {
+    const shot = { x0: 60, h0: 180, x1: 160, z: 0.05 };
+    expect(stepIncoming(shot, initialMarine(160), 9, 100, I)).toMatchObject({
+      hit: true,
+      gone: true,
+    });
+    expect(stepIncoming(shot, initialMarine(200), 9, 100, I).hit).toBe(false);
+    const crouched = { ...initialMarine(160), crouching: true };
+    expect(stepIncoming(shot, crouched, 9, 100, I).hit).toBe(false);
+    expect(stepIncoming({ ...shot, z: 0.9 }, initialMarine(160), 9, 100, I)).toMatchObject({
+      hit: false,
+      gone: false,
+    });
   });
 });

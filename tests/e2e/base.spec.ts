@@ -71,7 +71,9 @@ test('walkers run out of the far end and hurt him if he stands in their way', as
   await expect.poll(async () => (await base(page)).hp, { timeout: 30_000 }).toBeLessThan(s.hp);
 });
 
-test('shooting the core destroys it; the barrier drops and the stage ends', async ({ page }) => {
+test('shooting the core destroys it; the barrier drops and he walks on into room 2', async ({
+  page,
+}) => {
   await openBase(page);
   await cheat(page, 'IRON', 'INVINCIBLE ON');
   const start = await base(page);
@@ -88,9 +90,8 @@ test('shooting the core destroys it; the barrier drops and the stage ends', asyn
     )
     .toBe('cleared');
   expect((await base(page)).score.score).toBeGreaterThanOrEqual(before + 1000);
-  // The last room: on to the next section or, while the core is Level 3's last, its card.
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).not.toBe('Base');
-  expect(['Level', 'Dialogue']).toContain(await sceneKey(page));
+  await expect.poll(async () => (await base(page)).room, { timeout: 15_000 }).toBe(2);
+  expect((await base(page)).cleared).toBe(false);
 });
 
 test('the pause menu works here too, and THRU skips the room', async ({ page }) => {
@@ -102,4 +103,75 @@ test('the pause menu works here too, and THRU skips the room', async ({ page }) 
   await expect
     .poll(async () => (await page.evaluate(() => window.__contro?.base()))?.cleared ?? true)
     .toBe(true);
+});
+
+/** Skips rooms with THRU until the given room (1-based) is running. */
+async function skipTo(page: Page, room: number): Promise<void> {
+  while ((await base(page)).room < room) {
+    const now = (await base(page)).room;
+    await page.keyboard.press('Escape');
+    await expect
+      .poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null))
+      .toBe('RESUME');
+    for (const k of ['KeyT', 'KeyH', 'KeyR', 'KeyU']) await page.keyboard.press(k);
+    await expect.poll(async () => (await base(page)).room, { timeout: 15_000 }).toBe(now + 1);
+  }
+}
+
+test('four rooms; the second has two wall turrets that fire out of the room at him', async ({
+  page,
+}) => {
+  await openBase(page);
+  expect((await base(page)).rooms).toBe(4);
+  await cheat(page, 'IRON', 'INVINCIBLE ON');
+  await skipTo(page, 2);
+  const s = await base(page);
+  expect(s.turrets).toBe(2);
+  await expect
+    .poll(async () => (await base(page)).incoming.fired, { timeout: 15_000 })
+    .toBeGreaterThan(0);
+});
+
+test('shooting a turret destroys it', async ({ page }) => {
+  await openBase(page);
+  await cheat(page, 'IRON', 'INVINCIBLE ON');
+  await skipTo(page, 2);
+  // The left turret sits at x 70: run under it, then fire into the room.
+  await page.keyboard.down('ArrowLeft');
+  await expect.poll(async () => (await base(page)).marine.x).toBeLessThan(80);
+  await page.keyboard.up('ArrowLeft');
+  await expect
+    .poll(
+      async () => {
+        const s = await base(page);
+        if (s.turrets < 2) return 'down';
+        await page.keyboard.press('KeyX');
+        return s.turrets;
+      },
+      { timeout: 60_000, intervals: [150] },
+    )
+    .toBe('down');
+});
+
+test('the last room is the fourth, and its core fires back', async ({ page }) => {
+  await openBase(page);
+  await cheat(page, 'IRON', 'INVINCIBLE ON');
+  await skipTo(page, 4);
+  const s = await base(page);
+  expect(s.room).toBe(4);
+  // The core's fan of three plus two turrets: several shots within a few seconds.
+  await expect
+    .poll(async () => (await base(page)).incoming.fired, { timeout: 15_000 })
+    .toBeGreaterThanOrEqual(4);
+});
+
+test('after the fourth room the stage ends and the level goes on', async ({ page }) => {
+  await openBase(page);
+  await skipTo(page, 4);
+  await page.keyboard.press('Escape');
+  await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBe('RESUME');
+  for (const k of ['KeyT', 'KeyH', 'KeyR', 'KeyU']) await page.keyboard.press(k);
+  // The next section or, while the core is Level 3's last section, its card.
+  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).not.toBe('Base');
+  expect(['Level', 'Dialogue']).toContain(await sceneKey(page));
 });
