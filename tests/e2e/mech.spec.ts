@@ -51,19 +51,25 @@ test('below half health it changes phase and leaps', async ({ page }) => {
   expect(fastest).toBeGreaterThan(20);
 });
 
-test('destroyed, it ends Level 2 with its card, then the end screen', async ({ page }) => {
+test('destroyed, it ends Level 2 with its card, then Level 3 with the score carried on', async ({
+  page,
+}) => {
   await openArena(page);
   const before = (await level(page)).score.score;
   await page.evaluate(() => window.__contro?.hurtBoss(1000));
   await expect.poll(() => sceneKey(page), { timeout: 60_000 }).toBe('Dialogue');
   expect(await page.evaluate(() => window.__contro?.dialogue())).toMatchObject({
     card: 'level-2-end',
-    more: [],
-    nextLevel: null,
+    more: ['level-3-intro'],
+    nextLevel: 'hive-1',
   });
-  await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
-  await page.keyboard.press('KeyX');
-  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('End');
-  const end = await page.evaluate(() => window.__contro?.end());
-  expect(end?.score).toBeGreaterThanOrEqual(before + 8000);
+  for (const card of ['level-2-end', 'level-3-intro']) {
+    await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.card)).toBe(card);
+    await expect.poll(() => page.evaluate(() => window.__contro?.dialogue()?.ready)).toBe(true);
+    await page.keyboard.press('KeyX');
+  }
+  await expect.poll(() => sceneKey(page), { timeout: 15_000 }).toBe('Level');
+  const next = await level(page);
+  expect(next.level).toBe('hive-1');
+  expect(next.score.score).toBeGreaterThanOrEqual(before + 8000);
 });

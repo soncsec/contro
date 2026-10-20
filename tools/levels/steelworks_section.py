@@ -19,8 +19,10 @@ Layouts are in LAYOUTS below. A layout gives the width in tiles and lists, in 16
   checkpoints, start, exit: columns
   boss       optional (type, column): a boss fight in an arena, the map's last screen (20 tiles)
   tileset    "steelworks" (default), "rust" (tools/art/rust.py, the same rows, 18 columns) or
-             "neon" (tools/art/neon.py, Level 2, 20 columns)
-  scenery    the outdoor skyline: "industrial" (default) or "neon" (Synth City)
+             "neon" (tools/art/neon.py, Level 2, 20 columns) or "alien" (tools/art/alien.py,
+             Level 3's alien base, 20 columns)
+  scenery    the outdoor skyline: "industrial" (default), "neon" (Synth City) or "alien"
+             (the alien base's back wall and structures)
   indoor     True for a section inside the steelworks: the piped wall fills the space above the
              ground instead of the open sky and skyline
 
@@ -41,6 +43,8 @@ TILESETS = {  # name -> (image under assets/levels/, columns, how far feet stand
     "rust": ("rust/tileset.png", 18, 8),
     # Level 2 (tools/art/neon.py): the floor strip is flat on top, so feet stand near its edge.
     "neon": ("neon/tileset.png", 20, 2),
+    # Level 3's alien base (tools/art/alien.py): the bridge's planks start at the tile's top.
+    "alien": ("alien/tileset.png", 20, 2),
 }
 HEIGHT = 11  # 176 px
 FLOOR_ROW = 8  # top row of the ground
@@ -69,6 +73,11 @@ SCENERY["neon"] = [
     ("neon-sky", "neon/sky.png", 192, 48, 0.0),
     ("neon-buildings", "neon/buildings.png", 192, 48, 0.15),
     ("neon-front", "neon/front.png", 192, 48, 0.3),
+]
+# Level 3's alien base: its back wall and structures (176 px tall), their bottom at the map's.
+SCENERY["alien"] = [
+    ("alien-back", "alien/back.png", 176, 48, 0.0),
+    ("alien-structures", "alien/structures.png", 176, 48, 0.3),
 ]
 
 LAYOUTS = {
@@ -222,6 +231,26 @@ LAYOUTS = {
         "checkpoints": [45, 85, 123],
         "start": 3,
         "exit": 165,
+    },
+    # 3-1: the alien base, the way into the hive. Bridges with gaps between them, raised
+    # bridges to climb, vent walkways over the gaps, and a bigger crowd than Level 2.
+    "base": {
+        "width": 180,
+        "tileset": "alien",
+        "scenery": "alien",
+        "floor": [(0, 36), (39, 70), (73, 100), (103, 128), (131, 152), (155, 180)],
+        "blocks": [(16, 24, 6), (50, 58, 6), (58, 64, 4), (84, 92, 6), (112, 120, 6),
+                   (120, 126, 4), (162, 170, 6)],
+        "walkways": [(32, 10, 5), (66, 10, 5), (96, 10, 5), (127, 9, 5)],
+        "walkers": [10, 20, 30, "34g", 46, 56, 64, "68g", 80, 90, 98, "105g", 110, 118, 130, 140,
+                    150, 160, 172],
+        "flyers": [(40, 40), (76, 36), (112, 40), (146, 36), (168, 40)],
+        "bipeds": [116],
+        "spawners": [(30, 3, 900, "right"), (80, 4, 900, "right"), (140, 4, 900, "left")],
+        "blimps": [(20, 44, "spread", "right"), (120, 44, "health", "right")],
+        "checkpoints": [45, 106, 140],
+        "start": 3,
+        "exit": 175,
     },
 }
 

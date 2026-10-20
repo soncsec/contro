@@ -51,6 +51,9 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/levels/neon/sky.png` | `Warped/Environments/Synth City/city skyline/Layers/back.png` | unchanged |
 | `assets/levels/neon/buildings.png` | `Warped/Environments/Synth City/city skyline/Layers/buildings.png` | unchanged |
 | `assets/levels/neon/front.png` | `Warped/Environments/Synth City/city skyline/Layers/front.png` | unchanged |
+| `assets/levels/alien/tileset.png` | `Warped/Environments/alien-environment/PNG/layers/tileset.png, background.png, back-structures.png` | *derived*: the long bridge's deck and arches and the vent platform and truss cut and repeated as floor, under-floor and walkway; the background and back structures flattened as the wall; pixels unchanged (`tools/art/alien.py`) |
+| `assets/levels/alien/back.png` | `Warped/Environments/alien-environment/PNG/layers/background.png` | unchanged |
+| `assets/levels/alien/structures.png` | `Warped/Environments/alien-environment/PNG/layers/back-structures.png` | unchanged |
 | `assets/levels/corridor/catwalk.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png` | *drawn by Claude* (`tools/art/catwalk.py`): catwalk and pit tiles in this tileset's colours, pit edges reuse its floor pixels |
 | `assets/levels/corridor/tileset.png` | `Warped/Environments/cyberpunk-corridor-files/PNG/cyberpunk-corridor.png` | unchanged |
 | `assets/levels/steelworks/tileset.png` | `Warped/Environments/bulkhead-walls/v1/layers/bulkhead-walls-back.png, bulkhead-walls-platform.png, cols.png, bulkhead-walls-pipes.png` | *derived*: ceiling cropped off, wall and floor stacked with the scaffold walkway and a copy of the wall with the columns and pipes layered on, pixels unchanged; plus pit tiles *drawn by Claude* in the floor's colours (`tools/art/steelworks.py`) |

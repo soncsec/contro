@@ -26,6 +26,17 @@ export const STORY_LEVELS: readonly CampaignLevel<DialogueId>[] = [
     // ansimuz's "Dark Happy World" (M4.5; owner approved 2026-10-19).
     music: 'music-level-2',
   },
+  {
+    stage: 3,
+    name: 'THE HIVE',
+    // Built one section at a time (M5.2; owner chose "into the hive", 2026-10-20: two
+    // sections in the alien base, then three inside the hive).
+    sections: ['hive-1'],
+    introCard: 'level-3-intro',
+    endCard: 'level-3-end',
+    // Level 2's loop until Level 3's own music is chosen (M5.5).
+    music: 'music-level-2',
+  },
 ];
 
 /**
