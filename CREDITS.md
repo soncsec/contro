@@ -121,6 +121,8 @@ Sound effects and music from CC0 packs, each approved by the owner (2026-10-19).
 | `assets/audio/music-level-2.m4a` | [dark-happy-world.zip](https://opengameart.org/content/dark-happy-world) `dark-happy-world/dark-happy-world.ogg` by ansimuz (Luis Zuno), CC0 | AAC (M4A) copy for iPhone Safari, 112kbit/s |
 | `assets/audio/music-level-3.ogg` | [Ghost-Town-Files.zip](https://opengameart.org/content/gothicvania-ghost-town) `ghost-town.ogg` by ansimuz (Luis Zuno), CC0 | re-encoded to OGG Vorbis (quality 3) |
 | `assets/audio/music-level-3.m4a` | [Ghost-Town-Files.zip](https://opengameart.org/content/gothicvania-ghost-town) `ghost-town.ogg` by ansimuz (Luis Zuno), CC0 | AAC (M4A) copy for iPhone Safari, 112kbit/s |
+| `assets/audio/music-ending.ogg` | [Heros_determination.zip](https://opengameart.org/content/heros-determination-theme) `exports/determination.ogg` by ansimuz (Luis Zuno), CC0 | re-encoded to OGG Vorbis (quality 3) |
+| `assets/audio/music-ending.m4a` | [Heros_determination.zip](https://opengameart.org/content/heros-determination-theme) `exports/determination.ogg` by ansimuz (Luis Zuno), CC0 | AAC (M4A) copy for iPhone Safari, 112kbit/s |
 <!-- audio:end -->
 
 ## Libraries

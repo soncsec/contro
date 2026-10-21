@@ -40,6 +40,10 @@ PACKS = {
     # Level 3's music (M5.5; owner approved 2026-10-20). SHA-256 as downloaded 2026-10-20.
     "Ghost-Town-Files.zip": ("https://opengameart.org/content/gothicvania-ghost-town", "ansimuz (Luis Zuno)",
                              "CC0", "fdc9b04ecd7c76ea6c16f6e4a24b443cee002b1b722ffeafd33bb47b81e07b3c"),
+    # The ending and credits (M5.4; owner approved 2026-10-20). Public domain per its licence file.
+    "Heros_determination.zip": ("https://opengameart.org/content/heros-determination-theme",
+                                "ansimuz (Luis Zuno)", "CC0",
+                                "62546b1e7fefe4be37c54ea01d98235092fa79427f6dfa62d9d9b9a8cadd2998"),
 }
 
 # key → (zip, file inside it, kind). Keys match SOUNDS in src/assets/manifest.ts.
@@ -61,6 +65,7 @@ SOUNDS = {
     "music-boss": ("boss_fight_2_files.zip", "Boss Fight 2 Files/Boss Fight 2.ogg", "music"),
     "music-level-2": ("dark-happy-world.zip", "dark-happy-world/dark-happy-world.ogg", "music"),
     "music-level-3": ("Ghost-Town-Files.zip", "ghost-town.ogg", "music"),
+    "music-ending": ("Heros_determination.zip", "exports/determination.ogg", "music"),
 }
 
 MUSIC_OGG_QUALITY = "3"  # libvorbis -q:a (about 112 kbit/s): loops stay under 2 MB
