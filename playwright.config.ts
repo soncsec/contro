@@ -6,6 +6,10 @@ const isCI = Boolean(process.env['CI']);
 export default defineConfig({
   testDir: 'tests/e2e',
   fullyParallel: true,
+  // Two browsers at a time everywhere (owner, 2026-10-21): the dev machine is shared by several
+  // game sessions, and Playwright's default (half the cores) starts 6 here. GitHub's runners
+  // have 4 cores, where the default was already 2.
+  workers: 2,
   forbidOnly: isCI,
   retries: 0,
   reporter: isCI ? [['list'], ['html', { open: 'never' }]] : 'list',
