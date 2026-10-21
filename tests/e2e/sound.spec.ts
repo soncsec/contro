@@ -6,6 +6,13 @@ test.describe.configure({ timeout: 120_000 });
 
 const sound = (page: Page) => page.evaluate(() => window.__contro?.sound() ?? null);
 
+/** Waits for the browser to draw a few frames, so the game has read every key pressed so far. */
+async function nextFrames(page: Page, n = 3): Promise<void> {
+  await page.evaluate(async (count) => {
+    for (let i = 0; i < count; i++) await new Promise((r) => requestAnimationFrame(r));
+  }, n);
+}
+
 async function openSection(page: Page, key: string): Promise<void> {
   await startGame(page); // START is a key press, which unlocks audio in the browser
   await page.evaluate((k) => window.__contro?.startLevel(k), key);
@@ -65,6 +72,9 @@ test('MUSIC and EFFECTS on the pause menu set each volume, and they stay after a
     await page.keyboard.press('ArrowLeft');
     await expect.poll(async () => (await sound(page))?.musicLevel).toBe(level);
   }
+  // The last Left changed nothing, so the check above can pass before the game has read it:
+  // let the game run a few frames, or Right lands in the same frame and Left wins.
+  await nextFrames(page);
   await page.keyboard.press('ArrowRight');
   await expect.poll(async () => (await sound(page))?.musicLevel).toBe(1);
   // EFFECTS: choosing steps it up, from HIGH round to OFF.

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { WEAPON } from '../../src/config/tuning';
 import { level, startGame, waitGameTime, watchPage } from './watch';
 
 async function openLevel(page: Page): Promise<void> {
@@ -8,7 +9,10 @@ async function openLevel(page: Page): Promise<void> {
 
 /** Fires one shot (a tap) and returns where it started. */
 async function shoot(page: Page) {
-  const before = (await level(page)).bullets.fired;
+  // A tap sooner than tapMinMs after the last shot is ignored. Under load the game clock runs
+  // slowly, so let that much game time pass first.
+  const now = await level(page);
+  const before = (await waitGameTime(page, now.timeMs, WEAPON.tapMinMs)).bullets.fired;
   await page.keyboard.press('KeyX');
   await expect.poll(async () => (await level(page)).bullets.fired).toBe(before + 1);
   const shot = (await level(page)).bullets.lastShot;
