@@ -2,6 +2,8 @@
  * Saved data (ARCHITECTURE.md ADR-C08): one versioned localStorage key. Reading is defensive:
  * anything missing, corrupt or from another version falls back to the defaults.
  */
+import { MAX_VOLUME } from './volume';
+
 export const SAVE_KEY = 'contro.save.v1';
 
 export interface SaveData {
@@ -12,11 +14,28 @@ export interface SaveData {
    * such field and read as 1, so they keep their best score.
    */
   furthestLevel: number;
-  /** Sound on or off (M3.6, the pause menu's SOUND option). Older saves read as on. */
-  soundOn: boolean;
+  /**
+   * Music and effects volume, 0 (OFF) to 3 (HIGH) (M6.2). Saves from before (M3.6's sound on
+   * or off) read as HIGH, or OFF if the sound was off.
+   */
+  musicLevel: number;
+  sfxLevel: number;
 }
 
-export const DEFAULT_SAVE: SaveData = { version: 1, bestScore: 0, furthestLevel: 1, soundOn: true };
+export const DEFAULT_SAVE: SaveData = {
+  version: 1,
+  bestScore: 0,
+  furthestLevel: 1,
+  musicLevel: MAX_VOLUME,
+  sfxLevel: MAX_VOLUME,
+};
+
+/** A volume level 0–MAX_VOLUME, or `fallback` for anything else. */
+function volumeLevel(value: unknown, fallback: number): number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= MAX_VOLUME
+    ? value
+    : fallback;
+}
 
 /** A whole number at least `min`, or `fallback` for anything else. */
 function wholeAtLeast(value: unknown, min: number, fallback: number): number {
@@ -36,11 +55,14 @@ export function parseSave(raw: string | null): SaveData {
   if (typeof data !== 'object' || data === null) return DEFAULT_SAVE;
   const d = data as Record<string, unknown>;
   if (d['version'] !== 1) return DEFAULT_SAVE;
+  // An older save's sound switch: off means both volumes off.
+  const legacy = d['soundOn'] === false ? 0 : MAX_VOLUME;
   return {
     version: 1,
     bestScore: wholeAtLeast(d['bestScore'], 0, 0),
     furthestLevel: wholeAtLeast(d['furthestLevel'], 1, 1),
-    soundOn: d['soundOn'] !== false,
+    musicLevel: volumeLevel(d['musicLevel'], legacy),
+    sfxLevel: volumeLevel(d['sfxLevel'], legacy),
   };
 }
 
