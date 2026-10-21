@@ -307,3 +307,12 @@ export const BASE = {
   /** The run's seed for walker lanes; each room adds its number. */
   seed: 31,
 } as const;
+
+/** The ending and credits (M5.4). */
+export const ENDING = {
+  /** The ending screen shows this long before the credits start (any press skips ahead). */
+  holdMs: 6000,
+  /** Credits scroll speed, px/s, and the gap between lines. */
+  scrollSpeed: 20,
+  lineHeight: 12,
+} as const;
