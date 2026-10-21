@@ -13,7 +13,7 @@
 | M3 Level 1 Industrial (vertical slice) | Done (the owner beat Level 1, 2026-10-20) |
 | M4 Level 2 Cyberpunk Corridor | Done: live 2026-10-20 (mech eased after the owner's first play) |
 | M5 Level 3 Alien Hive | Done (the owner beat the game, 2026-10-21) |
-| M6 Polish and v1.0 release | In progress |
+| M6 Polish and v1.0 release | Done: v1.0 live 2026-10-21 (release `20261021T063800Z-c00244fa`, tag `v1.0`) |
 
 ## Risks driving this order
 
@@ -148,6 +148,6 @@ Owner decisions 2026-10-20, from mockups: **into the hive** (3-1 and 3-2 in the 
 - [x] M6.3 Frame-rate check across all bosses; full playthrough in Chrome and Firefox with no console errors: `tests/e2e/game.spec.ts` plays the whole game from START to the end screen (all 18 sections, all 7 cards) in both browsers with no console errors or third-party requests, and records each boss fight's frame rate (2026-10-21, headless Chromium: tank 59–60, mech 59–60, demon 60–61 fps). The owner confirmed 60 fps on their own device earlier (M3)
 - [x] M6.4 Final portal card image; portal PR changing status to `live`: the card was already `live`; the owner chose a new v1.0 image (the demon in the hive, 2026-10-21), merged in games-portal #32 and released with the owner's one-time approval (portal release `20261021T020122Z-c1b51d69`; smoke test and production check with ZAP passed)
 - [x] M6.5 Final security review (2026-10-21): dependencies (`npm audit` 0 vulnerabilities at every level after vite 8.3.3, #77; no Dependabot alerts), CodeQL (no open alerts), secret scan (no open GitHub alerts; gitleaks over the full history passes in CI on every run), ZAP (staging on GitHub Pages: only header findings Pages can't fix; production: no high or medium findings, only low COOP/COEP and a harmless number in the bundle). Owner decisions: keep HTTP for v1.0 (ADR-010 stands; no logins, payments or personal data) and leave out COOP/COEP, which browsers ignore over HTTP (and Chrome logs an error for COOP); add them with HTTPS if the site moves to it
-- [ ] M6.6 Release v1.0 — *needs approval*; ZAP and smoke test on production; tag `v1.0`
+- [x] M6.6 Release v1.0 (owner approved 2026-10-21): release `20261021T063800Z-c00244fa` of `c00244f` (main through #94), all 345 e2e tests and the release tests passed, smoke test passed, production check passed (smoke test from outside and ZAP baseline of production), tagged `v1.0`
 
 **Acceptance criteria:** the owner signs off; production serves v1.0 with security headers; post-release scan clean.
