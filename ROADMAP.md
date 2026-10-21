@@ -13,7 +13,7 @@
 | M3 Level 1 Industrial (vertical slice) | Done (the owner beat Level 1, 2026-10-20) |
 | M4 Level 2 Cyberpunk Corridor | Done: live 2026-10-20 (mech eased after the owner's first play) |
 | M5 Level 3 Alien Hive | Done (the owner beat the game, 2026-10-21) |
-| M6 Polish and v1.0 release | Done: v1.0 live 2026-10-21 (release `20261021T063800Z-c00244fa`, tag `v1.0`) |
+| M6 Polish and v1.0 release | Done: v1.0 live 2026-10-21 (release `20261021T063800Z-c00244fa`, tag `v1.0`), signed off by the owner 2026-10-21 |
 
 ## Risks driving this order
 
