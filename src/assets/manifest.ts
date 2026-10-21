@@ -293,6 +293,7 @@ export const SOUND_KEYS = [
   'music-level-1',
   'music-level-2',
   'music-level-3',
+  'music-ending',
   'music-boss',
 ] as const;
 export type SoundKey = (typeof SOUND_KEYS)[number];
