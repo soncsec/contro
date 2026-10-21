@@ -12,7 +12,8 @@ describe('furthest level reached (M3.5)', () => {
       version: 1,
       bestScore: 900,
       furthestLevel: 1,
-      soundOn: true,
+      musicLevel: 3,
+      sfxLevel: 3,
     });
   });
 
@@ -30,12 +31,27 @@ describe('furthest level reached (M3.5)', () => {
   });
 });
 
-describe('sound setting (M3.6)', () => {
-  it('is on unless the save says off', () => {
-    expect(DEFAULT_SAVE.soundOn).toBe(true);
-    expect(parseSave('{"version":1,"bestScore":0}').soundOn).toBe(true);
-    expect(parseSave('{"version":1,"bestScore":0,"soundOn":false}').soundOn).toBe(false);
-    expect(parseSave('{"version":1,"bestScore":0,"soundOn":"no"}').soundOn).toBe(true);
+describe('volume levels (M6.2)', () => {
+  it('start at HIGH, the normal loudness', () => {
+    expect(DEFAULT_SAVE).toMatchObject({ musicLevel: 3, sfxLevel: 3 });
+  });
+
+  it("keep an older save's sound switch: on reads as HIGH, off as OFF", () => {
+    expect(parseSave('{"version":1,"bestScore":0}')).toMatchObject({ musicLevel: 3, sfxLevel: 3 });
+    expect(parseSave('{"version":1,"bestScore":0,"soundOn":false}')).toMatchObject({
+      musicLevel: 0,
+      sfxLevel: 0,
+    });
+  });
+
+  it('read saved levels, and ignore bad ones', () => {
+    expect(parseSave('{"version":1,"bestScore":0,"musicLevel":1,"sfxLevel":2}')).toMatchObject({
+      musicLevel: 1,
+      sfxLevel: 2,
+    });
+    const bad = parseSave('{"version":1,"bestScore":0,"musicLevel":7,"sfxLevel":"loud"}');
+    expect(bad).toMatchObject({ musicLevel: 3, sfxLevel: 3 });
+    expect(parseSave('{"version":1,"bestScore":0,"musicLevel":1.5}').musicLevel).toBe(3);
   });
 });
 
