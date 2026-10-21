@@ -13,7 +13,7 @@
 | M3 Level 1 Industrial (vertical slice) | Done (the owner beat Level 1, 2026-10-20) |
 | M4 Level 2 Cyberpunk Corridor | Done: live 2026-10-20 (mech eased after the owner's first play) |
 | M5 Level 3 Alien Hive | In progress |
-| M6 Polish and v1.0 release | Not started |
+| M6 Polish and v1.0 release | In progress |
 
 ## Risks driving this order
 
@@ -143,8 +143,8 @@ Owner decisions 2026-10-20, from mockups: **into the hive** (3-1 and 3-2 in the 
 
 **Demonstrable result:** Contro v1.0 is live and listed on the portal.
 
-- [ ] M6.1 Difficulty balance pass from owner play-tests
-- [ ] M6.2 Settings: volume, fullscreen
+- [x] M6.1 Difficulty balance pass from owner play-tests: after beating the game the owner rated the difficulty "about right" (2026-10-21); the only change from play-testing was easing the mech (M4.4)
+- [x] M6.2 Settings (owner chose 2026-10-21): the pause menu's SOUND ON/OFF becomes MUSIC and EFFECTS volume, each OFF/LOW/MID/HIGH (left/right step, choosing cycles), saved (older saves keep their on/off as HIGH/OFF); a FULLSCREEN row for players without the F key
 - [ ] M6.3 Frame-rate check across all bosses; full playthrough in Chrome and Firefox with no console errors
 - [ ] M6.4 Final portal card image; portal PR changing status to `live`
 - [ ] M6.5 Final security review: dependencies, CodeQL, secret scan, ZAP on staging

@@ -148,7 +148,8 @@ test('a cheated run never sets a best score', async ({ page }) => {
     version: 1,
     bestScore: 300,
     furthestLevel: 1,
-    soundOn: true,
+    musicLevel: 3, // M6.2: volume levels replace the sound switch
+    sfxLevel: 3,
   });
 });
 

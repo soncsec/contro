@@ -64,7 +64,13 @@ describe('save data', () => {
   });
 
   it('round-trips', () => {
-    const data = { version: 1 as const, bestScore: 4200, furthestLevel: 2, soundOn: false };
+    const data = {
+      version: 1 as const,
+      bestScore: 4200,
+      furthestLevel: 2,
+      musicLevel: 1,
+      sfxLevel: 0,
+    };
     expect(parseSave(serializeSave(data))).toEqual(data);
   });
 
@@ -80,7 +86,8 @@ describe('save data', () => {
       version: 1,
       bestScore: 12,
       furthestLevel: 1,
-      soundOn: true,
+      musicLevel: 3,
+      sfxLevel: 3,
     });
   });
 });

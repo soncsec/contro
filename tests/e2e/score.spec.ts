@@ -34,7 +34,8 @@ test('destroying an alien scores its points, and the best score is saved', async
     version: 1,
     bestScore: 100,
     furthestLevel: 1,
-    soundOn: true,
+    musicLevel: 3, // M6.2: volume levels replace the sound switch
+    sfxLevel: 3,
   });
   expect(watched.errors).toEqual([]);
 });

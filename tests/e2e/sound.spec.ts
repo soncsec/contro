@@ -47,25 +47,35 @@ test('the tank fight switches to the boss music, which stops when the tank is de
   expect((await sound(page))?.recent).toContain('sfx-boss-blast');
 });
 
-test('SOUND on the pause menu turns sound off, and it stays off after a reload', async ({
+test('MUSIC and EFFECTS on the pause menu set each volume, and they stay after a reload', async ({
   page,
 }) => {
   await startGame(page);
-  expect((await sound(page))?.on).toBe(true);
+  expect(await sound(page)).toMatchObject({ on: true, musicLevel: 3, sfxLevel: 3 });
   await page.keyboard.press('Escape');
-  await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBe('RESUME');
+  const menu = () => page.evaluate(() => window.__contro?.pauseMenu() ?? null);
+  await expect.poll(menu).toBe('RESUME');
   // One press at a time: two presses in the same frame count as one.
+  for (const option of ['RESTART ROOM', 'MUSIC']) {
+    await page.keyboard.press('ArrowDown');
+    await expect.poll(menu).toBe(option);
+  }
+  // Left turns the music down a step at a time, stopping at OFF.
+  for (const level of [2, 1, 0, 0]) {
+    await page.keyboard.press('ArrowLeft');
+    await expect.poll(async () => (await sound(page))?.musicLevel).toBe(level);
+  }
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(async () => (await sound(page))?.musicLevel).toBe(1);
+  // EFFECTS: choosing steps it up, from HIGH round to OFF.
   await page.keyboard.press('ArrowDown');
-  await expect
-    .poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null))
-    .toBe('RESTART ROOM');
-  await page.keyboard.press('ArrowDown');
-  await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBe('SOUND');
+  await expect.poll(menu).toBe('EFFECTS');
   await page.keyboard.press('KeyX');
-  await expect.poll(async () => (await sound(page))?.on).toBe(false);
+  await expect.poll(async () => (await sound(page))?.sfxLevel).toBe(0);
+  expect((await sound(page))?.on).toBe(true); // the music is still on, low
 
   await page.reload();
   await expect.poll(async () => (await title(page))?.ready, { timeout: 15_000 }).toBe(true);
-  expect((await sound(page))?.on).toBe(false);
+  expect(await sound(page)).toMatchObject({ musicLevel: 1, sfxLevel: 0 });
   expect(await sceneKey(page)).toBe('Title');
 });
