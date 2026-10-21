@@ -84,3 +84,20 @@ test('it is too low for a standing shot: crouch to hit it; two hits, 150 points'
   await page.keyboard.up('ArrowDown');
   expect((await level(page)).score.score).toBe(before + 150);
 });
+
+test("a placed enemy's position is right at once, before the next frame", async ({ page }) => {
+  await startGame(page);
+  await expect.poll(async () => (await level(page)).player.onFloor).toBe(true);
+  // Place it and read it in the same call, so no frame runs in between: the body must already
+  // be where its box is (it used to lag by its box offset until the next physics step).
+  const x = await page.evaluate(() => {
+    window.__contro?.placeEnemy('spitting-snake', 220);
+    const snakes = window.__contro?.level()?.enemies.filter((e) => e.type === 'spitting-snake');
+    return snakes?.[snakes.length - 1]?.x ?? null;
+  });
+  expect(x).toBe(220);
+  // And it doesn't jump on the next frames either.
+  const s = await level(page);
+  await waitGameTime(page, s.timeMs, 300);
+  expect((await snake(page))?.x).toBe(220);
+});

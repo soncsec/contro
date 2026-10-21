@@ -17,6 +17,18 @@ import {
 
 type EnemySprite = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
 
+/**
+ * Puts a body where its sprite and (possibly mirrored) box are, straight away. Arcade only
+ * applies a new offset on its next step (and body.reset() ignores the offset), so until then
+ * the body, and the position tests read, would lag by the offset. Its previous positions move
+ * with it, or that next step would shift the sprite by the difference.
+ */
+function syncBody(body: Phaser.Physics.Arcade.Body): void {
+  body.updateFromGameObject();
+  body.prev.copy(body.position);
+  body.prevFrame.copy(body.position);
+}
+
 /** Flyers in a room start their shooting and diving this far apart, so they don't act together. */
 const FLYER_STAGGER_MS = 700;
 
@@ -120,9 +132,7 @@ export class Enemies {
       runner: false,
     };
     this.face(record);
-    // Move the body to where the box now is: Arcade only applies a new offset on its next
-    // step, so until then the body (and the position tests read) lags by the offset.
-    sprite.body.reset(spawn.x, y);
+    syncBody(sprite.body);
     this.paint(record);
     sprite.setData('record', record);
     this.records.push(record);
@@ -165,8 +175,7 @@ export class Enemies {
     r.direction = order.direction;
     r.sprite.play(animKey(stats.walkSheet));
     this.face(r);
-    // As in place(): put the body where its (possibly mirrored) box now is.
-    r.sprite.body.reset(order.x, y);
+    syncBody(r.sprite.body);
     this.paint(r);
     this.runnersSpawned++;
   }
