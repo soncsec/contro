@@ -11,8 +11,8 @@ on:
 permissions:
   contents: read
 
-# Save Actions minutes (owner, 2026-10-21): a newer push to a PR (or a branch update) cancels
-# the PR's older run. Runs on main are never cancelled.
+# A newer push to a PR (or a branch update) cancels the PR's older run, which can't be merged
+# anyway. Runs on main are never cancelled.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -107,23 +107,13 @@ jobs:
       - name: Security build check (no test hook, inline code or other hosts)
         run: npm run check:build
 
-      # PRs test in Chromium only, main in Chromium and Firefox (saves Actions minutes; owner,
-      # 2026-10-21). Every release also runs the full suite in both browsers before deploying.
       - name: Install Playwright browsers (version from the lockfile)
         if: steps.changes.outputs.docs_only != 'true'
-        env:
-          EVENT: ${{ github.event_name }}
-        run: |
-          if [ "$EVENT" = pull_request ]; then npx playwright install --with-deps chromium
-          else npx playwright install --with-deps chromium firefox; fi
+        run: npx playwright install --with-deps chromium firefox
 
-      - name: End-to-end tests (Chromium on PRs; Chromium and Firefox on main)
+      - name: End-to-end tests (Chromium and Firefox)
         if: steps.changes.outputs.docs_only != 'true'
-        env:
-          EVENT: ${{ github.event_name }}
-        run: |
-          if [ "$EVENT" = pull_request ]; then npm run test:e2e -- --project=chromium
-          else npm run test:e2e; fi
+        run: npm run test:e2e
 
       - name: Upload Playwright report on failure
         if: failure()
