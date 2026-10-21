@@ -147,7 +147,7 @@ Owner decisions 2026-10-20, from mockups: **into the hive** (3-1 and 3-2 in the 
 - [ ] M6.2 Settings: volume, fullscreen
 - [ ] M6.3 Frame-rate check across all bosses; full playthrough in Chrome and Firefox with no console errors
 - [ ] M6.4 Final portal card image; portal PR changing status to `live`
-- [ ] M6.5 Final security review: dependencies, CodeQL, secret scan, ZAP on staging
+- [x] M6.5 Final security review (2026-10-21): dependencies (`npm audit` 0 vulnerabilities at every level after vite 8.3.3, #77; no Dependabot alerts), CodeQL (no open alerts), secret scan (no open GitHub alerts; gitleaks over the full history passes in CI on every run), ZAP (staging on GitHub Pages: only header findings Pages can't fix; production: no high or medium findings, only low COOP/COEP and a harmless number in the bundle). Owner decisions: keep HTTP for v1.0 (ADR-010 stands; no logins, payments or personal data) and leave out COOP/COEP, which browsers ignore over HTTP (and Chrome logs an error for COOP); add them with HTTPS if the site moves to it
 - [ ] M6.6 Release v1.0 — *needs approval*; ZAP and smoke test on production; tag `v1.0`
 
 **Acceptance criteria:** the owner signs off; production serves v1.0 with security headers; post-release scan clean.
