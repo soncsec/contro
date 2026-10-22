@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { PICKUP_WEAPONS, WEAPONS, WEAPON_TYPES } from '../../src/data/weapons';
-import { fanVelocities, nextWeapon, podPosition, weaponAfterDeath } from '../../src/logic/pickups';
+import {
+  PICKUPS,
+  PICKUP_IMAGES,
+  PICKUP_WEAPONS,
+  RAPID,
+  WEAPONS,
+  WEAPON_TYPES,
+} from '../../src/data/weapons';
+import {
+  fanVelocities,
+  nextWeapon,
+  podPosition,
+  weaponAfterDeath,
+  withRapid,
+} from '../../src/logic/pickups';
+import { stepWeapon, initialWeapon } from '../../src/logic/weapon';
 
 describe('weapon data (M4.1)', () => {
   it('has the rifle and the two approved pickups', () => {
@@ -73,5 +87,51 @@ describe('nextWeapon (the GUNNY cheat)', () => {
     expect(nextWeapon('rifle', WEAPON_TYPES)).toBe('machine-gun');
     expect(nextWeapon('machine-gun', WEAPON_TYPES)).toBe('spread');
     expect(nextWeapon('spread', WEAPON_TYPES)).toBe('rifle');
+  });
+});
+
+describe('R, rapid fire (M7.1)', () => {
+  it('is a blimp pickup with its own image, letter and colour', () => {
+    expect(PICKUPS).toContain('rapid');
+    expect(PICKUP_IMAGES.rapid).toBe('pickup-rapid');
+    expect(RAPID.letter).toBe('R');
+    const weaponColours = WEAPON_TYPES.map((t) => WEAPONS[t].color);
+    expect(weaponColours).not.toContain(RAPID.color);
+  });
+
+  it('makes the rifle and the spread fire while held, at their own rate', () => {
+    for (const type of ['rifle', 'spread'] as const) {
+      const rules = withRapid(WEAPONS[type], true);
+      expect(rules.autoFire).toBe(true);
+      expect(rules.autoIntervalMs).toBe(WEAPONS[type].autoIntervalMs);
+      expect(rules.tapMinMs).toBe(WEAPONS[type].tapMinMs);
+    }
+  });
+
+  it('adds nothing to the machine gun, and nothing without R', () => {
+    expect(withRapid(WEAPONS['machine-gun'], true)).toBe(WEAPONS['machine-gun']);
+    expect(withRapid(WEAPONS.rifle, false)).toBe(WEAPONS.rifle);
+    expect(WEAPONS.rifle.autoFire).toBe(false); // the data itself is unchanged
+  });
+
+  it('with R, holding fire with the rifle fires again every autoIntervalMs', () => {
+    const rules = withRapid(WEAPONS.rifle, true);
+    let state = stepWeapon(initialWeapon(), true, true, 16, rules).state;
+    let shots = 1;
+    for (let t = 16; t < 1000; t += 16) {
+      const step = stepWeapon(state, true, false, 16, rules);
+      state = step.state;
+      if (step.fired) shots++;
+    }
+    expect(shots).toBe(Math.floor(1000 / WEAPONS.rifle.autoIntervalMs) + 1);
+    // Without R, the same hold fires only the first shot.
+    let plain = stepWeapon(initialWeapon(), true, true, 16, WEAPONS.rifle).state;
+    let more = 0;
+    for (let t = 16; t < 1000; t += 16) {
+      const step = stepWeapon(plain, true, false, 16, WEAPONS.rifle);
+      plain = step.state;
+      if (step.fired) more++;
+    }
+    expect(more).toBe(0);
   });
 });

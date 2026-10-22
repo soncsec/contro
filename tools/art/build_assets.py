@@ -100,6 +100,7 @@ ASSETS = [
     ("assets/effects/pickup-machine-gun.png", "", "draw:letter-M"),
     ("assets/effects/pickup-spread.png", "", "draw:letter-S"),
     ("assets/effects/pickup-health.png", "", "draw:letter-+"),
+    ("assets/effects/pickup-rapid.png", "", "draw:letter-R"),
     # Level 2, the Neon District (owner chose option A, 2026-10-19): tileset and skyline
     ("assets/levels/neon/tileset.png", "Warped/Environments", "neon"),
     ("assets/levels/corridor/props.png", "Warped/Environments/cyberpunk-detective-props/PNG", "props"),
@@ -202,7 +203,8 @@ def build() -> list[tuple[str, str, str]]:
         elif how.startswith("draw:letter-"):
             letter = how.split("-", 1)[1]
             png.write(str(dest), letters.build(letter))
-            rows.append((out, "—", f"*drawn by Claude* (`tools/art/letters.py`): the {letter} pickup, in the style of Press Start 2P (owner approved 2026-10-19)"))
+            when = "owner request 2026-10-21" if letter == "R" else "owner approved 2026-10-19"
+            rows.append((out, "—", f"*drawn by Claude* (`tools/art/letters.py`): the {letter} pickup, in the style of Press Start 2P ({when})"))
         elif how == "props":
             png.write(str(dest), props.build(str(source)))
             rows.append((out, f"{src}/cryo-pod.png, server-gabinetes.png, small-terminal.png", "*derived*: three props placed on a 16 px grid, bottom-aligned, pixels unchanged (`tools/art/props.py`)"))

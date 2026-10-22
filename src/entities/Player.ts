@@ -31,7 +31,7 @@ import {
   type StepEvent,
 } from '../logic/health';
 import { weaponForFrame } from '../logic/touch';
-import { weaponAfterDeath } from '../logic/pickups';
+import { weaponAfterDeath, withRapid } from '../logic/pickups';
 import { initialWeapon, stepWeapon, type WeaponState } from '../logic/weapon';
 
 const ANIM_SHEETS: Readonly<Record<MarineAnim, string>> = {
@@ -80,6 +80,8 @@ export interface PlayerSnapshot {
   jumpPeakFeetY: number | null;
   /** The weapon in hand (M4.1). */
   weapon: WeaponType;
+  /** R, rapid fire, collected (M7.1). */
+  rapid: boolean;
 }
 
 /** What happened to the player this frame. */
@@ -132,6 +134,8 @@ export class Player {
     hp: number = HEALTH.maxHp,
     /** The weapon carried in from the previous section (M4.1). */
     public weaponType: WeaponType = 'rifle',
+    /** R, rapid fire, carried in from the previous section (M7.1). */
+    public rapid = false,
   ) {
     // Health carries over from the previous room (M2.13), kept within 1..maxHp.
     this.health = { ...initialHealth(HEALTH), lives, hp: Math.min(HEALTH.maxHp, Math.max(1, hp)) };
@@ -199,6 +203,7 @@ export class Player {
     this.weapon = initialWeapon();
     // Losing a life loses the pickup: back to the rifle (owner decision 2026-10-19).
     this.weaponType = weaponAfterDeath();
+    this.rapid = false; // and R with it (owner decision 2026-10-21)
     this.crouching = false;
     this.aim = 'forward';
     this.dropMs = 0;
@@ -280,7 +285,7 @@ export class Player {
     this.aim = stance.aim;
 
     const rules = weaponForFrame(
-      WEAPONS[this.weaponType],
+      withRapid(WEAPONS[this.weaponType], this.rapid),
       input.autoFire === true,
       TOUCH.autoFireMs,
     );
@@ -346,6 +351,7 @@ export class Player {
       airJumpsLeft: this.movement.airJumpsLeft,
       jumpPeakFeetY: Number.isFinite(this.jumpPeakFeetY) ? Math.round(this.jumpPeakFeetY) : null,
       weapon: this.weaponType,
+      rapid: this.rapid,
     };
   }
 

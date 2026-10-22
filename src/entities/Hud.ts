@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { FONT, GAME_WIDTH, HEALTH } from '../config/tuning';
-import { WEAPONS, type WeaponType } from '../data/weapons';
+import { RAPID, WEAPONS, type WeaponType } from '../data/weapons';
 import { formatScore } from '../logic/score';
 
 const PIP = { width: 6, height: 4, gap: 2 } as const;
@@ -24,6 +24,8 @@ export class Hud {
   private readonly lives: Phaser.GameObjects.Text;
   /** The pickup weapon in hand, as its letter after the lives (M4.1); empty for the rifle. */
   private readonly weapon: Phaser.GameObjects.Text;
+  /** R after the weapon letter while rapid fire is held (M7.1). */
+  private readonly rapid: Phaser.GameObjects.Text;
   private readonly score: Phaser.GameObjects.Text;
   private readonly best: Phaser.GameObjects.Text;
   private readonly cheat: Phaser.GameObjects.Text;
@@ -60,6 +62,15 @@ export class Hud {
       .text(0, ORIGIN.y - 3, '', { fontFamily: FONT.family, fontSize: FONT.size })
       .setScrollFactor(0)
       .setDepth(DEPTH);
+    this.rapid = scene.add
+      .text(0, ORIGIN.y - 3, RAPID.letter, {
+        fontFamily: FONT.family,
+        fontSize: FONT.size,
+        color: RAPID.color,
+      })
+      .setScrollFactor(0)
+      .setDepth(DEPTH)
+      .setVisible(false);
     const right = GAME_WIDTH - ORIGIN.x;
     const style = { fontFamily: FONT.family, fontSize: FONT.size, color: COLORS.text };
     this.score = scene.add
@@ -121,6 +132,7 @@ export class Hud {
     best: number,
     cheated: boolean,
     weapon: WeaponType = 'rifle',
+    rapid = false,
   ): void {
     this.cheat.setVisible(cheated);
     this.pips.forEach((pip, i) => pip.setFillStyle(i < hp ? COLORS.full : COLORS.empty));
@@ -130,6 +142,8 @@ export class Hud {
       .setText(stats.pickup ? stats.letter : '')
       .setColor(stats.color)
       .setX(this.lives.x + this.lives.width + 6);
+    const afterWeapon = this.weapon.text ? this.weapon.x + this.weapon.width + 2 : this.weapon.x;
+    this.rapid.setVisible(rapid).setX(afterWeapon);
     this.score.setText(formatScore(score));
     this.best.setText(`HI ${formatScore(best)}`);
   }

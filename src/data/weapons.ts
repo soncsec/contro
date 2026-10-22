@@ -69,16 +69,25 @@ export const WEAPONS: Readonly<Record<WeaponType, WeaponStats>> = {
 };
 
 /**
- * What a blimp can carry (M4.1): a weapon, or a full-health restore (owner request
- * 2026-10-19). Each drops as its own pickup image.
+ * What a blimp can carry (M4.1): a weapon, a full-health restore (owner request 2026-10-19),
+ * or R, rapid fire (M7.1). Each drops as its own pickup image.
  */
-export const PICKUPS = ['machine-gun', 'spread', 'health'] as const;
+export const PICKUPS = ['machine-gun', 'spread', 'health', 'rapid'] as const;
 export type PickupKind = (typeof PICKUPS)[number];
 export const PICKUP_IMAGES: Readonly<Record<PickupKind, string>> = {
   'machine-gun': 'pickup-machine-gun',
   spread: 'pickup-spread',
   health: 'pickup-health',
+  rapid: 'pickup-rapid',
 };
+
+/**
+ * R, rapid fire (M7.1, owner request 2026-10-21): whatever weapon he holds keeps firing while
+ * fire is held, at that weapon's own autoIntervalMs. It stays when he picks up another weapon
+ * and carries into the next section; losing a life loses it. The machine gun already fires
+ * while held, so R adds nothing to it.
+ */
+export const RAPID = { letter: 'R', color: '#4fb3ff' } as const;
 
 /** The bullet pool is as big as the largest weapon needs. */
 export const MAX_BULLETS = Math.max(...WEAPON_TYPES.map((t) => WEAPONS[t].maxBullets));

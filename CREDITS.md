@@ -49,6 +49,7 @@ Only the files Contro uses are copied from the shared `legacy/` folder into `pub
 | `assets/effects/pickup-machine-gun.png` | `—` | *drawn by Claude* (`tools/art/letters.py`): the M pickup, in the style of Press Start 2P (owner approved 2026-10-19) |
 | `assets/effects/pickup-spread.png` | `—` | *drawn by Claude* (`tools/art/letters.py`): the S pickup, in the style of Press Start 2P (owner approved 2026-10-19) |
 | `assets/effects/pickup-health.png` | `—` | *drawn by Claude* (`tools/art/letters.py`): the + pickup, in the style of Press Start 2P (owner approved 2026-10-19) |
+| `assets/effects/pickup-rapid.png` | `—` | *drawn by Claude* (`tools/art/letters.py`): the R pickup, in the style of Press Start 2P (owner request 2026-10-21) |
 | `assets/levels/neon/tileset.png` | `Warped/Environments/sci-fi-interior-platform/PNG/tile-set-sci-fi-interior-platform.png, Scifi lab Files/layers/*.png` | *derived*: the platform tiles' ledge strip and lattice cut and repeated as floor, face and walkway; the lab's three layers flattened as the wall; pit tiles *drawn by Claude* in the lattice's colours (`tools/art/neon.py`) |
 | `assets/levels/corridor/props.png` | `Warped/Environments/cyberpunk-detective-props/PNG/cryo-pod.png, server-gabinetes.png, small-terminal.png` | *derived*: three props placed on a 16 px grid, bottom-aligned, pixels unchanged (`tools/art/props.py`) |
 | `assets/levels/neon/sky.png` | `Warped/Environments/Synth City/city skyline/Layers/back.png` | unchanged |

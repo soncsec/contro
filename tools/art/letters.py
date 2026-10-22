@@ -1,4 +1,5 @@
-"""Draws the pickups (M4.1): M for the machine gun, S for the spread, + (a red cross) for health.
+"""Draws the pickups (M4.1): M for the machine gun, S for the spread, + (a red cross) for health,
+and R for rapid fire (M7.1, 2026-10-21).
 
 Drawn by Claude for Contro (owner approved 2026-10-19): an 8×8 glyph in the style of the game's
 Press Start 2P font, doubled to 16×16, filled with the weapon's colour in three shades from the
@@ -19,6 +20,7 @@ OUTL = hx("#07080b")
 GLYPHS = {
     "M": ["XX...XX.", "XXX.XXX.", "XXXXXXX.", "XX.X.XX.", "XX...XX.", "XX...XX.", "XX...XX.", "........"],
     "S": [".XXXXX..", "XX...XX.", "XX......", ".XXXXX..", ".....XX.", "XX...XX.", ".XXXXX..", "........"],
+    "R": ["XXXXXX..", "XX...XX.", "XX...XX.", "XX..XXX.", "XXXXX...", "XX.XXX..", "XX..XXX.", "........"],
     # Health (owner chose a red cross, 2026-10-19).
     "+": ["..XXX...", "..XXX...", "XXXXXXX.", "XXXXXXX.", "XXXXXXX.", "..XXX...", "..XXX...", "........"],
 }
@@ -27,6 +29,7 @@ COLOURS = {
     "M": (hx("#7dfcb8"), hx("#22c77f"), hx("#108a55")),
     "S": (hx("#ff8f7a"), hx("#e0452f"), hx("#99231a")),
     "+": (hx("#ff6b6b"), hx("#e5191c"), hx("#8f0c10")),
+    "R": (hx("#a8dcff"), hx("#4fb3ff"), hx("#1f6fae")),
 }
 
 

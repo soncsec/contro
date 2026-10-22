@@ -14,7 +14,7 @@ Layouts are in LAYOUTS below. A layout gives the width in tiles and lists, in 16
   snakes     spitting snakes (M5.1) by tile column, like walkers: on the walkway, raised
              ledge or ground there ("Ng" for the ground under a walkway)
   blimps     (column, y px, carries, "left"|"right"): a blimp carrying a pickup ("machine-gun",
-             "spread" or "health") that flies in from that edge of the screen once the column
+             "spread", "health" or "rapid") that flies in from that edge of the screen once the column
              scrolls into view (M4.1)
   spawners   (column, count, every ms, "left"|"right"): runners sent in from that edge of the
              screen once the column scrolls into view (M3.14); the column must be ground
@@ -152,7 +152,7 @@ LAYOUTS = {
                     140, 148, 156, 164],
         "flyers": [(26, 44), (50, 36), (72, 40), (100, 34), (122, 44), (146, 38)],
         "spawners": [(44, 3, 1000, "right"), (110, 3, 1000, "right"), (150, 3, 1200, "left")],
-        "blimps": [(36, 48, "machine-gun", "right"), (120, 52, "health", "right")],
+        "blimps": [(36, 48, "rapid", "right"), (120, 52, "health", "right")],
         "bipeds": [89],
         "checkpoints": [56, 100, 145],
         "start": 3,
@@ -212,7 +212,7 @@ LAYOUTS = {
         "flyers": [(40, 36), (88, 32), (124, 36), (160, 44)],
         "bipeds": [66, 138],
         "spawners": [(34, 3, 1000, "right"), (100, 3, 1000, "left"), (140, 3, 1100, "right")],
-        "blimps": [(46, 40, "machine-gun", "right"), (118, 40, "health", "right")],
+        "blimps": [(46, 40, "rapid", "right"), (118, 40, "health", "right")],
         "checkpoints": [36, 102, 136],
         "start": 3,
         "exit": 165,
@@ -296,7 +296,7 @@ LAYOUTS = {
         "flyers": [(30, 40), (64, 36), (98, 40), (132, 36), (160, 40)],
         "snakes": [16, 44, 51, 74, 111, 134, 159],
         "spawners": [(20, 3, 1000, "right"), (80, 4, 900, "left"), (126, 4, 900, "right")],
-        "blimps": [(36, 40, "spread", "right"), (110, 40, "health", "right")],
+        "blimps": [(36, 40, "rapid", "right"), (110, 40, "health", "right")],
         "checkpoints": [34, 96, 150],
         "start": 3,
         "exit": 165,
