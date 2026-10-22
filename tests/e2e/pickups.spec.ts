@@ -14,7 +14,10 @@ async function openLevel(page: Page): Promise<void> {
 }
 
 /** Sends a blimp, shoots it down, and walks into the letter. Resolves once it is collected. */
-async function collect(page: Page, carries: 'machine-gun' | 'spread' | 'health'): Promise<void> {
+async function collect(
+  page: Page,
+  carries: 'machine-gun' | 'spread' | 'health' | 'rapid',
+): Promise<void> {
   const s = await level(page);
   // Blimp hull centre at the barrel's height: forward shots start about 25 px above the feet.
   await page.evaluate(({ w, y }) => window.__contro?.spawnBlimp(w, y), {
@@ -41,7 +44,8 @@ async function collect(page: Page, carries: 'machine-gun' | 'spread' | 'health')
   await page.keyboard.down('ArrowRight');
   await expect.poll(async () => (await level(page)).pickups.length, { timeout: 30_000 }).toBe(0);
   await page.keyboard.up('ArrowRight');
-  if (carries !== 'health') expect((await level(page)).player.weapon).toBe(carries);
+  if (carries === 'rapid') expect((await level(page)).player.rapid).toBe(true);
+  else if (carries !== 'health') expect((await level(page)).player.weapon).toBe(carries);
 }
 
 /**
@@ -49,13 +53,13 @@ async function collect(page: Page, carries: 'machine-gun' | 'spread' | 'health')
  * the marine while a slow machine runs a test, and a hit stuns him so a fire press is ignored;
  * tests about weapons and pickups, not dodging, switch it on first.
  */
-async function iron(page: Page): Promise<void> {
+async function iron(page: Page, state: 'ON' | 'OFF' = 'ON'): Promise<void> {
   await page.keyboard.press('Escape');
   await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBe('RESUME');
   for (const k of ['KeyI', 'KeyR', 'KeyO', 'KeyN']) await page.keyboard.press(k);
   await expect
     .poll(() => page.evaluate(() => window.__contro?.cheatMessage() ?? null))
-    .toBe('INVINCIBLE ON');
+    .toBe(`INVINCIBLE ${state}`);
   await page.keyboard.press('Escape');
   await expect.poll(() => page.evaluate(() => window.__contro?.pauseMenu() ?? null)).toBeNull();
 }
@@ -125,6 +129,42 @@ test('holding fire with the machine gun keeps firing into the next section (M7.2
   const later = await waitGameTime(page, start.timeMs, 1000);
   expect(later.bullets.fired - start.bullets.fired).toBeGreaterThanOrEqual(3);
   await page.keyboard.up('KeyX');
+});
+
+test('R makes any weapon fire while held; it stays with a new weapon and the next section, and a lost life loses it (M7.1)', async ({
+  page,
+}) => {
+  const watched = watchPage(page);
+  await openLevel(page);
+  await iron(page);
+  await collect(page, 'rapid');
+  expect((await level(page)).player).toMatchObject({ weapon: 'rifle', rapid: true });
+
+  // Holding fire with the rifle keeps firing: one shot per autoIntervalMs of game time.
+  await page.keyboard.down('KeyX');
+  const start = await level(page);
+  const later = await waitGameTime(page, start.timeMs, 1000);
+  await page.keyboard.up('KeyX');
+  const expected = (later.timeMs - start.timeMs) / WEAPONS.rifle.autoIntervalMs;
+  // As for the machine gun: long frames on a loaded machine drop the rate a little.
+  expect(later.bullets.fired - start.bullets.fired).toBeGreaterThanOrEqual(
+    Math.floor(expected * 0.7),
+  );
+
+  // Picking up the spread keeps R. (Let the burst leave the screen first, or it shoots the
+  // next blimp down before the test sees it.)
+  await expect.poll(async () => (await level(page)).bullets.active, { timeout: 15_000 }).toBe(0);
+  await collect(page, 'spread');
+  expect((await level(page)).player).toMatchObject({ weapon: 'spread', rapid: true });
+  await nextSection(page);
+  expect((await level(page)).player).toMatchObject({ weapon: 'spread', rapid: true });
+
+  await iron(page, 'OFF');
+  await page.evaluate(() => window.__contro?.hurtPlayer(99));
+  await expect.poll(async () => (await level(page)).player.dead).toBe(true);
+  await expect.poll(async () => (await level(page)).player.dead, { timeout: 15_000 }).toBe(false);
+  expect((await level(page)).player).toMatchObject({ weapon: 'rifle', rapid: false });
+  expect(watched.errors).toEqual([]);
 });
 
 test('Level 1 section 1-3 sends a machine-gun blimp once its point is in view', async ({

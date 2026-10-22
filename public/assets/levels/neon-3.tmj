@@ -4494,7 +4494,7 @@
       {
        "name": "carries",
        "type": "string",
-       "value": "machine-gun"
+       "value": "rapid"
       },
       {
        "name": "from",

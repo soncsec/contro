@@ -157,7 +157,7 @@ Owner decisions 2026-10-20, from mockups: **into the hive** (3-1 and 3-2 in the 
 
 **Demonstrable result:** the owner's requests after playing v1.0 are live.
 
-- [ ] M7.1 R pickup (rapid fire): any weapon keeps firing while fire is held. It replaces one weapon blimp per level (1-4, 2-3, 3-3), lasts until a life is lost, and adds nothing to the machine gun, which already auto-fires
+- [x] M7.1 R pickup (rapid fire): any weapon keeps firing while fire is held. It replaces one weapon blimp per level (1-4, 2-3, 3-3), lasts until a life is lost, and adds nothing to the machine gun, which already auto-fires
 - [x] M7.2 Keys held through a stage's exit stay held in the next stage, so holding fire with the machine gun keeps firing there (held keys never count as a new press, so they can't skip a card)
 
 **Acceptance criteria:** each request works in the running game in Chrome and Firefox; the owner confirms.

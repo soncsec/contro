@@ -56,6 +56,8 @@ export interface RunState {
   continues?: number;
   /** The weapon in hand (M4.1); the rifle if missing. */
   weapon?: WeaponType;
+  /** R, rapid fire (M7.1); none if missing. */
+  rapid?: boolean;
 }
 
 export interface LevelSceneData {
@@ -248,6 +250,7 @@ export class LevelScene extends Phaser.Scene {
       this.runAtStart?.lives ?? HEALTH.lives,
       this.runAtStart?.hp ?? HEALTH.maxHp,
       this.runAtStart?.weapon ?? 'rifle',
+      this.runAtStart?.rapid ?? false,
     );
     this.player.invincible = this.cheats.invincible;
     this.player.onHurt = (result) =>
@@ -352,8 +355,10 @@ export class LevelScene extends Phaser.Scene {
       if (this.player.dead) return;
       const carries = this.blimps.collect(pickup as Phaser.GameObjects.GameObject);
       if (!carries) return;
-      // A health pickup restores full health (owner request 2026-10-19); a letter is a weapon.
+      // A health pickup restores full health (owner request 2026-10-19); R is rapid fire for
+      // any weapon (M7.1); another letter is a weapon.
       if (carries === 'health') this.player.restoreHealth();
+      else if (carries === 'rapid') this.player.rapid = true;
       else this.player.weaponType = carries;
       GameSound.play('sfx-extra-life');
     });
@@ -413,7 +418,15 @@ export class LevelScene extends Phaser.Scene {
       this.player.fall();
     }
     const p = this.player.snapshot();
-    this.hud.update(p.hp, p.lives, this.score.score, this.score.best, this.cheats.used, p.weapon);
+    this.hud.update(
+      p.hp,
+      p.lives,
+      this.score.score,
+      this.score.best,
+      this.cheats.used,
+      p.weapon,
+      p.rapid,
+    );
     this.bullets.update();
     const p0 = this.player.snapshot();
     // Enemies aim at the middle of the marine's body.
@@ -518,6 +531,7 @@ export class LevelScene extends Phaser.Scene {
       cheats: this.cheats,
       continues: this.continues,
       weapon: p.weapon,
+      rapid: p.rapid,
     };
   }
 

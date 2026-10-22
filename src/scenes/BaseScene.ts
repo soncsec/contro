@@ -48,7 +48,7 @@ import {
   visibleWhileInvulnerable,
   type HealthState,
 } from '../logic/health';
-import { nextWeapon, weaponAfterDeath } from '../logic/pickups';
+import { nextWeapon, weaponAfterDeath, withRapid } from '../logic/pickups';
 import { createRng, type Rng } from '../logic/rng';
 import { reachLevel } from '../logic/save';
 import { addPoints, newRun, type ScoreState } from '../logic/score';
@@ -74,6 +74,7 @@ export interface BaseSnapshot {
   hp: number;
   lives: number;
   weapon: WeaponType;
+  rapid: boolean;
   shots: { active: number; fired: number };
   walkers: { x: number; z: number }[];
   walkersSent: number;
@@ -119,6 +120,8 @@ export class BaseScene extends Phaser.Scene {
   private health!: HealthState;
   private weapon: WeaponState = initialWeapon();
   private weaponType: WeaponType = 'rifle';
+  /** R, rapid fire (M7.1): carried in, kept until a life is lost. */
+  private rapid = false;
   private shots: BaseShot[] = [];
   private shotsFired = 0;
   private walkers: BaseWalker[] = [];
@@ -171,6 +174,7 @@ export class BaseScene extends Phaser.Scene {
       hp: data.run?.hp ?? HEALTH.maxHp,
     };
     this.weaponType = data.run?.weapon ?? 'rifle';
+    this.rapid = data.run?.rapid ?? false;
     this.weapon = initialWeapon();
     this.marine = initialMarine(P.centerX);
     this.shots = [];
@@ -247,9 +251,13 @@ export class BaseScene extends Phaser.Scene {
     );
     this.running = this.marine.x !== wasX;
 
-    // Firing: the weapon's own rate (and touch auto-fire), its bullets fanned into the room.
+    // Firing: the weapon's own rate (R and touch auto-fire), its bullets fanned into the room.
     const stats = WEAPONS[this.weaponType];
-    const rules = weaponForFrame(stats, input.autoFire === true, TOUCH.autoFireMs);
+    const rules = weaponForFrame(
+      withRapid(stats, this.rapid),
+      input.autoFire === true,
+      TOUCH.autoFireMs,
+    );
     const w = stepWeapon(
       this.weapon,
       controlled && input.held.fire,
@@ -269,6 +277,7 @@ export class BaseScene extends Phaser.Scene {
     if (h.event === 'respawn') {
       this.marine = initialMarine(P.centerX);
       this.weaponType = weaponAfterDeath();
+      this.rapid = false;
     } else if (h.event === 'game-over') {
       this.showGameOver();
     }
@@ -284,6 +293,7 @@ export class BaseScene extends Phaser.Scene {
       this.score.best,
       this.cheats.used,
       this.weaponType,
+      this.rapid,
     );
     this.draw();
   }
@@ -537,6 +547,7 @@ export class BaseScene extends Phaser.Scene {
       cheats: this.cheats,
       continues: this.continues,
       weapon: this.weaponType,
+      rapid: this.rapid,
     };
   }
 
@@ -633,6 +644,7 @@ export class BaseScene extends Phaser.Scene {
       hp: this.health.hp,
       lives: this.health.lives,
       weapon: this.weaponType,
+      rapid: this.rapid,
       shots: { active: this.shots.length, fired: this.shotsFired },
       walkers: this.walkers.map((w) => ({ x: Math.round(w.x), z: Math.round(w.z * 100) / 100 })),
       walkersSent: this.walkersSent,

@@ -43,6 +43,14 @@ export function podPosition(
   };
 }
 
+/**
+ * A weapon's rules with R, rapid fire (M7.1): it keeps firing while fire is held, at its own
+ * autoIntervalMs. Without R, or for a weapon that already does, the rules are unchanged.
+ */
+export function withRapid<T extends { autoFire: boolean }>(weapon: T, rapid: boolean): T {
+  return rapid && !weapon.autoFire ? { ...weapon, autoFire: true } : weapon;
+}
+
 /** The weapon the marine holds after losing a life: back to the rifle (owner decision). */
 export function weaponAfterDeath(): 'rifle' {
   return 'rifle';
