@@ -111,6 +111,22 @@ test('the weapon carries into the next section, and losing a life loses it', asy
   expect((await level(page)).player.weapon).toBe('rifle');
 });
 
+test('holding fire with the machine gun keeps firing into the next section (M7.2)', async ({
+  page,
+}) => {
+  await openLevel(page);
+  await iron(page);
+  await collect(page, 'machine-gun');
+  // Fire is held down through the exit and never pressed again.
+  await page.keyboard.down('KeyX');
+  await nextSection(page);
+  const start = await level(page);
+  expect(start.level).toBe('corridor-test-2');
+  const later = await waitGameTime(page, start.timeMs, 1000);
+  expect(later.bullets.fired - start.bullets.fired).toBeGreaterThanOrEqual(3);
+  await page.keyboard.up('KeyX');
+});
+
 test('Level 1 section 1-3 sends a machine-gun blimp once its point is in view', async ({
   page,
 }) => {

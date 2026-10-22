@@ -14,6 +14,7 @@
 | M4 Level 2 Cyberpunk Corridor | Done: live 2026-10-20 (mech eased after the owner's first play) |
 | M5 Level 3 Alien Hive | Done (the owner beat the game, 2026-10-21) |
 | M6 Polish and v1.0 release | Done: v1.0 live 2026-10-21 (release `20261021T063800Z-c00244fa`, tag `v1.0`), signed off by the owner 2026-10-21 |
+| M7 After v1.0 (owner requests) | In progress |
 
 ## Risks driving this order
 
@@ -151,3 +152,12 @@ Owner decisions 2026-10-20, from mockups: **into the hive** (3-1 and 3-2 in the 
 - [x] M6.6 Release v1.0 (owner approved 2026-10-21): release `20261021T063800Z-c00244fa` of `c00244f` (main through #94), all 345 e2e tests and the release tests passed, smoke test passed, production check passed (smoke test from outside and ZAP baseline of production), tagged `v1.0`
 
 **Acceptance criteria:** the owner signs off; production serves v1.0 with security headers; post-release scan clean.
+
+## M7 — After v1.0 (owner requests 2026-10-21)
+
+**Demonstrable result:** the owner's requests after playing v1.0 are live.
+
+- [ ] M7.1 R pickup (rapid fire): any weapon keeps firing while fire is held. It replaces one weapon blimp per level (1-4, 2-3, 3-3), lasts until a life is lost, and adds nothing to the machine gun, which already auto-fires
+- [x] M7.2 Keys held through a stage's exit stay held in the next stage, so holding fire with the machine gun keeps firing there (held keys never count as a new press, so they can't skip a card)
+
+**Acceptance criteria:** each request works in the running game in Chrome and Firefox; the owner confirms.
